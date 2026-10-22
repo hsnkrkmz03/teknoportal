@@ -44,14 +44,14 @@
                 <span>Merkezi Veritabanına Bağlanıyor...</span>
             </div>
 
-            <form id="login-form" onsubmit="handleLogin(event)">
+            <form id="login-form" onsubmit="handleLogin(event)" autocomplete="off">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Kullanıcı Adı</label>
-                    <input type="text" id="username" value="" placeholder="Kullanıcı adınızı giriniz" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="username" placeholder="Kullanıcı adınızı giriniz" autocomplete="off" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 <div class="mb-6">
                     <label class="block text-gray-700 text-sm font-semibold mb-2">Şifre</label>
-                    <input type="password" id="password" value="" placeholder="Şifrenizi giriniz" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="password" id="password" placeholder="Şifrenizi giriniz" autocomplete="new-password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
                 <div id="login-error" class="hidden mb-4 text-sm text-red-600 font-semibold text-center">
                     Kullanıcı adı veya şifre hatalı!
