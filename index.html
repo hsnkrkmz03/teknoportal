@@ -817,7 +817,7 @@
             }
         }
 
-        // MERKEZE VERİ KAYDETME (GARANTİLİ VERİ AKIŞI)
+       // MERKEZE VERİ KAYDETME (TAM UYUMLU DOĞRUDAN JSON AKIŞI)
 async function saveCentralData() {
     if (!APPS_SCRIPT_URL) return;
     try {
@@ -825,7 +825,7 @@ async function saveCentralData() {
         
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
+            mode: 'no-cors', // CORS engeline takılmaması için şarttır
             headers: { 
                 'Content-Type': 'text/plain;charset=utf-8' 
             },
