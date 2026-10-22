@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPKSEWEi3EHdxKITPaWwQXEphIoxKgcekgtVhO18XyKrWT2UHygbwaUznhwUwaoYxb/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykIv9xcBVgUsv34zKpFSyq6ZsuopNAUjDmJ1UEah8sKip1iiQC-ftQa9HJZZATlzII/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -767,7 +767,7 @@
 
         let occupancyChartInstance = null, revenueChartInstance = null, comparisonChartInstance = null, simulationChartInstance = null;
 
-        // --- MERKEZDEN VERİ ÇEKME (CORS & YÖNLENDİRME UYUMLU) ---
+        // --- MERKEZDEN VERİ ÇEKME (ZAMAN AŞIMI VE DÖNGÜ KORUMALI) ---
         window.onload = async function() {
             await fetchCentralData();
             setInterval(fetchCentralData, 15000); // 15 Saniyede bir arka planda güncelle
@@ -775,14 +775,20 @@
 
         async function fetchCentralData() {
             if (!APPS_SCRIPT_URL) return;
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
             try {
                 const statusEl = document.getElementById('cloud-sync-status');
                 
                 const res = await fetch(APPS_SCRIPT_URL, {
                     method: 'GET',
-                    redirect: 'follow'
+                    redirect: 'follow',
+                    signal: controller.signal
                 });
                 
+                clearTimeout(timeoutId);
                 const json = await res.json();
                 
                 if (json && json.data) {
@@ -801,7 +807,8 @@
                     renderAll();
                 }
             } catch (e) {
-                console.error("Merkezi veri çekme hatası:", e);
+                clearTimeout(timeoutId);
+                console.error("Merkezi veri çekme hatası / Zaman aşımı:", e);
                 const statusEl = document.getElementById('cloud-sync-status');
                 if(statusEl) {
                     statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Yerel Modda Çalışıyor`;
@@ -810,7 +817,7 @@
             }
         }
 
-        // --- MERKEZE VERİ KAYDETME (DÜZELTİLMİŞ & CORS UYUMLU) ---
+        // --- MERKEZE VERİ KAYDETME (CORS VE REDIRECT UYUMLU DÜZELTİLMİŞ KOD) ---
         async function saveCentralData() {
             if (!APPS_SCRIPT_URL) return;
             try {
@@ -821,7 +828,7 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: payload
                 });
-                console.log("Veriler başarıyla Google Drive veritabanına gönderildi.");
+                console.log("Veri paketlenme isteği Google Drive veritabanına iletildi.");
             } catch (e) {
                 console.error("Merkezi veri kaydetme hatası:", e);
             }
@@ -832,8 +839,8 @@
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
             
-            saveCentralData();
             renderAll();
+            saveCentralData();
         }
 
         function exportSystemJSON() {
