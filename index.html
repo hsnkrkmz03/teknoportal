@@ -767,10 +767,11 @@
 
         let occupancyChartInstance = null, revenueChartInstance = null, comparisonChartInstance = null, simulationChartInstance = null;
 
-        // --- MERKEZDEN VERİ ÇEKME (ZAMAN AŞIMI VE DÖNGÜ KORUMALI) ---
+        // --- MERKEZDEN VERİ ÇEKME (SADECE İLK AÇILIŞTA TEK SEFERLİK) ---
         window.onload = async function() {
             await fetchCentralData();
-            setInterval(fetchCentralData, 15000); // 15 Saniyede bir arka planda güncelle
+            // TEST AMACIYLA: setInterval(fetchCentralData, 15000) DÖNGÜSÜ PASİFE ALINDI.
+            // Arka plan otomatik çekimleri ekran verilerini sıfırlayamaz.
         };
 
         async function fetchCentralData() {
@@ -817,25 +818,26 @@
             }
         }
 
-       // MERKEZE VERİ KAYDETME (TAM UYUMLU DOĞRUDAN JSON AKIŞI)
-async function saveCentralData() {
-    if (!APPS_SCRIPT_URL) return;
-    try {
-        const payloadStr = JSON.stringify({ data, users, userNotes });
-        
-        await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 
-                'Content-Type': 'text/plain;charset=utf-8' 
-            },
-            body: payloadStr
-        });
-        console.log("Veriler Google Drive veritabanına iletildi.");
-    } catch (e) {
-        console.error("Merkezi veri kaydetme hatası:", e);
-    }
-}
+        // --- MERKEZE VERİ KAYDETME ---
+        async function saveCentralData() {
+            if (!APPS_SCRIPT_URL) return;
+            try {
+                const payloadStr = JSON.stringify({ data, users, userNotes });
+                
+                await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 
+                        'Content-Type': 'text/plain;charset=utf-8' 
+                    },
+                    body: payloadStr
+                });
+                console.log("Veriler Google Drive veritabanına iletildi.");
+            } catch (e) {
+                console.error("Merkezi veri kaydetme hatası:", e);
+            }
+        }
+
         function saveData() {
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
