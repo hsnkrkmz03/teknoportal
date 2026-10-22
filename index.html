@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyeFydMOJIyLqTodxaJmXceKWop51uqN9ZjZhy_obUCI7W1bjBxMUkm4Gzq5VMQzNo/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPeglmwsRjRw8pr8hvTKqm06Ehd1BQVkWtkh397SSY3nwurqpChgkCiSNHRT9RLqPa/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -825,7 +825,7 @@ async function saveCentralData() {
         
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // CORS engeline takılmaması için şarttır
+            mode: 'no-cors',
             headers: { 
                 'Content-Type': 'text/plain;charset=utf-8' 
             },
