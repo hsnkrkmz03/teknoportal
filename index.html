@@ -820,7 +820,6 @@
         const VAT_RATE = 0.20;
 
         // --- GOOGLE DRIVE API YAPILANDIRMASI ---
-        // AŞAĞIDAKİ CLIENT_ID ALANINA GOOGLE CLOUD CONSOLE'DAN ALDIĞINIZ İSTEMCİ KİMLİĞİNİ YAPIŞTIRIN
         const CLIENT_ID = '74490354167-tas6vdqben7um943t5dpstc7h488nsb9.apps.googleusercontent.com';
         const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
@@ -846,6 +845,23 @@
                 callback: '',
             });
             gisInited = true;
+            
+            // Eğer daha önceden oturum açılmışsa tazeleyerek sessizce tekrar bağlan
+            if (sessionStorage.getItem('drive_connected') === 'true') {
+                setTimeout(() => {
+                    tokenClient.callback = async (resp) => {
+                        if (!resp.error) {
+                            isDriveConnected = true;
+                            document.getElementById('signout_button').style.visibility = 'visible';
+                            document.getElementById('authorize_button').innerText = 'Google Drive Bağlandı';
+                            document.getElementById('drive-status').innerText = 'Drive durumu: Bulut Senkronizasyonu Aktif';
+                            document.getElementById('drive-status').className = 'mt-2 text-[11px] text-emerald-600 font-bold';
+                            await loadDataFromDrive();
+                        }
+                    };
+                    tokenClient.requestAccessToken({ prompt: '' });
+                }, 1000);
+            }
             maybeEnableAuthButton();
         }
 
@@ -858,6 +874,7 @@
         function handleAuthClick() {
             tokenClient.callback = async (resp) => {
                 if (resp.error) throw resp;
+                sessionStorage.setItem('drive_connected', 'true');
                 document.getElementById('signout_button').style.visibility = 'visible';
                 document.getElementById('authorize_button').innerText = 'Google Drive Bağlandı';
                 document.getElementById('drive-status').innerText = 'Drive durumu: Bulut Senkronizasyonu Aktif';
@@ -876,15 +893,16 @@
 
         function handleSignoutClick() {
             const token = gapi.client.getToken();
+            sessionStorage.removeItem('drive_connected');
             if (token !== null) {
                 google.accounts.oauth2.revoke(token.access_token);
                 gapi.client.setToken('');
-                document.getElementById('authorize_button').innerText = 'Google Drive Hesabını Bağla';
-                document.getElementById('signout_button').style.visibility = 'hidden';
-                document.getElementById('drive-status').innerText = 'Drive durumu: Bağlantı Kesildi (Yerel Mod)';
-                document.getElementById('drive-status').className = 'mt-2 text-[11px] text-gray-500 font-medium';
-                isDriveConnected = false;
             }
+            document.getElementById('authorize_button').innerText = 'Google Drive Hesabını Bağla';
+            document.getElementById('signout_button').style.visibility = 'hidden';
+            document.getElementById('drive-status').innerText = 'Drive durumu: Bağlantı Kesildi (Yerel Mod)';
+            document.getElementById('drive-status').className = 'mt-2 text-[11px] text-gray-500 font-medium';
+            isDriveConnected = false;
         }
 
         // Drive'dan veriyi çeker veya yoksa yeni dosya oluşturur
@@ -915,7 +933,6 @@
                         localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
                         renderAll();
-                        alert("Verileriniz Google Drive'dan başarıyla yüklendi!");
                     }
                 } else {
                     // Bulutta dosya yoksa mevcut veriyi Drive'a yükle
@@ -944,8 +961,12 @@
                     body: payload
                 });
             } else {
-                // Yeni Oluşturma (POST)
-                const metadata = { name: 'teknopark_data.json', mimeType: 'application/json' };
+                // Yeni Oluşturma (POST) - Doğrudan "Drive'ım" Kök Dizinine Koyar
+                const metadata = { 
+                    name: 'teknopark_data.json', 
+                    mimeType: 'application/json',
+                    parents: ['root']
+                };
                 const form = new FormData();
                 form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
                 form.append('file', new Blob([payload], { type: 'application/json' }));
@@ -1034,7 +1055,7 @@
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
             
-            // Eğer Drive bağlıysa Drive'a da arka planda senkronize et
+            // Eğer Drive bağlıysa değişiklik yapıldığı an otomatik senkronize et
             if (isDriveConnected) {
                 saveToDrive();
             }
