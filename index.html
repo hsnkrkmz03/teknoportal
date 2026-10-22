@@ -776,20 +776,32 @@
             await fetchCentralData();
         };
 
-     async function fetchCentralData() {
+    async function fetchCentralData() {
     if (!APPS_SCRIPT_URL) return;
 
     const statusEl = document.getElementById('cloud-sync-status');
+    if (statusEl) {
+        statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Merkezi Bulut Veritabanına Bağlanıyor...`;
+        statusEl.className = "mb-4 p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-center text-xs font-semibold text-blue-800";
+    }
 
     try {
-        // Timestamp ekleyerek önbelleği aş ve yönlendirmeleri izle
+        // Ön bellek sorununu (cache) aşmak için timestamp ekliyoruz
         const res = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
             method: 'GET',
             redirect: 'follow'
         });
         
         const textData = await res.text();
-        const json = JSON.parse(textData);
+        
+        // Yanıtın JSON olup olmadığını kontrol et
+        let json;
+        try {
+            json = JSON.parse(textData);
+        } catch (parseErr) {
+            console.error("Gelen yanıt JSON formatında değil:", textData);
+            throw new Error("Sunucudan geçersiz veri yapısı döndü.");
+        }
         
         if (json && json.data) {
             data = json.data;
@@ -805,14 +817,19 @@
                 statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
             }
             renderAll();
+        } else {
+            throw new Error("Gelen JSON yapısında 'data' alanı bulunamadı.");
         }
     } catch (e) {
         console.error("Merkezi veri çekme hatası:", e);
+        
+        // Takılı kalmayı engelleyen bildirim değişimi
         if(statusEl) {
-            statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1"></i> Yerel Mod (Buluta Erişilemedi)`;
+            statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1"></i> Buluta Erişilemedi (Yerel Veri Modu)`;
             statusEl.className = "mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-center text-xs font-semibold text-amber-800";
         }
-        // Bulut bağlantısı yoksa yerel yedekten yükle
+        
+        // Bağlantı başarısızsa yerel bellekteki en son yedeği yükle
         const localData = localStorage.getItem('teknoparkData');
         if (localData) {
             data = JSON.parse(localData);
