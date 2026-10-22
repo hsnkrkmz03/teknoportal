@@ -776,7 +776,7 @@
             await fetchCentralData();
         };
 
-    async function fetchCentralData() {
+  async function fetchCentralData() {
     if (!APPS_SCRIPT_URL) return;
 
     const statusEl = document.getElementById('cloud-sync-status');
@@ -786,27 +786,52 @@
     }
 
     try {
-        // Ön bellek sorununu (cache) aşmak için timestamp ekliyoruz
         const res = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
             method: 'GET',
             redirect: 'follow'
         });
         
-        const textData = await res.text();
+        let textData = await res.text();
         
-        // Yanıtın JSON olup olmadığını kontrol et
-        let json;
+        // 1. İlk Parse İşlemi
+        let parsedPayload;
         try {
-            json = JSON.parse(textData);
-        } catch (parseErr) {
-            console.error("Gelen yanıt JSON formatında değil:", textData);
-            throw new Error("Sunucudan geçersiz veri yapısı döndü.");
+            parsedPayload = JSON.parse(textData);
+        } catch (e) {
+            console.error("Gelen metin JSON'a dönüştürülemedi:", textData);
+            throw new Error("Geçersiz metin yapısı.");
         }
-        
-        if (json && json.data) {
-            data = json.data;
-            users = json.users || users;
-            userNotes = json.userNotes || userNotes;
+
+        // 2. Eğer dönen veri string olarak sarmallanmışsa ikinci parse
+        if (typeof parsedPayload === 'string') {
+            try {
+                parsedPayload = JSON.parse(parsedPayload);
+            } catch (e) {
+                console.warn("Çift parse denemesi es geçildi.");
+            }
+        }
+
+        // 3. Esnek Veri Yakalama (Akıllı Çözücü)
+        let targetData = null;
+        let targetUsers = null;
+        let targetNotes = null;
+
+        if (parsedPayload && parsedPayload.data) {
+            // Standart Yapı: { data: { campuses: [...], rentals: [...] }, users: [...] }
+            targetData = parsedPayload.data;
+            targetUsers = parsedPayload.users;
+            targetNotes = parsedPayload.userNotes;
+        } else if (parsedPayload && parsedPayload.campuses) {
+            // Doğrudan Kök Dizinde Gelen Yapı: { campuses: [...], rentals: [...] }
+            targetData = parsedPayload;
+            targetUsers = users;
+            targetNotes = userNotes;
+        }
+
+        if (targetData) {
+            data = targetData;
+            users = targetUsers || users;
+            userNotes = targetNotes || userNotes;
 
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
@@ -818,18 +843,18 @@
             }
             renderAll();
         } else {
-            throw new Error("Gelen JSON yapısında 'data' alanı bulunamadı.");
+            throw new Error("Gelen veri yapısında geçerli 'data' veya 'campuses' yapısı bulunamadı.");
         }
+
     } catch (e) {
         console.error("Merkezi veri çekme hatası:", e);
         
-        // Takılı kalmayı engelleyen bildirim değişimi
         if(statusEl) {
             statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1"></i> Buluta Erişilemedi (Yerel Veri Modu)`;
             statusEl.className = "mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-center text-xs font-semibold text-amber-800";
         }
         
-        // Bağlantı başarısızsa yerel bellekteki en son yedeği yükle
+        // Bağlantı başarısızsa yerel bellekteki en son veriyi yükle
         const localData = localStorage.getItem('teknoparkData');
         if (localData) {
             data = JSON.parse(localData);
@@ -839,7 +864,6 @@
         }
     }
 }
-
         // --- GOOGLE DRIVE BULUT VERİTABANINA ANINDA YAZMA (GET / PARAMETRE İLE KAYIPSIZ) ---
         async function saveCentralData() {
             if (!APPS_SCRIPT_URL) return;
