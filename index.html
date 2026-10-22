@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMwB6Ir4AyoTnL-QB6X1DsIo18C_obFjgZxgS8mzI5mLGwNiFTQd3zvT4PyvlF3Zqt/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxQ5mYUmCaP7Xt5INNkpSUT51-7EYpqLp2dG0UeTzbbECKw50JcX_-MXG3w1sRro1_/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -41,7 +41,7 @@
             <!-- MERKEZİ BULUT BAĞLANTI DURUMU -->
             <div id="cloud-sync-status" class="mb-4 p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-center text-xs font-semibold text-blue-800 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>Merkezi Veritabanına Bağlanıyor...</span>
+                <span>Merkezi Bulut Veritabanına Bağlanıyor...</span>
             </div>
 
             <form id="login-form" onsubmit="handleLogin(event)" autocomplete="off">
@@ -104,7 +104,7 @@
             <div class="p-4 border-t border-slate-800 space-y-2">
                 <button onclick="fetchCentralData()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
                     <i class="fa-solid fa-rotate mr-1"></i>
-                    <span>Verileri Şimdi Yenile</span>
+                    <span>Buluttan Şimdi Yenile</span>
                 </button>
                 <button onclick="exportSystemJSON()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
                     <i class="fa-solid fa-download"></i>
@@ -732,7 +732,7 @@
 
         const VAT_RATE = 0.20;
 
-        let users = JSON.parse(localStorage.getItem('teknoparkUsers')) || [
+        let users = [
             {
                 id: 1,
                 username: "admin",
@@ -745,7 +745,7 @@
             }
         ];
 
-        let data = JSON.parse(localStorage.getItem('teknoparkData')) || {
+        let data = {
             campuses: [
                 {
                     id: 1, name: "Ana AR-GE Binası",
@@ -762,32 +762,14 @@
             ]
         };
 
-        let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
+        let userNotes = [];
         let currentUser = null;
 
         let occupancyChartInstance = null, revenueChartInstance = null, comparisonChartInstance = null, simulationChartInstance = null;
 
-        // --- MERKEZDEN VERİ ÇEKME (LOCALSTORAGE KORUMALI) ---
+        // --- HER AÇILIŞTA İLK DERECE GOOGLE DRIVE'DAN EN GÜNCEL VERİYİ ÇEK (ÇOKLU CİHAZ SYNC) ---
         window.onload = async function() {
-            // 1. Önce tarayıcının yerel belleğinde veri var mı kontrol et
-            const localData = localStorage.getItem('teknoparkData');
-            
-            if (localData) {
-                // Yerel bellekte veri varsa doğrudan ekrana bas (Bulutun ezmesini engelle)
-                data = JSON.parse(localData);
-                users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
-                userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
-                
-                const statusEl = document.getElementById('cloud-sync-status');
-                if(statusEl) {
-                    statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-emerald-600 mr-1"></i> Yerel Veri Yüklendi (Kalıcı Mod)`;
-                    statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
-                }
-                renderAll();
-            } else {
-                // Eğer yerel bellek tamamen boşsa Google Drive'dan çek
-                await fetchCentralData();
-            }
+            await fetchCentralData();
         };
 
         async function fetchCentralData() {
@@ -799,7 +781,8 @@
             try {
                 const statusEl = document.getElementById('cloud-sync-status');
                 
-                const res = await fetch(APPS_SCRIPT_URL, {
+                // Timestamp eklenerek tarayıcının önbellekteki eski veriyi çekmesi engellenir
+                const res = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
                     method: 'GET',
                     redirect: 'follow',
                     signal: controller.signal
@@ -809,35 +792,36 @@
                 const json = await res.json();
                 
                 if (json && json.data) {
-                    // Yalnızca localData yoksa bulut verisini kabul et
-                    if (!localStorage.getItem('teknoparkData')) {
-                        data = json.data;
-                        users = json.users || users;
-                        userNotes = json.userNotes || userNotes;
+                    data = json.data;
+                    users = json.users || users;
+                    userNotes = json.userNotes || userNotes;
 
-                        localStorage.setItem('teknoparkData', JSON.stringify(data));
-                        localStorage.setItem('teknoparkUsers', JSON.stringify(users));
-                        localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
-                    }
+                    // Çekilen bulut verilerini yerel yedeğe yaz
+                    localStorage.setItem('teknoparkData', JSON.stringify(data));
+                    localStorage.setItem('teknoparkUsers', JSON.stringify(users));
+                    localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
                     if(statusEl) {
-                        statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Merkezi Veritabanı Bağlı (Drive)`;
+                        statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Bulut Veritabanı Eşitlendi (Canlı Sync)`;
                         statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
                     }
                     renderAll();
                 }
             } catch (e) {
                 clearTimeout(timeoutId);
-                console.error("Merkezi veri çekme hatası / Zaman aşımı:", e);
-                const statusEl = document.getElementById('cloud-sync-status');
-                if(statusEl) {
-                    statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Yerel Modda Çalışıyor`;
-                    statusEl.className = "mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-center text-xs font-semibold text-amber-800";
+                console.error("Merkezi veri çekme hatası:", e);
+                // İnternet olmaması durumunda yerel bellek yedekten yükle
+                const localData = localStorage.getItem('teknoparkData');
+                if (localData) {
+                    data = JSON.parse(localData);
+                    users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
+                    userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
+                    renderAll();
                 }
             }
         }
 
-        // --- MERKEZE VERİ KAYDETME ---
+        // --- GOOGLE DRIVE BULUT VERİTABANINA ANINDA YAZMA ---
         async function saveCentralData() {
             if (!APPS_SCRIPT_URL) return;
             try {
@@ -851,7 +835,7 @@
                     },
                     body: payloadStr
                 });
-                console.log("Veriler Google Drive veritabanına iletildi.");
+                console.log("Veriler bulut veritabanına iletildi.");
             } catch (e) {
                 console.error("Merkezi veri kaydetme hatası:", e);
             }
