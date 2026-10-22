@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxy1di-9hX1Y3-IDDT9FJD2usYCaSbRv7wrITPQpWkqfEMe90ekJu1xxOWk0ZGom8iD/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxAb1NPH6CHPaSxivttsWpo9ubZYT6KWYcUIJSveOyoF-q_GSoUMOpd41H-au5GF8AS/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -817,25 +817,25 @@
             }
         }
 
-        // --- MERKEZE VERİ KAYDETME (DÜZELTİLEN YENİ KOD) ---
-        async function saveCentralData() {
-            if (!APPS_SCRIPT_URL) return;
-            try {
-                const payloadStr = JSON.stringify({ data, users, userNotes });
-                
-                // Form parametresi olarak göndererek Google Apps Script kısıtlamalarını aşıyoruz
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 
-                        'Content-Type': 'application/x-www-form-urlencoded' 
-                    },
-                    body: new URLSearchParams({ payload: payloadStr })
-                });
-                console.log("Veri paketlenme isteği Google Drive veritabanına iletildi.");
-            } catch (e) {
-                console.error("Merkezi veri kaydetme hatası:", e);
-            }
+        // MERKEZE VERİ KAYDETME (GARANTİLİ VERİ AKIŞI)
+async function saveCentralData() {
+    if (!APPS_SCRIPT_URL) return;
+    try {
+        const payloadStr = JSON.stringify({ data, users, userNotes });
+        
+        await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 
+                'Content-Type': 'text/plain;charset=utf-8' 
+            },
+            body: payloadStr
+        });
+        console.log("Veriler Google Drive veritabanına iletildi.");
+    } catch (e) {
+        console.error("Merkezi veri kaydetme hatası:", e);
+    }
+}
         }
 
         function saveData() {
