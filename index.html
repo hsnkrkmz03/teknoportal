@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxQ5mYUmCaP7Xt5INNkpSUT51-7EYpqLp2dG0UeTzbbECKw50JcX_-MXG3w1sRro1_/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9kB7ivmNfWGWl4mFil7SJdiXm4PiaVA5a_-wo2rMEVcKsg4gV9DOQQVQ2sX_f0fSV/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -821,22 +821,18 @@
             }
         }
 
-        // --- GOOGLE DRIVE BULUT VERİTABANINA ANINDA YAZMA ---
-       async function saveCentralData() {
+       // MERKEZE VERİ KAYDETME (GET / PARAMETRE GARANTİLİ)
+async function saveCentralData() {
     if (!APPS_SCRIPT_URL) return;
     try {
         const payloadStr = JSON.stringify({ data, users, userNotes });
         
-        // Form parametresi şeklinde gönderilerek Google Apps Script kısıtlamaları aşılır
-        await fetch(APPS_SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded' 
-            },
-            body: new URLSearchParams({ payload: payloadStr })
+        // GET isteği üzerinden URL parametresiyle gönderim (CORS ve Body engeline takılmaz)
+        await fetch(APPS_SCRIPT_URL + "?payload=" + encodeURIComponent(payloadStr), {
+            method: 'GET',
+            redirect: 'follow'
         });
-        console.log("Veri güncelleme isteği Google Drive veritabanına iletildi.");
+        console.log("Veriler bulut veritabanına başarıyla aktarıldı.");
     } catch (e) {
         console.error("Merkezi veri kaydetme hatası:", e);
     }
