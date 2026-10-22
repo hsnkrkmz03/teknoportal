@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMeJSfqxdy3De0fzysdaRi11Yk5xxOJEfHGnOIYaNQjRNm7RascovMGDHWBoNoD4s/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxy1di-9hX1Y3-IDDT9FJD2usYCaSbRv7wrITPQpWkqfEMe90ekJu1xxOWk0ZGom8iD/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -817,16 +817,20 @@
             }
         }
 
-        // --- MERKEZE VERİ KAYDETME (CORS VE REDIRECT UYUMLU DÜZELTİLMİŞ KOD) ---
+        // --- MERKEZE VERİ KAYDETME (DÜZELTİLEN YENİ KOD) ---
         async function saveCentralData() {
             if (!APPS_SCRIPT_URL) return;
             try {
-                const payload = JSON.stringify({ data, users, userNotes });
+                const payloadStr = JSON.stringify({ data, users, userNotes });
+                
+                // Form parametresi olarak göndererek Google Apps Script kısıtlamalarını aşıyoruz
                 await fetch(APPS_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: payload
+                    headers: { 
+                        'Content-Type': 'application/x-www-form-urlencoded' 
+                    },
+                    body: new URLSearchParams({ payload: payloadStr })
                 });
                 console.log("Veri paketlenme isteği Google Drive veritabanına iletildi.");
             } catch (e) {
