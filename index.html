@@ -7,7 +7,7 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPeglmwsRjRw8pr8hvTKqm06Ehd1BQVkWtkh397SSY3nwurqpChgkCiSNHRT9RLqPa/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMwB6Ir4AyoTnL-QB6X1DsIo18C_obFjgZxgS8mzI5mLGwNiFTQd3zvT4PyvlF3Zqt/exec";
     </script>
 
     <!-- Tailwind CSS -->
@@ -767,11 +767,27 @@
 
         let occupancyChartInstance = null, revenueChartInstance = null, comparisonChartInstance = null, simulationChartInstance = null;
 
-        // --- MERKEZDEN VERİ ÇEKME (SADECE İLK AÇILIŞTA TEK SEFERLİK) ---
+        // --- MERKEZDEN VERİ ÇEKME (LOCALSTORAGE KORUMALI) ---
         window.onload = async function() {
-            await fetchCentralData();
-            // TEST AMACIYLA: setInterval(fetchCentralData, 15000) DÖNGÜSÜ PASİFE ALINDI.
-            // Arka plan otomatik çekimleri ekran verilerini sıfırlayamaz.
+            // 1. Önce tarayıcının yerel belleğinde veri var mı kontrol et
+            const localData = localStorage.getItem('teknoparkData');
+            
+            if (localData) {
+                // Yerel bellekte veri varsa doğrudan ekrana bas (Bulutun ezmesini engelle)
+                data = JSON.parse(localData);
+                users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
+                userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
+                
+                const statusEl = document.getElementById('cloud-sync-status');
+                if(statusEl) {
+                    statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-emerald-600 mr-1"></i> Yerel Veri Yüklendi (Kalıcı Mod)`;
+                    statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
+                }
+                renderAll();
+            } else {
+                // Eğer yerel bellek tamamen boşsa Google Drive'dan çek
+                await fetchCentralData();
+            }
         };
 
         async function fetchCentralData() {
@@ -793,13 +809,16 @@
                 const json = await res.json();
                 
                 if (json && json.data) {
-                    data = json.data;
-                    users = json.users || users;
-                    userNotes = json.userNotes || userNotes;
+                    // Yalnızca localData yoksa bulut verisini kabul et
+                    if (!localStorage.getItem('teknoparkData')) {
+                        data = json.data;
+                        users = json.users || users;
+                        userNotes = json.userNotes || userNotes;
 
-                    localStorage.setItem('teknoparkData', JSON.stringify(data));
-                    localStorage.setItem('teknoparkUsers', JSON.stringify(users));
-                    localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
+                        localStorage.setItem('teknoparkData', JSON.stringify(data));
+                        localStorage.setItem('teknoparkUsers', JSON.stringify(users));
+                        localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
+                    }
 
                     if(statusEl) {
                         statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Merkezi Veritabanı Bağlı (Drive)`;
