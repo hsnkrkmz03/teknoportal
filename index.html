@@ -7,15 +7,16 @@
     
     <!-- ENTEGRE EDİLEN GOOGLE APPS SCRIPT KÖPRÜ ADRESİ -->
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9kB7ivmNfWGWl4mFil7SJdiXm4PiaVA5a_-wo2rMEVcKsg4gV9DOQQVQ2sX_f0fSV/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyohmCgxTdT0COBZnerJWVGxrLUpJdS50k1sOFUVMDcwuL8wVxYUe4VPCglYfWs0xy-/exec";
     </script>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Chart.js DataLabels Plugin -->
+    
+    <!-- Chart.js ve DataLabels Plugin (GÜVENLİ VE UYUMLU SÜRÜMLER) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -728,7 +729,10 @@
 
     <!-- UYGULAMA MANTIĞI & SCRIPT -->
     <script>
-        Chart.register(ChartDataLabels);
+        // Chart.js kütüphanesi yüklenmişse eklentiyi kaydet (ReferenceError KORUMASI)
+        if (typeof Chart !== 'undefined' && typeof ChartDataLabels !== 'undefined') {
+            Chart.register(ChartDataLabels);
+        }
 
         const VAT_RATE = 0.20;
 
@@ -821,22 +825,22 @@
             }
         }
 
-       // MERKEZE VERİ KAYDETME (GET / PARAMETRE GARANTİLİ)
-async function saveCentralData() {
-    if (!APPS_SCRIPT_URL) return;
-    try {
-        const payloadStr = JSON.stringify({ data, users, userNotes });
-        
-        // GET isteği üzerinden URL parametresiyle gönderim (CORS ve Body engeline takılmaz)
-        await fetch(APPS_SCRIPT_URL + "?payload=" + encodeURIComponent(payloadStr), {
-            method: 'GET',
-            redirect: 'follow'
-        });
-        console.log("Veriler bulut veritabanına başarıyla aktarıldı.");
-    } catch (e) {
-        console.error("Merkezi veri kaydetme hatası:", e);
-    }
-}
+        // --- GOOGLE DRIVE BULUT VERİTABANINA ANINDA YAZMA (GET / PARAMETRE İLE KAYIPSIZ) ---
+        async function saveCentralData() {
+            if (!APPS_SCRIPT_URL) return;
+            try {
+                const payloadStr = JSON.stringify({ data, users, userNotes });
+                
+                // URL Parametresi ile gönderim (CORS ve Body silinme engeline takılmaz)
+                await fetch(APPS_SCRIPT_URL + "?payload=" + encodeURIComponent(payloadStr), {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                console.log("Veriler bulut veritabanına aktarıldı.");
+            } catch (e) {
+                console.error("Merkezi veri kaydetme hatası:", e);
+            }
+        }
 
         function saveData() {
             localStorage.setItem('teknoparkData', JSON.stringify(data));
@@ -1596,19 +1600,28 @@ async function saveCentralData() {
         }
 
         function updateCharts() {
+            // Chart kütüphanesi hazır değilse işlem yapma
+            if (typeof Chart === 'undefined') {
+                console.warn("Chart.js kütüphanesi yükleniyor...");
+                return;
+            }
+
             const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
             const stats = getStats(selectedCampus);
 
-            const ctx1 = document.getElementById('occupancyChart').getContext('2d');
-            if (occupancyChartInstance) occupancyChartInstance.destroy();
-            occupancyChartInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Kiralanan Alan (m²)', 'Boş Alan (m²)'],
-                    datasets: [{ data: [stats.rentedArea, stats.availableArea], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 2, borderColor: '#ffffff' }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' }, datalabels: { color: '#ffffff', font: { weight: 'bold', size: 11 } } } }
-            });
+            const canvas1 = document.getElementById('occupancyChart');
+            if (canvas1) {
+                const ctx1 = canvas1.getContext('2d');
+                if (occupancyChartInstance) occupancyChartInstance.destroy();
+                occupancyChartInstance = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Kiralanan Alan (m²)', 'Boş Alan (m²)'],
+                        datasets: [{ data: [stats.rentedArea, stats.availableArea], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 2, borderColor: '#ffffff' }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
 
             const campusLabels = [], campusRevenues = [];
             const targetCampuses = selectedCampus === 'all' ? data.campuses : data.campuses.filter(c => c.id === parseInt(selectedCampus));
@@ -1624,29 +1637,35 @@ async function saveCentralData() {
                 campusLabels.push(c.name); campusRevenues.push(campusRevExcl * (1 + VAT_RATE));
             });
 
-            const ctx2 = document.getElementById('revenueChart').getContext('2d');
-            if (revenueChartInstance) revenueChartInstance.destroy();
-            revenueChartInstance = new Chart(ctx2, {
-                type: 'bar',
-                data: { labels: campusLabels, datasets: [{ label: 'Aylık Gelir (₺ - KDV Dahil)', data: campusRevenues, backgroundColor: '#6366f1', borderRadius: 6 }] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
+            const canvas2 = document.getElementById('revenueChart');
+            if (canvas2) {
+                const ctx2 = canvas2.getContext('2d');
+                if (revenueChartInstance) revenueChartInstance.destroy();
+                revenueChartInstance = new Chart(ctx2, {
+                    type: 'bar',
+                    data: { labels: campusLabels, datasets: [{ label: 'Aylık Gelir (₺ - KDV Dahil)', data: campusRevenues, backgroundColor: '#6366f1', borderRadius: 6 }] },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            }
 
             const totalStats = getStats('all');
-            const ctx3 = document.getElementById('comparisonChart').getContext('2d');
-            if (comparisonChartInstance) comparisonChartInstance.destroy();
-            comparisonChartInstance = new Chart(ctx3, {
-                type: 'bar',
-                data: {
-                    labels: [selectedCampus === 'all' ? 'Tüm Yerleşkeler' : 'Seçili Yerleşke', 'Genel Teknopark Toplamı'],
-                    datasets: [
-                        { label: 'Dolu Alan (m²)', data: [stats.rentedArea, totalStats.rentedArea], backgroundColor: '#10b981' },
-                        { label: 'Boş Alan (m²)', data: [stats.availableArea, totalStats.availableArea], backgroundColor: '#f59e0b' },
-                        { label: 'Toplam Kapasite (m²)', data: [stats.totalArea, totalStats.totalArea], backgroundColor: '#6366f1' }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-            });
+            const canvas3 = document.getElementById('comparisonChart');
+            if (canvas3) {
+                const ctx3 = canvas3.getContext('2d');
+                if (comparisonChartInstance) comparisonChartInstance.destroy();
+                comparisonChartInstance = new Chart(ctx3, {
+                    type: 'bar',
+                    data: {
+                        labels: [selectedCampus === 'all' ? 'Tüm Yerleşkeler' : 'Seçili Yerleşke', 'Genel Teknopark Toplamı'],
+                        datasets: [
+                            { label: 'Dolu Alan (m²)', data: [stats.rentedArea, totalStats.rentedArea], backgroundColor: '#10b981' },
+                            { label: 'Boş Alan (m²)', data: [stats.availableArea, totalStats.availableArea], backgroundColor: '#f59e0b' },
+                            { label: 'Toplam Kapasite (m²)', data: [stats.totalArea, totalStats.totalArea], backgroundColor: '#6366f1' }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
         }
 
         function exportDashboardVisualPDF() {
@@ -1735,13 +1754,15 @@ async function saveCentralData() {
                 `;
             }
 
-            const ctxSim = document.getElementById('simulationChart').getContext('2d');
-            if (simulationChartInstance) simulationChartInstance.destroy();
-            simulationChartInstance = new Chart(ctxSim, {
-                type: 'line',
-                data: { labels: labels, datasets: [{ label: 'Tahmini Yıllık Toplam Ciro', data: annualTotals, borderColor: '#2563eb', fill: true }] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
+            if (typeof Chart !== 'undefined') {
+                const ctxSim = document.getElementById('simulationChart').getContext('2d');
+                if (simulationChartInstance) simulationChartInstance.destroy();
+                simulationChartInstance = new Chart(ctxSim, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'Tahmini Yıllık Toplam Ciro', data: annualTotals, borderColor: '#2563eb', fill: true }] },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+            }
         }
 
         function openCampusModal() { document.getElementById('campus-modal').classList.remove('hidden'); }
