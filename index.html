@@ -776,54 +776,52 @@
             await fetchCentralData();
         };
 
-        async function fetchCentralData() {
-            if (!APPS_SCRIPT_URL) return;
+     async function fetchCentralData() {
+    if (!APPS_SCRIPT_URL) return;
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const statusEl = document.getElementById('cloud-sync-status');
 
-            try {
-                const statusEl = document.getElementById('cloud-sync-status');
-                
-                // Timestamp eklenerek tarayıcının önbellekteki eski veriyi çekmesi engellenir
-                const res = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
-                    method: 'GET',
-                    redirect: 'follow',
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
-                const json = await res.json();
-                
-                if (json && json.data) {
-                    data = json.data;
-                    users = json.users || users;
-                    userNotes = json.userNotes || userNotes;
+    try {
+        // Timestamp ekleyerek önbelleği aş ve yönlendirmeleri izle
+        const res = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        
+        const textData = await res.text();
+        const json = JSON.parse(textData);
+        
+        if (json && json.data) {
+            data = json.data;
+            users = json.users || users;
+            userNotes = json.userNotes || userNotes;
 
-                    // Çekilen bulut verilerini yerel yedeğe yaz
-                    localStorage.setItem('teknoparkData', JSON.stringify(data));
-                    localStorage.setItem('teknoparkUsers', JSON.stringify(users));
-                    localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
+            localStorage.setItem('teknoparkData', JSON.stringify(data));
+            localStorage.setItem('teknoparkUsers', JSON.stringify(users));
+            localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
-                    if(statusEl) {
-                        statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Bulut Veritabanı Eşitlendi (Canlı Sync)`;
-                        statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
-                    }
-                    renderAll();
-                }
-            } catch (e) {
-                clearTimeout(timeoutId);
-                console.error("Merkezi veri çekme hatası:", e);
-                // İnternet olmaması durumunda yerel bellek yedekten yükle
-                const localData = localStorage.getItem('teknoparkData');
-                if (localData) {
-                    data = JSON.parse(localData);
-                    users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
-                    userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
-                    renderAll();
-                }
+            if(statusEl) {
+                statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1"></i> Bulut Veritabanı Eşitlendi (Canlı Sync)`;
+                statusEl.className = "mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-center text-xs font-semibold text-emerald-800";
             }
+            renderAll();
         }
+    } catch (e) {
+        console.error("Merkezi veri çekme hatası:", e);
+        if(statusEl) {
+            statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1"></i> Yerel Mod (Buluta Erişilemedi)`;
+            statusEl.className = "mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-center text-xs font-semibold text-amber-800";
+        }
+        // Bulut bağlantısı yoksa yerel yedekten yükle
+        const localData = localStorage.getItem('teknoparkData');
+        if (localData) {
+            data = JSON.parse(localData);
+            users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
+            userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
+            renderAll();
+        }
+    }
+}
 
         // --- GOOGLE DRIVE BULUT VERİTABANINA ANINDA YAZMA (GET / PARAMETRE İLE KAYIPSIZ) ---
         async function saveCentralData() {
