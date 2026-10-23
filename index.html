@@ -1506,55 +1506,69 @@ function renderReferees() {
         }
 function exportRefereesToExcel() {
             try {
+                if (!data || !data.refereePayments || data.refereePayments.length === 0) {
+                    alert("Sistemde henüz hiç hakem ödemesi kaydı bulunmuyor.");
+                    return;
+                }
+
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
                 const selMonth = String(document.getElementById('referee-month-filter').value).trim();
 
-                const exportList = data.refereePayments.filter(r => {
-                    if (!r || !r.docDate) return false;
-                    const strDate = String(r.docDate).trim();
-                    const parts = strDate.split(/[./-]/);
-                    
-                    let itemYear = "", itemMonth = "";
-                    if (parts.length === 3) {
-                        if (parts[2].length === 4) { // gg.aa.yyyy
-                            itemYear = parts[2];
-                            itemMonth = String(parts[1]).padStart(2, '0');
-                        } else if (parts[0].length === 4) { // yyyy-mm-dd
-                            itemYear = parts[0];
-                            itemMonth = String(parts[1]).padStart(2, '0');
+                const exportList = [];
+
+                data.refereePayments.forEach(r => {
+                    if (!r) return;
+
+                    let itemYear = "";
+                    let itemMonth = "";
+
+                    // Tarih bilgisini esnek biçimde ayrıştır (gg.aa.yyyy veya yyyy-mm-dd)
+                    if (r.docDate) {
+                        const dateStr = String(r.docDate).trim();
+                        const parts = dateStr.split(/[./-]/);
+                        if (parts.length === 3) {
+                            if (parts[2].length === 4) { // gg.aa.yyyy
+                                itemYear = parts[2];
+                                itemMonth = String(parts[1]).padStart(2, '0');
+                            } else if (parts[0].length === 4) { // yyyy-mm-dd
+                                itemYear = parts[0];
+                                itemMonth = String(parts[1]).padStart(2, '0');
+                            }
                         }
                     }
-                    return itemYear === selYear && itemMonth === selMonth;
-                }).map(r => {
-                    const grossNum = parseFloat(r.gross) || 0;
-                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0);
-                    const taxNum = netNum * 0.10;
 
-                    return {
-                        "Soyad": r.lastName || '',
-                        "Ad": r.firstName || '',
-                        "VKN": r.vkn || '',
-                        "TC Kimlik No": r.tckn || '',
-                        "Tür": r.type || '156',
-                        "Gayri Safi Tutar (₺)": netNum.toFixed(2),
-                        "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
-                        "Belge Türü": r.docType || 'Diğer',
-                        "Belge Tarihi": r.docDate || '',
-                        "Belge Sıra No": r.docNo || '',
-                        "Adres": r.address || '',
-                        "Adres No": r.addressNo || '',
-                        "KDV Tevkifat": r.vat || '0',
-                        "Ülke Kodu": r.country || 'TR'
-                    };
+                    // Eğer yıl ve ay seçilen filtreyle eşleşiyorsa veya kayıt eklenirken tarih boş kalmışsa
+                    if ((itemYear === selYear && itemMonth === selMonth) || (!itemYear && !itemMonth)) {
+                        const grossNum = parseFloat(r.gross) || 0; // Net Ödenen
+                        const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0); // Gayri Safi
+                        const taxNum = netNum * 0.10; // Kesinti
+
+                        exportList.push({
+                            "Soyad": r.lastName || '',
+                            "Ad": r.firstName || '',
+                            "VKN": r.vkn || '',
+                            "TC Kimlik No": r.tckn || '',
+                            "Tür": r.type || '156',
+                            "Gayri Safi Tutar (₺)": netNum.toFixed(2),
+                            "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
+                            "Belge Türü": r.docType || 'Diğer',
+                            "Belge Tarihi": r.docDate || '',
+                            "Belge Sıra No": r.docNo || '',
+                            "Adres": r.address || '',
+                            "Adres No": r.addressNo || '',
+                            "KDV Tevkifat": r.vat || '0',
+                            "Ülke Kodu": r.country || 'TR'
+                        });
+                    }
                 });
 
                 if (exportList.length === 0) {
-                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait indirilecek hakem ödeme verisi bulunamadı.`);
+                    alert(`Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı. Lütfen seçilen tarihte kayıt olduğundan emin olun.`);
                     return;
                 }
 
                 if (typeof XLSX === 'undefined') {
-                    alert("SheetJS (XLSX) kütüphanesi yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.");
+                    alert("Excel kütüphanesi (XLSX) yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.");
                     return;
                 }
 
@@ -1564,8 +1578,8 @@ function exportRefereesToExcel() {
 
                 XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
             } catch (err) {
-                console.error("Excel indirme hatası:", err);
-                alert("Excel dosyası oluşturulurken bir hata oluştu: " + err.message);
+                console.error("Excel İndirme Hatası:", err);
+                alert("Excel dosyası indirilirken hata oluştu: " + err.message);
             }
         }
 
