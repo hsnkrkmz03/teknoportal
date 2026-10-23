@@ -1824,73 +1824,82 @@
             }
         }
 
-        function openRentalModal(editRentalId = null) {
-            const campusSelect = document.getElementById('rent-campus-select');
-            campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
+// DÜZELTİLMİŞ SÖZLEŞME DÜZENLEME MODAL FONKSİYONU
+function openRentalModal(editRentalId = null) {
+    const campusSelect = document.getElementById('rent-campus-select');
+    campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
 
-            data.campuses.forEach(c => {
-                campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-            });
+    data.campuses.forEach(c => {
+        campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
 
-            document.getElementById('editing-rental-id').value = editRentalId || '';
-            document.getElementById('rent-user-note').value = '';
+    document.getElementById('editing-rental-id').value = editRentalId || '';
+    document.getElementById('rent-user-note').value = '';
 
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? currentUser.permissions : {};
+    const isUserAdmin = currentUser && currentUser.role === 'admin';
+    const perm = currentUser ? currentUser.permissions : {};
 
-            document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
-            document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
-            document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
-            document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
-            document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-            document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+    document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
+    document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
+    document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
+    document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
+    document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+    document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
 
-            if(editRentalId) {
-                const r = data.rentals.find(item => item.id === editRentalId);
-                if(!r) return;
-
-                document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
-                document.getElementById('save-rental-btn').innerText = "Güncelle";
-
-                let currentCampusId = null;
-                data.campuses.forEach(c => {
-                    if(c.offices.some(o => o.id === r.officeId)) currentCampusId = c.id;
-                });
-
-                if (currentCampusId) {
-                    campusSelect.value = currentCampusId;
-                    onRentalCampusChange(r.officeId);
-                }
-
-                document.getElementById('rent-company-name').value = r.company;
-                document.getElementById('rent-start-date').value = r.startDate;
-                document.getElementById('rent-target-end-date').value = r.endDate || '';
-                document.getElementById('rent-allocated-area').value = r.allocatedArea;
-                document.getElementById('rent-unit-price').value = r.unitPrice;
-                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2;
-                document.getElementById('rent-other-cost').value = r.otherCost;
-
-            } else {
-                document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
-                document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
-
-                campusSelect.value = '';
-                const officeSelect = document.getElementById('rent-office-select');
-                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-                officeSelect.disabled = true;
-
-                document.getElementById('rent-company-name').value = '';
-                document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
-                document.getElementById('rent-target-end-date').value = '';
-                document.getElementById('rent-allocated-area').value = '';
-                document.getElementById('rent-unit-price').value = '';
-                document.getElementById('rent-common-cost-per-m2').value = '';
-                document.getElementById('rent-other-cost').value = '';
-                document.getElementById('office-available-hint').innerText = '';
-            }
-
-            document.getElementById('rental-modal').classList.remove('hidden');
+    if(editRentalId) {
+        // String/Number tip uyuşmazlığını önlemek için sayıya çevirerek ara
+        const targetId = parseInt(editRentalId);
+        const r = data.rentals.find(item => parseInt(item.id) === targetId);
+        
+        if(!r) {
+            alert("Düzenlenecek sözleşme verisi bulunamadı.");
+            return;
         }
+
+        document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
+        document.getElementById('save-rental-btn').innerText = "Güncelle";
+
+        let currentCampusId = null;
+        data.campuses.forEach(c => {
+            if(c.offices.some(o => parseInt(o.id) === parseInt(r.officeId))) {
+                currentCampusId = c.id;
+            }
+        });
+
+        if (currentCampusId) {
+            campusSelect.value = currentCampusId;
+            onRentalCampusChange(r.officeId);
+        }
+
+        document.getElementById('rent-company-name').value = r.company || '';
+        document.getElementById('rent-start-date').value = r.startDate || '';
+        document.getElementById('rent-target-end-date').value = r.endDate || '';
+        document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
+        document.getElementById('rent-unit-price').value = r.unitPrice || 0;
+        document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 || 0;
+        document.getElementById('rent-other-cost').value = r.otherCost || 0;
+
+    } else {
+        document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
+        document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
+
+        campusSelect.value = '';
+        const officeSelect = document.getElementById('rent-office-select');
+        officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+        officeSelect.disabled = true;
+
+        document.getElementById('rent-company-name').value = '';
+        document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('rent-target-end-date').value = '';
+        document.getElementById('rent-allocated-area').value = '';
+        document.getElementById('rent-unit-price').value = '';
+        document.getElementById('rent-common-cost-per-m2').value = '';
+        document.getElementById('rent-other-cost').value = '';
+        document.getElementById('office-available-hint').innerText = '';
+    }
+
+    document.getElementById('rental-modal').classList.remove('hidden');
+}
 
         function onRentalCampusChange(selectedOfficeId = null) {
             const campusId = parseInt(document.getElementById('rent-campus-select').value);
@@ -1930,7 +1939,7 @@
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-// SÜTUN ÇAKIŞMASI ÇÖZÜLMÜŞ EXCEL SÖZLEŞME YÜKLEME FONKSİYONU
+// EXCEL TARİH FORMATI (gg.aa.yyyy) DESTEKLİ SÖZLEŞME YÜKLEME FONKSİYONU
 function processRentalExcelUpload() {
     const fileInput = document.getElementById('rental-excel-file-input');
     const file = fileInput.files[0];
@@ -1940,6 +1949,39 @@ function processRentalExcelUpload() {
         return;
     }
 
+    // gg.aa.yyyy veya Excel tarih formatını yyyy-mm-dd formatına dönüştürücü
+    function parseExcelDate(val) {
+        if (!val) return null;
+        if (typeof val === 'number') {
+            // Excel Serial Date numarasını Javascript Date objesine çevir
+            const dateObj = XLSX.SSF.parse_date_code(val);
+            if (dateObj) {
+                const y = dateObj.y;
+                const m = String(dateObj.m).padStart(2, '0');
+                const d = String(dateObj.d).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+        }
+        
+        const str = String(val).trim();
+        // gg.aa.yyyy veya gg/aa/yyyy formatı kontrolü
+        const parts = str.split(/[./-]/);
+        if (parts.length === 3) {
+            // Eğer ilk parça 4 haneli ise (yyyy-mm-dd)
+            if (parts[0].length === 4) {
+                return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+            }
+            // Eğer son parça 4 haneli ise (gg.aa.yyyy)
+            if (parts[2].length === 4) {
+                const d = String(parts[0]).padStart(2, '0');
+                const m = String(parts[1]).padStart(2, '0');
+                const y = parts[2];
+                return `${y}-${m}-${d}`;
+            }
+        }
+        return str; // Varsayılan metin
+    }
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -1947,7 +1989,7 @@ function processRentalExcelUpload() {
             const workbook = XLSX.read(dataBuffer, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { raw: true });
 
             if (jsonRows.length === 0) {
                 alert("Excel dosyasında veri bulunamadı.");
@@ -1959,26 +2001,21 @@ function processRentalExcelUpload() {
             jsonRows.forEach(row => {
                 const keys = Object.keys(row);
                 
-                // 1. Temel Sütunlar
                 const companyKey = keys.find(k => k.trim().toLowerCase().includes('firma') || k.trim().toLowerCase().includes('şirket') || k.trim().toLowerCase().includes('kiracı'));
                 const campusKey = keys.find(k => k.trim().toLowerCase().includes('yerleşke') || k.trim().toLowerCase().includes('bina') || k.trim().toLowerCase().includes('kampüs'));
                 const officeKey = keys.find(k => k.trim().toLowerCase().includes('ofis'));
                 
-                // 2. Alan (m²) Sütunu (Öncelikli Yakalama)
                 const areaKey = keys.find(k => {
                     const norm = k.trim().toLowerCase();
                     return norm.includes('m2') || norm.includes('m²') || norm.includes('alan') || norm.includes('metrekare');
                 });
 
-                // 3. Birim Fiyat Sütunu (Alan sütunlarıyla çakışmayacak şekilde hassas arama)
                 const unitPriceKey = keys.find(k => {
                     const norm = k.trim().toLowerCase();
-                    // "alan" veya "m2" kelimesi geçen sütunları FİYAT olarak seçme!
                     if (norm.includes('alan') && !norm.includes('fiyat')) return false;
                     return norm.includes('birim') || norm.includes('fiyat') || norm.includes('unit');
                 });
 
-                // 4. Diğer Ücretler ve Tarihler
                 const commonKey = keys.find(k => k.trim().toLowerCase().includes('ortak'));
                 const otherKey = keys.find(k => k.trim().toLowerCase().includes('katılım') || k.trim().toLowerCase().includes('diğer'));
                 const startKey = keys.find(k => k.trim().toLowerCase().includes('başlangıç') || k.trim().toLowerCase().includes('start'));
@@ -1989,16 +2026,14 @@ function processRentalExcelUpload() {
                     const campusName = String(row[campusKey]).trim();
                     const officeName = String(row[officeKey]).trim();
                     
-                    // Alan Değeri
                     const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
-                    
-                    // Birim Fiyat Değeri (Artık Alan Değeri İle Kesinlikle Çakışmaz)
                     const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
-                    
                     const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
                     const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
-                    const startDate = (startKey && row[startKey]) ? String(row[startKey]).trim() : new Date().toISOString().split('T')[0];
-                    const endDate = (endKey && row[endKey]) ? String(row[endKey]).trim() : null;
+                    
+                    // Tarihleri gg.aa.yyyy formatından yyyy-mm-dd formatına güvenle dönüştür
+                    const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
+                    const endDate = endKey ? parseExcelDate(row[endKey]) : null;
 
                     let campus = data.campuses.find(c => c.name.toLowerCase() === campusName.toLowerCase());
                     if (!campus) {
@@ -2040,6 +2075,10 @@ function processRentalExcelUpload() {
         } catch (err) {
             alert("Excel dosyası işlenirken hata oluştu: " + err.message);
         }
+    };
+
+    reader.readAsArrayBuffer(file);
+}
     };
 
     reader.readAsArrayBuffer(file);
