@@ -97,18 +97,22 @@
 
             <!-- YEDEKLEME VE DİĞER HESAP BUTONLARI -->
             <div class="p-4 border-t border-slate-800 space-y-2">
-                <button onclick="fetchCentralData()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
-                    <i class="fa-solid fa-cloud-arrow-down"></i>
-                    <span>Buluttan Veri Çek / Yenile</span>
-                </button>
-                <button onclick="exportSystemJSON()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
-                    <i class="fa-solid fa-download"></i>
-                    <span>Verileri Yedekle (JSON)</span>
-                </button>
-                <button onclick="openRestoreModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
-                    <i class="fa-solid fa-upload"></i>
-                    <span>Yedek Geri Yükle</span>
-                </button>
+                <!-- YALNIZCA ADMİN KULLANICILARIN GÖRECEĞİ YEDEKLEME BUTONLARI -->
+                <div id="backup-buttons-container" class="space-y-2">
+                    <button onclick="fetchCentralData()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                        <span>Buluttan Veri Çek / Yenile</span>
+                    </button>
+                    <button onclick="exportSystemJSON()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Verileri Yedekle (JSON)</span>
+                    </button>
+                    <button onclick="openRestoreModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>Yedek Geri Yükle</span>
+                    </button>
+                </div>
+
                 <button onclick="openProfileModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
                     <i class="fa-solid fa-user-gear"></i>
                     <span>Hesap / Profil Ayarları</span>
@@ -1098,8 +1102,9 @@
 
             document.getElementById('current-user-display').innerText = currentUser.username;
             const badge = document.getElementById('current-role-badge');
+            const isUserAdmin = currentUser.role === 'admin';
             
-            if(currentUser.role === 'admin') {
+            if(isUserAdmin) {
                 badge.innerText = "Yönetici";
                 badge.className = "bg-amber-900 text-amber-300 text-[10px] px-2 py-0.5 rounded font-semibold";
                 document.getElementById('nav-users').classList.remove('hidden');
@@ -1109,14 +1114,18 @@
                 document.getElementById('nav-users').classList.add('hidden');
             }
 
-            document.getElementById('nav-dashboard').style.display = (currentUser.role === 'admin' || currentUser.permissions.dashboard) ? 'flex' : 'none';
-            document.getElementById('nav-campuses').style.display = (currentUser.role === 'admin' || currentUser.permissions.campuses) ? 'flex' : 'none';
-            document.getElementById('nav-rentals').style.display = (currentUser.role === 'admin' || currentUser.permissions.rentals) ? 'flex' : 'none';
-            document.getElementById('nav-simulation').style.display = (currentUser.role === 'admin' || currentUser.permissions.simulation) ? 'flex' : 'none';
+            document.getElementById('nav-dashboard').style.display = (isUserAdmin || currentUser.permissions.dashboard) ? 'flex' : 'none';
+            document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
+            document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
+            document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
-            const isUserAdmin = currentUser.role === 'admin';
+            // YEDEKLEME BUTONLARI YALNIZCA ADMİN KULLANICILAR İÇİN GÖRÜNÜR
+            const backupContainer = document.getElementById('backup-buttons-container');
+            if (backupContainer) {
+                backupContainer.style.display = isUserAdmin ? 'block' : 'none';
+            }
+
             const perm = currentUser.permissions || {};
-
             const canEdit = isUserAdmin || perm.canEdit;
             const canExport = isUserAdmin || perm.canExport;
             const canCampusAdd = isUserAdmin || perm.campusAdd !== false;
@@ -1129,7 +1138,6 @@
                 el.style.display = canExport ? 'inline-block' : 'none';
             });
 
-            // Yerleşke Ekleme Butonu Görünürlük Kontrolü
             const btnAddCampus = document.getElementById('btn-add-campus');
             if (btnAddCampus) {
                 btnAddCampus.style.display = (canEdit && canCampusAdd) ? 'inline-block' : 'none';
@@ -1456,7 +1464,6 @@
             }
         }
 
-        // DÜZELTİLMİŞ YERLEŞKE VE OFİS LİSTELEME (İNCE DETAY YETKİ KONTROLLÜ)
         function renderCampuses() {
             const container = document.getElementById('campus-list');
             container.innerHTML = '';
@@ -1620,7 +1627,6 @@
             }
         }
 
-        // KİRALAMA LİSTESİ
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
