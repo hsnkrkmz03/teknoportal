@@ -373,18 +373,15 @@
                     <table class="w-full text-left border-collapse min-w-[1000px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
-                                <th class="p-4">Durum</th>
-                                <th class="p-4">Firma Adı</th>
-                                <th class="p-4">Yerleşke / Ofis</th>
-                                <th class="p-4">Alan</th>
-                                <th class="p-4">Başlangıç</th>
-                                <th class="p-4">Bitiş</th>
-                                <th class="p-4">Kira Bedeli</th>
-                                <th class="p-4">Ortak Gider</th>
-                                <th class="p-4">Katılım Payı</th>
-                                <th class="p-4">Toplam (KDV Hariç)</th>
-                                <th class="p-4 bg-emerald-50 text-emerald-800">Toplam (KDV Dahil %20)</th>
-                                <th class="p-4 text-center">İşlem</th>
+                                <th class="p-3 text-center">Ödendi</th>
+                                <th class="p-3">Ad</th>
+                                <th class="p-3">Soyad</th>
+                                <th class="p-3">IBAN</th>
+                                <th class="p-3">Firma Adı</th>
+                                <th class="p-3">Proje Adı / Kodu</th>
+                                <th class="p-3">Ödeme Tutarı</th>
+                                <th class="p-3">Belge Tarihi</th>
+                                <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="rental-table-body" class="divide-y divide-gray-100 text-sm text-gray-700"></tbody>
@@ -1519,7 +1516,9 @@ function renderReferees() {
                                     class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
                                     title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin ödeme durumunu değiştirebilir'}">
                             </td>
-                            <td class="p-3 font-bold text-gray-800">${r.firstName} ${r.lastName}</td>
+                            <td class="p-3 font-bold text-gray-800">${r.firstName || '-'}</td>
+                            <td class="p-3 font-bold text-gray-800">${r.lastName || '-'}</td>
+                            <td class="p-3 text-gray-600 font-mono text-[11px] font-semibold">${r.iban || '-'}</td>
                             <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
                             <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
                             <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
@@ -1540,7 +1539,7 @@ function renderReferees() {
             document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
 function exportRefereesToExcel() {
