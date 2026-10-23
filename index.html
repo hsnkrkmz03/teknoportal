@@ -352,7 +352,7 @@
                         <button onclick="exportToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-medium text-sm transition perm-export">
                             <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
                         </button>
-                        <button id="btn-new-rental" onclick="()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm transition perm-edit">
+                        <button id="btn-new-rental" onclick="openRentalModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm transition perm-edit">
                             <i class="fa-solid fa-file-signature mr-1.5"></i> Yeni Kiralama Yap
                         </button>
                     </div>
@@ -1162,14 +1162,14 @@
 
         function getOfficeRentedArea(officeId, excludeRentalId = null) {
             return data.rentals
-                .filter(r => parseInt(r.officeId) === parseInt(officeId) && r.status === 'active' && parseInt(r.id) !== parseInt(excludeRentalId))
+                .filter(r => String(r.officeId) === String(officeId) && r.status === 'active' && String(r.id) !== String(excludeRentalId))
                 .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
         }
 
         function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             let totalArea = 0;
             data.campuses.forEach(c => {
-                const off = c.offices.find(o => parseInt(o.id) === parseInt(officeId));
+                const off = c.offices.find(o => String(o.id) === String(officeId));
                 if(off) totalArea = parseFloat(off.area);
             });
             const rentedArea = getOfficeRentedArea(officeId, excludeRentalId);
@@ -1185,18 +1185,18 @@
 
             const targetCampuses = selectedCampusId === 'all' 
                 ? data.campuses 
-                : data.campuses.filter(c => c.id === parseInt(selectedCampusId));
+                : data.campuses.filter(c => String(c.id) === String(selectedCampusId));
 
             const validOfficeIds = [];
 
             targetCampuses.forEach(c => {
                 c.offices.forEach(o => {
                     totalArea += parseFloat(o.area);
-                    validOfficeIds.push(parseInt(o.id));
+                    validOfficeIds.push(String(o.id));
                 });
             });
 
-            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(parseInt(r.officeId))).forEach(r => {
+            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(String(r.officeId))).forEach(r => {
                 const area = parseFloat(r.allocatedArea || 0);
                 rentedArea += area;
                 rentRevenueExcl += (area * r.unitPrice);
@@ -1307,7 +1307,7 @@
                 chartTitleEl.innerText = "Tüm Yerleşkeler Doluluk Oranı";
                 filterLabelBadge.innerText = "Tüm Yerleşkeler Doluluk:";
             } else {
-                const foundCampus = data.campuses.find(c => c.id === parseInt(selectedCampus));
+                const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
                 if (foundCampus) {
                     chartTitleEl.innerText = `${foundCampus.name} Doluluk Oranı`;
                     filterLabelBadge.innerText = `${foundCampus.name} Doluluk:`;
@@ -1447,7 +1447,7 @@
                         statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-red-100 text-red-700">Tamamı Dolu</span>`;
                     }
 
-                    const hasActiveRental = data.rentals.some(r => parseInt(r.officeId) === parseInt(o.id) && r.status === 'active');
+                    const hasActiveRental = data.rentals.some(r => String(r.officeId) === String(o.id) && r.status === 'active');
 
                     return `
                         <div class="flex items-center justify-between p-3.5 bg-gray-50/80 hover:bg-gray-100/80 transition rounded-lg border border-gray-200/80">
@@ -1458,7 +1458,7 @@
                             <div class="flex items-center space-x-3">
                                 ${statusBadge}
                                 ${canEdit ? `
-                                    <button onclick="deleteOffice(${c.id}, ${o.id})" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
+                                    <button onclick="deleteOffice('${c.id}', '${o.id}')" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
                                         <i class="fa-solid ${hasActiveRental ? 'fa-lock' : 'fa-trash'}"></i>
                                     </button>
                                 ` : ''}
@@ -1467,12 +1467,12 @@
                     `;
                 }).join('');
 
-                const campusOfficeIds = c.offices.map(o => parseInt(o.id));
-                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(parseInt(r.officeId)) && r.status === 'active');
+                const campusOfficeIds = c.offices.map(o => String(o.id));
+                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
-                        <div class="p-5 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails(${c.id})">
+                        <div class="p-5 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails('${c.id}')">
                             <div class="flex items-center space-x-3">
                                 <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200 transform" id="campus-icon-${c.id}"></i>
                                 <div>
@@ -1486,14 +1486,14 @@
                             
                             <div class="flex items-center space-x-3" onclick="event.stopPropagation()">
                                 ${canEdit ? `
-                                    <button onclick="openOfficeModal(${c.id})" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100 transition flex items-center">
+                                    <button onclick="openOfficeModal('${c.id}')" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100 transition flex items-center">
                                         <i class="fa-solid fa-plus mr-1"></i> Ofis Ekle
                                     </button>
-                                    <button onclick="deleteCampus(${c.id})" class="${hasCampusActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'} text-xs p-1.5 transition" title="${hasCampusActiveRental ? 'Aktif kiralama varken yerleşke silinemez' : 'Yerleşkeyi Sil'}">
+                                    <button onclick="deleteCampus('${c.id}')" class="${hasCampusActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'} text-xs p-1.5 transition" title="${hasCampusActiveRental ? 'Aktif kiralama varken yerleşke silinemez' : 'Yerleşkeyi Sil'}">
                                         <i class="fa-solid ${hasCampusActiveRental ? 'fa-lock' : 'fa-trash'}"></i>
                                     </button>
                                 ` : ''}
-                                <button onclick="toggleCampusDetails(${c.id})" class="text-xs text-gray-500 hover:text-blue-600 font-semibold flex items-center gap-1 bg-gray-100 px-2.5 py-1.5 rounded-lg">
+                                <button onclick="toggleCampusDetails('${c.id}')" class="text-xs text-gray-500 hover:text-blue-600 font-semibold flex items-center gap-1 bg-gray-100 px-2.5 py-1.5 rounded-lg">
                                     <span>Ofisler</span>
                                 </button>
                             </div>
@@ -1530,7 +1530,7 @@
                     let campusName = "Bilinmiyor";
 
                     data.campuses.forEach(c => {
-                        const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
+                        const off = c.offices.find(o => String(o.id) === String(r.officeId));
                         if(off) {
                             officeName = off.name;
                             campusName = c.name;
@@ -1553,8 +1553,8 @@
                             <td class="p-2 font-semibold text-gray-700">${r.endDate}</td>
                             <td class="p-2">${statusText}</td>
                             <td class="p-2 text-center">
-                                ${canEdit ? `<button onclick="(${r.id})" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Yenile / Düzenle</button>` : ''}
-                                ${canEnd ? `<button onclick="openEndRentalModal(${r.id})" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-red-700">Bitir</button>` : ''}
+                                ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Yenile / Düzenle</button>` : ''}
+                                ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-red-700">Bitir</button>` : ''}
                             </td>
                         </tr>
                     `;
@@ -1569,7 +1569,8 @@
             }
         }
 
-function renderRentals() {
+        // KİRALAMA LİSTESİ - DÜZENLE BUTONLARI STRING OLARAK DESTEKLENDİ
+        function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
 
@@ -1642,11 +1643,11 @@ function renderRentals() {
                 return;
             }
 
-            const r = data.rentals.find(item => parseInt(item.id) === parseInt(rentalId));
+            const r = data.rentals.find(item => String(item.id) === String(rentalId));
             if(!r) return;
 
             if(confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi sistemden KALICI OLARAK SİLMEK istediğinize emin misiniz?\n\nBu işlem sonrasında ilgili ofis alanı boşalacaktır.`)) {
-                data.rentals = data.rentals.filter(item => parseInt(item.id) !== parseInt(rentalId));
+                data.rentals = data.rentals.filter(item => String(item.id) !== String(rentalId));
                 saveData();
             }
         }
@@ -1699,8 +1700,8 @@ function renderRentals() {
                         </td>
                         <td class="p-4 text-center">
                             ${u.username === 'admin' ? '<span class="text-xs text-gray-400">Ana Admin</span>' : `
-                                <button onclick="openUserModal(${u.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md mr-1">Düzenle</button>
-                                <button onclick="deleteUser(${u.id})" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>
+                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md mr-1">Düzenle</button>
+                                <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>
                             `}
                         </td>
                     </tr>
@@ -1709,10 +1710,10 @@ function renderRentals() {
         }
 
         function openUserModal(editUserId = null) {
-            document.getElementById('editing-user-id').value = editUserId || '';
+            document.getElementById('editing-user-id').value = editUserId ? String(editUserId) : '';
 
             if (editUserId) {
-                const u = users.find(item => parseInt(item.id) === parseInt(editUserId));
+                const u = users.find(item => String(item.id) === String(editUserId));
                 if (!u) return;
 
                 document.getElementById('user-modal-title').innerText = "Kullanıcı Düzenle";
@@ -1771,7 +1772,7 @@ function renderRentals() {
         }
 
         function saveUser() {
-            const editUserId = parseInt(document.getElementById('editing-user-id').value) || null;
+            const editUserId = document.getElementById('editing-user-id').value || null;
             const username = document.getElementById('user-input-username').value.trim();
             const password = document.getElementById('user-input-password').value.trim();
             const role = document.getElementById('user-input-role').value;
@@ -1798,7 +1799,7 @@ function renderRentals() {
             };
 
             if(editUserId) {
-                const u = users.find(item => parseInt(item.id) === parseInt(editUserId));
+                const u = users.find(item => String(item.id) === String(editUserId));
                 if(u) {
                     u.username = username;
                     u.password = password;
@@ -1819,12 +1820,12 @@ function renderRentals() {
 
         function deleteUser(id) {
             if(confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
-                users = users.filter(u => parseInt(u.id) !== parseInt(id));
+                users = users.filter(u => String(u.id) !== String(id));
                 saveData();
             }
         }
 
-// DÜZELTİLMİŞ VE KESİN ÇALIŞAN SÖZLEŞME DÜZENLEME MODALİ
+        // TAMAMLAYICI DÜZENLEME MODALI FONKSİYONU
         function openRentalModal(editRentalId = null) {
             const campusSelect = document.getElementById('rent-campus-select');
             campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
@@ -1833,7 +1834,7 @@ function renderRentals() {
                 campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
 
-            document.getElementById('editing-rental-id').value = editRentalId !== null ? String(editRentalId) : '';
+            document.getElementById('editing-rental-id').value = editRentalId ? String(editRentalId) : '';
             document.getElementById('rent-user-note').value = '';
 
             const isUserAdmin = currentUser && currentUser.role === 'admin';
@@ -1846,12 +1847,10 @@ function renderRentals() {
             document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
             document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
 
-            if(editRentalId !== null && editRentalId !== '') {
-                // Tip bağımsız esnek eşleşme (== kullanımı)
+            if(editRentalId !== null && editRentalId !== undefined && String(editRentalId) !== '') {
                 const r = data.rentals.find(item => String(item.id) === String(editRentalId));
-                
                 if(!r) {
-                    alert("Düzenlenecek sözleşme verisi veritabanında bulunamadı!");
+                    alert("Düzenlenecek sözleşme verisi veritabanında bulunamadı.");
                     return;
                 }
 
@@ -1860,12 +1859,10 @@ function renderRentals() {
 
                 let currentCampusId = null;
                 data.campuses.forEach(c => {
-                    if(c.offices.some(o => String(o.id) === String(r.officeId))) {
-                        currentCampusId = c.id;
-                    }
+                    if(c.offices.some(o => String(o.id) === String(r.officeId))) currentCampusId = c.id;
                 });
 
-                if (currentCampusId !== null) {
+                if (currentCampusId) {
                     campusSelect.value = String(currentCampusId);
                     onRentalCampusChange(r.officeId);
                 }
@@ -1901,18 +1898,18 @@ function renderRentals() {
         }
 
         function onRentalCampusChange(selectedOfficeId = null) {
-            const campusSelectVal = document.getElementById('rent-campus-select').value;
+            const campusId = document.getElementById('rent-campus-select').value;
             const officeSelect = document.getElementById('rent-office-select');
             const editRentalId = document.getElementById('editing-rental-id').value || null;
 
-            if(!campusSelectVal) {
+            if(!campusId) {
                 officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
                 officeSelect.disabled = true;
                 document.getElementById('office-available-hint').innerText = '';
                 return;
             }
 
-            const campus = data.campuses.find(c => String(c.id) === String(campusSelectVal));
+            const campus = data.campuses.find(c => String(c.id) === String(campusId));
             if(!campus) return;
 
             officeSelect.disabled = false;
@@ -1925,11 +1922,26 @@ function renderRentals() {
                 }
             });
 
-            if (selectedOfficeId !== null && selectedOfficeId !== undefined) {
+            if (selectedOfficeId) {
                 officeSelect.value = String(selectedOfficeId);
+                onRentalOfficeChange();
             } else {
                 document.getElementById('office-available-hint').innerText = '';
             }
+        }
+
+        function onRentalOfficeChange() {
+            const officeId = document.getElementById('rent-office-select').value;
+            const editRentalId = document.getElementById('editing-rental-id').value || null;
+            const hint = document.getElementById('office-available-hint');
+
+            if (!officeId) {
+                hint.innerText = '';
+                return;
+            }
+
+            const availArea = getOfficeAvailableArea(officeId, editRentalId);
+            hint.innerText = `Seçilen ofiste kullanılabilir boş alan: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
         }
 
         function openRentalExcelUploadModal() {
@@ -1937,7 +1949,7 @@ function renderRentals() {
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-        // ESNEK EXCEL SÖZLEŞME YÜKLEME FONKSİYONU (TARİH DÖNÜŞTÜRÜCÜ EKLENDİ)
+        // ESNEK EXCEL SÖZLEŞME YÜKLEME FONKSİYONU
         function processRentalExcelUpload() {
             const fileInput = document.getElementById('rental-excel-file-input');
             const file = fileInput.files[0];
@@ -1947,11 +1959,9 @@ function renderRentals() {
                 return;
             }
 
-            // Excel nokta/bölü ayrılmış (gg.aa.yyyy) veya seri tarihini yyyy-mm-dd formatına çevirici
             function parseExcelDate(val) {
                 if (!val) return null;
                 
-                // Eğer Excel seri numarası olarak geldiyse
                 if (typeof val === 'number') {
                     const dateObj = XLSX.SSF.parse_date_code(val);
                     if (dateObj) {
@@ -1966,11 +1976,9 @@ function renderRentals() {
                 const parts = str.split(/[./-]/);
                 
                 if (parts.length === 3) {
-                    // yyyy-mm-dd
                     if (parts[0].length === 4) {
                         return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
                     }
-                    // gg.aa.yyyy
                     if (parts[2].length === 4) {
                         const d = String(parts[0]).padStart(2, '0');
                         const m = String(parts[1]).padStart(2, '0');
@@ -2000,25 +2008,21 @@ function renderRentals() {
                     jsonRows.forEach(row => {
                         const keys = Object.keys(row);
                         
-                        // 1. Temel Sütunlar
                         const companyKey = keys.find(k => k.trim().toLowerCase().includes('firma') || k.trim().toLowerCase().includes('şirket') || k.trim().toLowerCase().includes('kiracı'));
                         const campusKey = keys.find(k => k.trim().toLowerCase().includes('yerleşke') || k.trim().toLowerCase().includes('bina') || k.trim().toLowerCase().includes('kampüs'));
                         const officeKey = keys.find(k => k.trim().toLowerCase().includes('ofis'));
                         
-                        // 2. Alan (m²) Sütunu
                         const areaKey = keys.find(k => {
                             const norm = k.trim().toLowerCase();
                             return norm.includes('m2') || norm.includes('m²') || norm.includes('alan') || norm.includes('metrekare');
                         });
 
-                        // 3. Birim Fiyat Sütunu
                         const unitPriceKey = keys.find(k => {
                             const norm = k.trim().toLowerCase();
                             if (norm.includes('alan') && !norm.includes('fiyat')) return false;
                             return norm.includes('birim') || norm.includes('fiyat') || norm.includes('unit');
                         });
 
-                        // 4. Diğer Ücretler ve Tarihler
                         const commonKey = keys.find(k => k.trim().toLowerCase().includes('ortak'));
                         const otherKey = keys.find(k => k.trim().toLowerCase().includes('katılım') || k.trim().toLowerCase().includes('diğer'));
                         const startKey = keys.find(k => k.trim().toLowerCase().includes('başlangıç') || k.trim().toLowerCase().includes('start'));
@@ -2034,7 +2038,6 @@ function renderRentals() {
                             const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
                             const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
                             
-                            // gg.aa.yyyy formatlarını güvenli yyyy-mm-dd formatına çevir
                             const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
                             const endDate = endKey ? parseExcelDate(row[endKey]) : null;
 
@@ -2123,12 +2126,12 @@ function renderRentals() {
 
             const targetCampuses = selectedCampus === 'all' 
                 ? data.campuses 
-                : data.campuses.filter(c => c.id === parseInt(selectedCampus));
+                : data.campuses.filter(c => String(c.id) === String(selectedCampus));
 
             targetCampuses.forEach(c => {
                 let campusRevExcl = 0;
                 c.offices.forEach(o => {
-                    data.rentals.filter(r => parseInt(r.officeId) === parseInt(o.id) && r.status === 'active').forEach(r => {
+                    data.rentals.filter(r => String(r.officeId) === String(o.id) && r.status === 'active').forEach(r => {
                         const area = parseFloat(r.allocatedArea || 0);
                         const totalRent = area * r.unitPrice;
                         const totalCommonCost = area * (r.commonCostPerM2 || 0);
@@ -2176,7 +2179,7 @@ function renderRentals() {
 
             let filterLabel = "Tüm Yerleşkeler";
             if (selectedCampus !== 'all') {
-                const found = data.campuses.find(c => c.id === parseInt(selectedCampus));
+                const found = data.campuses.find(c => String(c.id) === String(selectedCampus));
                 if (found) filterLabel = found.name;
             }
 
@@ -2253,7 +2256,7 @@ function renderRentals() {
 
         // ESNEK EXCEL OFİS YÜKLEME FONKSİYONU
         function processExcelUpload() {
-            const campusId = parseInt(document.getElementById('excel-upload-campus-select').value);
+            const campusId = document.getElementById('excel-upload-campus-select').value;
             const fileInput = document.getElementById('excel-file-input');
             const file = fileInput.files[0];
 
@@ -2268,7 +2271,7 @@ function renderRentals() {
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonRows = XLSX.utils.sheet_to_json(worksheet);
 
-                    const campus = data.campuses.find(c => c.id === campusId);
+                    const campus = data.campuses.find(c => String(c.id) === String(campusId));
                     if (!campus || jsonRows.length === 0) return;
 
                     let addedCount = 0;
@@ -2391,7 +2394,7 @@ function renderRentals() {
                 return;
             }
 
-            document.getElementById('end-rental-id').value = rentalId;
+            document.getElementById('end-rental-id').value = String(rentalId);
             document.getElementById('rent-end-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('rent-end-user-note').value = '';
             document.getElementById('end-rental-modal').classList.remove('hidden');
@@ -2410,14 +2413,14 @@ function renderRentals() {
         }
 
         function saveOffice() {
-            const campusId = parseInt(document.getElementById('office-campus-id').value);
+            const campusId = document.getElementById('office-campus-id').value;
             const name = document.getElementById('new-office-name').value;
             const floor = document.getElementById('new-office-floor').value;
             const area = parseFloat(document.getElementById('new-office-area').value);
 
             if(!name || !area) return;
 
-            const campus = data.campuses.find(c => c.id === campusId);
+            const campus = data.campuses.find(c => String(c.id) === String(campusId));
             if(campus) {
                 campus.offices.push({ id: Date.now(), name, area, floor });
             }
@@ -2430,9 +2433,9 @@ function renderRentals() {
         }
 
         function saveRental() {
-            const editRentalId = parseInt(document.getElementById('editing-rental-id').value) || null;
+            const editRentalId = document.getElementById('editing-rental-id').value || null;
             const company = document.getElementById('rent-company-name').value;
-            const officeId = parseInt(document.getElementById('rent-office-select').value);
+            const officeId = document.getElementById('rent-office-select').value;
             const startDate = document.getElementById('rent-start-date').value;
             const endDate = document.getElementById('rent-target-end-date').value;
             const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
@@ -2453,7 +2456,7 @@ function renderRentals() {
             }
 
             if(editRentalId) {
-                const rental = data.rentals.find(r => parseInt(r.id) === editRentalId);
+                const rental = data.rentals.find(r => String(r.id) === String(editRentalId));
                 if(rental) {
                     rental.company = company;
                     rental.officeId = officeId;
@@ -2492,13 +2495,13 @@ function renderRentals() {
         }
 
         function confirmEndRental() {
-            const rentalId = parseInt(document.getElementById('end-rental-id').value);
+            const rentalId = document.getElementById('end-rental-id').value;
             const endDate = document.getElementById('rent-end-date').value;
             const noteText = document.getElementById('rent-end-user-note').value.trim();
 
             if(!endDate) return;
 
-            const rental = data.rentals.find(r => parseInt(r.id) === rentalId);
+            const rental = data.rentals.find(r => String(r.id) === String(rentalId));
             if(rental) {
                 rental.status = 'completed';
                 rental.endDate = endDate;
@@ -2517,7 +2520,7 @@ function renderRentals() {
         }
 
         function deleteOffice(campusId, officeId) {
-            const activeRentals = data.rentals.filter(r => parseInt(r.officeId) === parseInt(officeId) && r.status === 'active');
+            const activeRentals = data.rentals.filter(r => String(r.officeId) === String(officeId) && r.status === 'active');
             
             if (activeRentals.length > 0) {
                 const companies = activeRentals.map(r => r.company).join(", ");
@@ -2526,21 +2529,21 @@ function renderRentals() {
             }
 
             if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
-                const campus = data.campuses.find(c => parseInt(c.id) === parseInt(campusId));
+                const campus = data.campuses.find(c => String(c.id) === String(campusId));
                 if(campus) {
-                    campus.offices = campus.offices.filter(o => parseInt(o.id) !== parseInt(officeId));
-                    data.rentals = data.rentals.filter(r => parseInt(r.officeId) !== parseInt(officeId));
+                    campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
+                    data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
                 }
                 saveData();
             }
         }
 
         function deleteCampus(campusId) {
-            const campus = data.campuses.find(c => parseInt(c.id) === parseInt(campusId));
+            const campus = data.campuses.find(c => String(c.id) === String(campusId));
             if (!campus) return;
 
-            const officeIds = campus.offices.map(o => parseInt(o.id));
-            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(parseInt(r.officeId)) && r.status === 'active');
+            const officeIds = campus.offices.map(o => String(o.id));
+            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(String(r.officeId)) && r.status === 'active');
 
             if (activeRentalsInCampus.length > 0) {
                 const companies = activeRentalsInCampus.map(r => r.company).join(", ");
@@ -2549,7 +2552,7 @@ function renderRentals() {
             }
 
             if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
-                data.campuses = data.campuses.filter(c => parseInt(c.id) !== parseInt(campusId));
+                data.campuses = data.campuses.filter(c => String(c.id) !== String(campusId));
                 saveData();
             }
         }
@@ -2561,11 +2564,11 @@ function renderRentals() {
             const filteredRentals = data.rentals.filter(r => {
                 let campusId = null;
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
+                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
                     if(off) campusId = c.id;
                 });
 
-                const campusMatch = (selectedCampus === 'all' || campusId === parseInt(selectedCampus));
+                const campusMatch = (selectedCampus === 'all' || String(campusId) === String(selectedCampus));
                 const statusMatch = (selectedStatus === 'all' || r.status === selectedStatus);
 
                 return campusMatch && statusMatch;
@@ -2576,7 +2579,7 @@ function renderRentals() {
                 let campusName = "Bilinmiyor";
 
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
+                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
                     if(off) {
                         officeName = off.name;
                         campusName = c.name;
