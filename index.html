@@ -27,12 +27,12 @@
         .sidebar-collapsed .sidebar-user-info { display: none !important; }
         .sidebar-collapsed .sidebar-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
     </style>
-<!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
-<!-- GİRİŞ EKRANI -->
+    <!-- GİRİŞ EKRANI -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-900 px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
             <div class="text-center mb-6">
@@ -325,22 +325,15 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
-                            <tr>
-                                <th class="p-4">Durum</th>
-                                <th class="p-4">Firma Adı</th>
-                                <th class="p-4">Yerleşke / Ofis</th>
-                                <th class="p-4">Alan (m²)</th>
-                                <th class="p-4">Başlangıç</th>
-                                <th class="p-4">Bitiş</th>
-                                <th class="p-4">Kira Tutarı</th>
-                                <th class="p-4">Ort. Gider</th>
-                                <th class="p-4">Katılım</th>
-                                <th class="p-4">KDV Hariç</th>
-                                <th class="p-4">KDV Dahil</th>
-                                <th class="p-4 text-center">İşlem</th>
-                            </tr>
-                        </thead>
+                            <thead class="bg-amber-100/60 text-amber-900 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-2">Firma Adı</th>
+                                    <th class="p-2">Yerleşke / Ofis</th>
+                                    <th class="p-2">Bitiş Tarihi</th>
+                                    <th class="p-2">Kalan Süre</th>
+                                    <th class="p-2 text-center">Hızlı İşlem</th>
+                                </tr>
+                            </thead>
                             <tbody id="expiring-table-body" class="divide-y divide-amber-200/50"></tbody>
                         </table>
                     </div>
@@ -376,18 +369,23 @@
                     </div>
                 </div>
 
+                <!-- KİRALAMA TAKİBİ DOĞRU BAŞLIK TABLOSU -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <table class="w-full text-left border-collapse min-w-[1200px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
-                                <th class="p-3 text-center">Ödendi</th>
-                                <th class="p-3">Ad & Soyad</th>
-                                <th class="p-3">IBAN</th>
-                                <th class="p-3">Firma Adı</th>
-                                <th class="p-3">Proje Adı / Kodu</th>
-                                <th class="p-3">Ödeme Tutarı</th>
-                                <th class="p-3">Belge Tarihi</th>
-                                <th class="p-3 text-center">İşlem</th>
+                                <th class="p-4">Durum</th>
+                                <th class="p-4">Firma Adı</th>
+                                <th class="p-4">Yerleşke / Ofis</th>
+                                <th class="p-4">Alan (m²)</th>
+                                <th class="p-4">Başlangıç</th>
+                                <th class="p-4">Bitiş</th>
+                                <th class="p-4">Kira Tutarı</th>
+                                <th class="p-4">Ort. Gider</th>
+                                <th class="p-4">Katılım</th>
+                                <th class="p-4">KDV Hariç</th>
+                                <th class="p-4">KDV Dahil</th>
+                                <th class="p-4 text-center">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="rental-table-body" class="divide-y divide-gray-100 text-sm text-gray-700"></tbody>
@@ -562,7 +560,7 @@
 
     <!-- MODALLAR -->
 
-  <!-- HAKEM ÖDEMESİ EKLE / DÜZENLE MODALI -->
+    <!-- HAKEM ÖDEMESİ EKLE / DÜZENLE MODALI -->
     <div id="referee-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold mb-4" id="referee-modal-title">Yeni Hakem Ödemesi Ekle</h3>
@@ -684,6 +682,7 @@
             </div>
         </div>
     </div>
+    
     <!-- YEDEK GERİ YÜKLEME MODALI -->
     <div id="restore-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -1312,11 +1311,10 @@
             document.getElementById('referee-month-filter').value = currentMonth;
         }
 
-        // FORMÜL: NET ÖDENEN GİRİLİR, GAYRİ SAFİ (NET/0.90) VE KESİNTİ (GAYRİ SAFİ * 0.10) HESAPLANIR
         function calculateRefereeTax() {
-            const grossInput = parseFloat(document.getElementById('ref-gross').value) || 0; // Net Ödenen
-            const netVal = grossInput / 0.90; // Gayri Safi Tutar
-            const taxVal = netVal * 0.10; // Kesinti (%10)
+            const grossInput = parseFloat(document.getElementById('ref-gross').value) || 0;
+            const netVal = grossInput / 0.90;
+            const taxVal = netVal * 0.10;
 
             document.getElementById('ref-net').value = netVal.toFixed(2);
             document.getElementById('ref-tax').value = taxVal.toFixed(2);
@@ -1330,38 +1328,34 @@
                 renderReferees();
             }
         }
-// IBAN Girişlerini Otomatik Biçimlendirme (TRXX XXXX XXXX XXXX XXXX XXXX XX)
+
         function formatIBAN(value) {
             if (!value) return '';
-            
-            // Tüm harfleri büyüt ve harf/rakam dışındaki tüm karakterleri (boşluklar dahil) temizle
             let clean = String(value).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-            // Başta TR yoksa ve rakam girildiyse otomatik TR ekle
             if (!clean.startsWith('TR')) {
                 clean = 'TR' + clean;
             }
 
-            // TR harflerinden sonra sadece rakamları al
             let trPart = clean.substring(0, 2);
             let digitsPart = clean.substring(2).replace(/[^0-9]/g, '').substring(0, 24);
 
             let result = trPart;
             if (digitsPart.length > 0) {
-                result += digitsPart.substring(0, 2); // TRXX kısmı
+                result += digitsPart.substring(0, 2);
             }
             for (let i = 2; i < digitsPart.length; i += 4) {
-                result += ' ' + digitsPart.substring(i, i + 4); // 4'erli bloklar
+                result += ' ' + digitsPart.substring(i, i + 4);
             }
 
             return result;
         }
-function openRefereeModal(editId = null) {
+
+        function openRefereeModal(editId = null) {
             document.getElementById('editing-referee-id').value = editId || '';
 
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             
-            // Alt Kullanıcılar İçin Kilitlenecek Finansal / Resmi Alanlar (ref-iban izinli bırakılmıştır)
             const restrictedInputs = [
                 'ref-type', 'ref-gross', 'ref-doc-type', 'ref-doc-date', 
                 'ref-doc-no', 'ref-vat', 'ref-country', 'ref-address', 
@@ -1373,7 +1367,6 @@ function openRefereeModal(editId = null) {
                 if (el) el.disabled = !isUserAdmin;
             });
 
-            // IBAN Formatlama Dinleyicisi
             const ibanInput = document.getElementById('ref-iban');
             if (ibanInput) {
                 ibanInput.oninput = function() {
@@ -1431,7 +1424,7 @@ function openRefereeModal(editId = null) {
             document.getElementById('referee-modal').classList.remove('hidden');
         }
 
-function saveRefereePayment() {
+        function saveRefereePayment() {
             const editId = document.getElementById('editing-referee-id').value;
             const firstName = document.getElementById('ref-firstname').value.trim();
             const lastName = document.getElementById('ref-lastname').value.trim();
@@ -1449,7 +1442,7 @@ function saveRefereePayment() {
             const payload = {
                 id: editId || Date.now(),
                 firstName, lastName,
-                iban: document.getElementById('ref-iban').value.trim(), // IBAN verisi kaydediliyor
+                iban: document.getElementById('ref-iban').value.trim(),
                 vkn: document.getElementById('ref-vkn').value.trim(),
                 tckn: document.getElementById('ref-tckn').value.trim(),
                 type: document.getElementById('ref-type').value.trim() || '156',
@@ -1486,7 +1479,7 @@ function saveRefereePayment() {
             }
         }
 
-function renderReferees() {
+        function renderReferees() {
             const tbody = document.getElementById('referee-table-body');
             tbody.innerHTML = '';
 
@@ -1549,7 +1542,8 @@ function renderReferees() {
                 tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
-function exportRefereesToExcel() {
+
+        function exportRefereesToExcel() {
             try {
                 if (!data || !data.refereePayments || data.refereePayments.length === 0) {
                     alert("Sistemde henüz kayıtlı hakem ödemesi bulunmuyor.");
@@ -1559,7 +1553,6 @@ function exportRefereesToExcel() {
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
                 const selMonth = String(document.getElementById('referee-month-filter').value).trim().padStart(2, '0');
 
-                // Esnek ve hatasız tarih eşleme (gg.aa.yyyy veya yyyy-aa-gg)
                 const filtered = data.refereePayments.filter(r => {
                     if (!r || !r.docDate) return false;
                     const dateStr = String(r.docDate).trim();
@@ -1567,10 +1560,10 @@ function exportRefereesToExcel() {
                     let y = "", m = "";
                     
                     if (parts.length === 3) {
-                        if (parts[2].length === 4) { // gg.aa.yyyy
+                        if (parts[2].length === 4) {
                             y = parts[2];
                             m = String(parts[1]).padStart(2, '0');
-                        } else if (parts[0].length === 4) { // yyyy-aa-gg
+                        } else if (parts[0].length === 4) {
                             y = parts[0];
                             m = String(parts[1]).padStart(2, '0');
                         }
@@ -1583,7 +1576,6 @@ function exportRefereesToExcel() {
                     return;
                 }
 
-                // İstenen Excel formatı (KDV Tevkifat ile Adres No yer değiştirildi)
                 const exportList = filtered.map(r => {
                     const grossNum = parseFloat(r.gross) || 0;
                     const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0);
@@ -1607,7 +1599,6 @@ function exportRefereesToExcel() {
                     };
                 });
 
-                // Doğrudan Blob Tabanlı Güvenli Excel İndirme (XLSX)
                 if (typeof XLSX !== 'undefined') {
                     const ws = XLSX.utils.json_to_sheet(exportList);
                     const wb = XLSX.utils.book_new();
@@ -1628,7 +1619,6 @@ function exportRefereesToExcel() {
                         URL.revokeObjectURL(url);
                     }, 200);
                 } else {
-                    // Kütüphane yüklenememişse yedek CSV çıktısı
                     let csv = "\uFEFF";
                     const headers = Object.keys(exportList[0]);
                     csv += headers.join(";") + "\r\n";
@@ -1649,6 +1639,7 @@ function exportRefereesToExcel() {
                 alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
             }
         }
+
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
         function populateCampusFilters() {
             const dashSelect = document.getElementById('dash-campus-filter');
@@ -1790,7 +1781,7 @@ function exportRefereesToExcel() {
             updateCharts();
         }
 
-function onPersonCountInput() {
+        function onPersonCountInput() {
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
             const hint = document.getElementById('person-m2-calc-hint');
             const suggestionBox = document.getElementById('smart-suggestion-box');
@@ -1812,12 +1803,13 @@ function onPersonCountInput() {
             document.getElementById('filter-min-m2').value = neededM2;
             renderCampuses();
         }
+
         function toggleCampusDetails(campusId) {
             const body = document.getElementById(`campus-body-${campusId}`);
             if (body) body.classList.toggle('hidden');
         }
 
-function renderCampuses() {
+        function renderCampuses() {
             const container = document.getElementById('campus-list');
             container.innerHTML = '';
 
@@ -1842,12 +1834,11 @@ function renderCampuses() {
                 let suggestions = [];
 
                 data.campuses.forEach(c => {
-                    // Yerleşkedeki boş ofisleri topla
                     const availOffices = c.offices
                         .map(o => ({ name: o.name, avail: o.area - getOfficeRentedArea(o.id) }))
                         .filter(o => o.avail > 0);
 
-                    // 1. Tekli Ofisleri Kontrol Et
+                    // 1. Tekli Ofisler
                     availOffices.forEach(o => {
                         if (o.avail >= targetM2) {
                             suggestions.push({
@@ -1859,7 +1850,7 @@ function renderCampuses() {
                         }
                     });
 
-                    // 2. İkili Ofis Kombinasyonları (O(N^2) - Asla dondurmaz)
+                    // 2. İkili Ofis Paketleri
                     for (let i = 0; i < availOffices.length; i++) {
                         for (let j = i + 1; j < availOffices.length; j++) {
                             const total = availOffices[i].avail + availOffices[j].avail;
@@ -1874,11 +1865,10 @@ function renderCampuses() {
                         }
                     }
 
-                    // 3. Çoklu Ofis İhtiyacı Varsa: Yerleşke genel toplamı karşılıyorsa kompakt paket
+                    // 3. Çoklu Ofis Paketleri
                     if (availOffices.length >= 3) {
                         const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
                         if (totalCampusAvail >= targetM2) {
-                            // En büyükten küçüğe doğru seçerek hedefi geçen en az ofisli paketi kur
                             const sorted = [...availOffices].sort((a, b) => b.avail - a.avail);
                             let runningTotal = 0;
                             let picked = [];
@@ -1899,10 +1889,8 @@ function renderCampuses() {
                     }
                 });
 
-                // İhtiyaca en yakın olanları öne al
                 suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
 
-                // Tekrarları temizle
                 const uniqueSuggestions = [];
                 const seen = new Set();
                 for (let s of suggestions) {
@@ -1910,7 +1898,7 @@ function renderCampuses() {
                         seen.add(s.title);
                         uniqueSuggestions.push(s);
                     }
-                    if (uniqueSuggestions.length >= 4) break; // İlk 4 en iyi seçenek yeterli
+                    if (uniqueSuggestions.length >= 4) break;
                 }
 
                 if (uniqueSuggestions.length > 0) {
@@ -1939,7 +1927,6 @@ function renderCampuses() {
             } else if (suggestionBox) {
                 suggestionBox.classList.add('hidden');
             }
-            // ===========================================================================
 
             data.campuses.forEach(c => {
                 const totalCampusArea = c.offices.reduce((acc, o) => acc + parseFloat(o.area), 0);
@@ -2024,6 +2011,7 @@ function renderCampuses() {
                 `;
             });
         }
+
         function renderExpiringAlerts() {
             const alertContainer = document.getElementById('expiring-rentals-alert');
             const tbody = document.getElementById('expiring-table-body');
