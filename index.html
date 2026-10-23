@@ -18,6 +18,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* Sol Menü Daraltma Geçiş Efekti ve Stilleri */
+        aside { transition: width 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 4.5rem !important; }
+        .sidebar-collapsed .sidebar-text, 
+        .sidebar-collapsed .sidebar-user-info { display: none !important; }
+        .sidebar-collapsed .sidebar-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
@@ -25,11 +34,12 @@
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-900 px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
             <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-building text-white text-2xl"></i>
+                <!-- ZAFER TEKNOPARK LOGOSU -->
+                <div class="flex items-center justify-center mb-4">
+                    <img src="Teknopark Logo.png" alt="Zafer Teknopark Logo" class="h-16 object-contain mx-auto">
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Teknopark Yönetim Paneli</h2>
-                <p class="text-sm text-gray-500">Lütfen kullanıcı bilgilerinizle giriş yapın</p>
+                <h2 class="text-xl font-bold text-gray-800">Teknopark Yönetim Paneli</h2>
+                <p class="text-xs text-gray-500 mt-1">Lütfen kullanıcı bilgilerinizle giriş yapın</p>
             </div>
 
             <!-- CANLI BULUT VERİTABANI BAĞLANTI DURUMU BİLDİRİMİ -->
@@ -60,66 +70,75 @@
     <!-- ANA PANEL -->
     <div id="app" class="hidden min-h-screen flex">
         <!-- Sol Menü (Sidebar) -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col">
-            <div class="p-5 border-b border-slate-800">
-                <div class="text-lg font-bold flex items-center space-x-2">
-                    <i class="fa-solid fa-microchip text-blue-400"></i>
-                    <span>Teknopark Panel</span>
+        <aside id="main-sidebar" class="w-64 bg-slate-900 text-white flex flex-col relative transition-all duration-300">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="text-lg font-bold flex items-center space-x-2 overflow-hidden">
+                    <i class="fa-solid fa-microchip text-blue-400 text-xl"></i>
+                    <span class="sidebar-text truncate">Teknopark Panel</span>
                 </div>
-                <div class="mt-2 text-xs text-gray-400 flex items-center justify-between">
+                <!-- Menü Daraltma / Genişletme Butonu -->
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition" title="Menüyü Daralt/Genişlet">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Kullanıcı Bilgisi Alanı -->
+            <div class="px-5 py-3 border-b border-slate-800/60 sidebar-user-info">
+                <div class="text-xs text-gray-400 flex items-center justify-between">
                     <span>Giriş Yapan: <strong id="current-user-display" class="text-white">Admin</strong></span>
                     <span id="current-role-badge" class="bg-blue-900 text-blue-300 text-[10px] px-2 py-0.5 rounded font-semibold">Yönetici</span>
                 </div>
             </div>
-            <nav class="flex-1 p-4 space-y-1">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Dashboard & Analiz</span>
+
+            <nav class="flex-1 p-3 space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-chart-pie text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Dashboard & Analiz</span>
                 </button>
-                <button onclick="switchTab('campuses')" id="nav-campuses" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-city"></i>
-                    <span>Yerleşke & Ofisler</span>
+                <button onclick="switchTab('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-city text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Yerleşke & Ofisler</span>
                 </button>
-                <button onclick="switchTab('rentals')" id="nav-rentals" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-file-contract"></i>
-                    <span>Kiralama Takibi</span>
+                <button onclick="switchTab('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-file-contract text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Kiralama Takibi</span>
                 </button>
-                <button onclick="switchTab('simulation')" id="nav-simulation" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-calculator"></i>
-                    <span>TÜFE/ÜFE Simülatörü</span>
+                <button onclick="switchTab('simulation')" id="nav-simulation" title="TÜFE/ÜFE Simülatörü" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-calculator text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">TÜFE/ÜFE Simülatörü</span>
                 </button>
                 
-                <button onclick="switchTab('users')" id="nav-users" class="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition">
-                    <i class="fa-solid fa-users-gear"></i>
-                    <span>Kullanıcı Yönetimi</span>
+                <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition">
+                    <i class="fa-solid fa-users-gear text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Kullanıcı Yönetimi</span>
                 </button>
             </nav>
 
             <!-- YEDEKLEME VE DİĞER HESAP BUTONLARI -->
-            <div class="p-4 border-t border-slate-800 space-y-2">
+            <div class="p-3 border-t border-slate-800 space-y-2">
                 <!-- YALNIZCA ADMİN KULLANICILARIN GÖRECEĞİ YEDEKLEME BUTONLARI -->
                 <div id="backup-buttons-container" class="space-y-2">
-                    <button onclick="fetchCentralData()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-cloud-arrow-down"></i>
-                        <span>Buluttan Veri Çek / Yenile</span>
+                    <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-cloud-arrow-down text-sm min-w-[16px]"></i>
+                        <span class="sidebar-text truncate">Buluttan Veri Çek</span>
                     </button>
-                    <button onclick="exportSystemJSON()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-download"></i>
-                        <span>Verileri Yedekle (JSON)</span>
+                    <button onclick="exportSystemJSON()" title="Verileri Yedekle (JSON)" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-download text-sm min-w-[16px]"></i>
+                        <span class="sidebar-text truncate">Verileri Yedekle</span>
                     </button>
-                    <button onclick="openRestoreModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-upload"></i>
-                        <span>Yedek Geri Yükle</span>
+                    <button onclick="openRestoreModal()" title="Yedek Geri Yükle" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-upload text-sm min-w-[16px]"></i>
+                        <span class="sidebar-text truncate">Yedek Geri Yükle</span>
                     </button>
                 </div>
 
-                <button onclick="openProfileModal()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
-                    <i class="fa-solid fa-user-gear"></i>
-                    <span>Hesap / Profil Ayarları</span>
+                <button onclick="openProfileModal()" title="Hesap / Profil Ayarları" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
+                    <i class="fa-solid fa-user-gear text-sm min-w-[16px]"></i>
+                    <span class="sidebar-text truncate">Profil Ayarları</span>
                 </button>
-                <button onclick="logout()" class="w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Çıkış Yap</span>
+                <button onclick="logout()" title="Çıkış Yap" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                    <i class="fa-solid fa-right-from-bracket text-sm min-w-[16px]"></i>
+                    <span class="sidebar-text truncate">Çıkış Yap</span>
                 </button>
             </div>
         </aside>
@@ -739,7 +758,7 @@
         </div>
     </div>
 
-    <!-- KİRALAMA VE DÜZENLEME MODALI (KALICI GEÇMİŞ NOTLARI ALANI EKLENDİ) -->
+    <!-- KİRALAMA VE DÜZENLEME MODALI (KALICI GEÇMİŞ NOTLARI ALANI) -->
     <div id="rental-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold mb-4" id="rental-modal-title">Ofis Kiralama Sözleşmesi</h3>
@@ -905,7 +924,6 @@
         };
 
         let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
-
         let currentUser = null;
 
         let occupancyChartInstance = null;
@@ -913,8 +931,38 @@
         let comparisonChartInstance = null;
         let simulationChartInstance = null;
 
+        // SOL MENÜ DARALTMA/GENİŞLETME FONKSİYONU
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+        }
+
         window.onload = async function() {
             await fetchCentralData();
+
+            // OTURUMUN HAFIZADA TUTULMASI (Sayfa Yenilendiğinde Login Ekranına Dönmeme)
+            const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
+            if (savedUserJson) {
+                try {
+                    const parsedUser = JSON.parse(savedUserJson);
+                    const validUser = users.find(u => u.username === parsedUser.username && u.password === parsedUser.password);
+                    if (validUser) {
+                        currentUser = validUser;
+                        document.getElementById('login-screen').classList.add('hidden');
+                        document.getElementById('app').classList.remove('hidden');
+                        applyUserPermissionsUI();
+                        populateCampusFilters();
+                        renderAll();
+                        resetSimToBase();
+
+                        if (currentUser.permissions.dashboard) switchTab('dashboard');
+                        else if (currentUser.permissions.campuses) switchTab('campuses');
+                        else if (currentUser.permissions.rentals) switchTab('rentals');
+                        else if (currentUser.permissions.simulation) switchTab('simulation');
+                        else if (currentUser.role === 'admin') switchTab('users');
+                    }
+                } catch(e) { console.error("Oturum yükleme hatası:", e); }
+            }
         };
 
         // GOOGLE APPS SCRIPT MERKEZİ VERİTABANINDAN CANLI VERİ ÇEKME
@@ -952,7 +1000,7 @@
                         statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1.5"></i><span>Bulut Veritabanı Eşitlendi (Canlı Sync)</span>`;
                         statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
                     }
-                    renderAll();
+                    if (currentUser) renderAll();
                 } else {
                     throw new Error("Geçerli veri yapısı bulunamadı.");
                 }
@@ -967,7 +1015,7 @@
                     data = JSON.parse(localData);
                     users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
                     userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
-                    renderAll();
+                    if (currentUser) renderAll();
                 }
             }
         }
@@ -1058,6 +1106,8 @@
 
             if(foundUser) {
                 currentUser = foundUser;
+                sessionStorage.setItem('teknoparkActiveUser', JSON.stringify(currentUser)); // OTURUMU HAFIZAYA AL
+
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
                 
@@ -1100,6 +1150,7 @@
 
             currentUser.username = newUsername;
             currentUser.password = newPassword;
+            sessionStorage.setItem('teknoparkActiveUser', JSON.stringify(currentUser)); // OTURUMU GÜNCELLE
 
             const uIndex = users.findIndex(u => String(u.id) === String(currentUser.id));
             if(uIndex !== -1) {
@@ -1165,6 +1216,7 @@
 
         function logout() {
             currentUser = null;
+            sessionStorage.removeItem('teknoparkActiveUser'); // OTURUMU SİL
             document.getElementById('app').classList.add('hidden');
             document.getElementById('login-screen').classList.remove('hidden');
         }
@@ -2008,7 +2060,6 @@
                 document.getElementById('rent-other-cost').value = '';
                 document.getElementById('office-available-hint').innerText = '';
 
-                // Yeni kiralama yaparken geçmişi gizle
                 historySection.classList.add('hidden');
             }
 
@@ -2171,7 +2222,6 @@
 
                     if (!rental.history) rental.history = [];
 
-                    // Eğer kullanıcı bir not yazdıysa hem sözleşme geçmişine hem yönetici bildirimine ekle
                     if (noteText) {
                         const historyEntry = { username: currentUserLabel, date: currentTimestamp, note: noteText };
                         rental.history.unshift(historyEntry);
@@ -2184,7 +2234,6 @@
                             });
                         }
                     } else {
-                        // Not yazılmadıysa otomatik güncelleme geçmiş kaydı ekle
                         rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
                     }
                 }
