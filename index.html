@@ -556,7 +556,7 @@
         </div>
     </div>
     
-    <!-- DETAYLI YETKİLENDİRME MODALI (YERLEŞKE/OFİS İZİNLERİ EKLENDİ) -->
+    <!-- DETAYLI YETKİLENDİRME MODALI -->
     <div id="user-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold mb-4" id="user-modal-title">Yeni Kullanıcı Tanımla</h3>
@@ -739,7 +739,7 @@
         </div>
     </div>
 
-    <!-- KİRALAMA VE DÜZENLEME MODALI -->
+    <!-- KİRALAMA VE DÜZENLEME MODALI (KALICI GEÇMİŞ NOTLARI ALANI EKLENDİ) -->
     <div id="rental-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold mb-4" id="rental-modal-title">Ofis Kiralama Sözleşmesi</h3>
@@ -794,9 +794,20 @@
                     </div>
                 </div>
 
+                <!-- SÖZLEŞMEYE AİT KALICI GEÇMİŞ VE DEĞİŞİKLİK NOTLARI ALANI -->
+                <div id="rental-history-section" class="hidden pt-3 border-t">
+                    <label class="block text-xs font-bold text-gray-700 mb-1 flex items-center space-x-1">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                        <span>Sözleşme Değişiklik Geçmişi ve Açıklamalar:</span>
+                    </label>
+                    <div id="rental-history-list" class="bg-gray-50 border rounded-lg p-2.5 max-h-36 overflow-y-auto text-xs space-y-2 mb-2">
+                        <!-- Dinamik Geçmiş Notları -->
+                    </div>
+                </div>
+
                 <div class="pt-2 border-t">
-                    <label class="block text-xs font-semibold text-indigo-900 mb-1">Yöneticiye Değişiklik Notu / Açıklama Bırak (İsteğe Bağlı)</label>
-                    <textarea id="rent-user-note" rows="2" class="w-full border p-2 rounded-lg text-xs" placeholder="Yapılan değişiklik hakkında yöneticiye açıklama yazın..."></textarea>
+                    <label class="block text-xs font-semibold text-indigo-900 mb-1">Yeni Değişiklik Notu / Açıklama Ekle (İsteğe Bağlı)</label>
+                    <textarea id="rent-user-note" rows="2" class="w-full border p-2 rounded-lg text-xs" placeholder="Yapılan değişiklik hakkında kalıcı bir açıklama yazın..."></textarea>
                 </div>
             </div>
             <div class="flex justify-end space-x-2 mt-6">
@@ -885,7 +896,10 @@
                     otherCost: 500,
                     startDate: "2023-01-01",
                     endDate: "2026-11-15",
-                    status: "active"
+                    status: "active",
+                    history: [
+                        { username: "Sistem", date: "01.01.2023 09:00", note: "Sözleşme ilk defa oluşturuldu." }
+                    ]
                 }
             ]
         };
@@ -1627,6 +1641,7 @@
             }
         }
 
+        // KİRALAMA LİSTESİ
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
@@ -1902,6 +1917,7 @@
             }
         }
 
+        // DÜZELTME / EDİT MODALINDA SÖZLEŞME GEÇMİŞİNİ VE NOTLARI YÜKLEME
         function openRentalModal(editRentalId = null) {
             const campusSelect = document.getElementById('rent-campus-select');
             campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
@@ -1922,6 +1938,9 @@
             document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
             document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
             document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+
+            const historySection = document.getElementById('rental-history-section');
+            const historyList = document.getElementById('rental-history-list');
 
             if(editRentalId !== null && editRentalId !== undefined && String(editRentalId) !== '') {
                 const r = data.rentals.find(item => String(item.id) === String(editRentalId));
@@ -1951,6 +1970,26 @@
                 document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 !== undefined ? r.commonCostPerM2 : 0;
                 document.getElementById('rent-other-cost').value = r.otherCost !== undefined ? r.otherCost : 0;
 
+                // KALICI SÖZLEŞME GEÇMİŞİ LİSTELEME
+                historyList.innerHTML = '';
+                const hList = r.history || [];
+                
+                if (hList.length > 0) {
+                    hList.forEach(h => {
+                        historyList.innerHTML += `
+                            <div class="border-b pb-1 border-gray-200 last:border-0">
+                                <span class="font-bold text-indigo-900">${h.username}</span> 
+                                <span class="text-[10px] text-gray-400">(${h.date}):</span> 
+                                <p class="text-gray-700 font-medium">${h.note}</p>
+                            </div>
+                        `;
+                    });
+                    historySection.classList.remove('hidden');
+                } else {
+                    historyList.innerHTML = '<p class="text-gray-400 italic text-[11px]">Bu sözleşmeye ait geçmiş değişiklik notu bulunmuyor.</p>';
+                    historySection.classList.remove('hidden');
+                }
+
             } else {
                 document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
                 document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
@@ -1968,6 +2007,9 @@
                 document.getElementById('rent-common-cost-per-m2').value = '';
                 document.getElementById('rent-other-cost').value = '';
                 document.getElementById('office-available-hint').innerText = '';
+
+                // Yeni kiralama yaparken geçmişi gizle
+                historySection.classList.add('hidden');
             }
 
             document.getElementById('rental-modal').classList.remove('hidden');
@@ -2088,6 +2130,7 @@
             saveData();
         }
 
+        // DEĞİŞİKLİK NOTUNU SÖZLEŞME GEÇMİŞİNE KALICI KAYDETME
         function saveRental() {
             const editRentalId = document.getElementById('editing-rental-id').value || null;
             const company = document.getElementById('rent-company-name').value;
@@ -2111,6 +2154,9 @@
                 return;
             }
 
+            const currentTimestamp = new Date().toLocaleString('tr-TR');
+            const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
+
             if(editRentalId) {
                 const rental = data.rentals.find(r => String(r.id) === String(editRentalId));
                 if(rental) {
@@ -2122,8 +2168,31 @@
                     rental.unitPrice = unitPrice;
                     rental.commonCostPerM2 = commonCostPerM2;
                     rental.otherCost = otherCost;
+
+                    if (!rental.history) rental.history = [];
+
+                    // Eğer kullanıcı bir not yazdıysa hem sözleşme geçmişine hem yönetici bildirimine ekle
+                    if (noteText) {
+                        const historyEntry = { username: currentUserLabel, date: currentTimestamp, note: noteText };
+                        rental.history.unshift(historyEntry);
+
+                        if (currentUser && currentUser.role !== 'admin') {
+                            userNotes.unshift({
+                                username: currentUserLabel,
+                                date: currentTimestamp,
+                                note: `[${company}] ${noteText}`
+                            });
+                        }
+                    } else {
+                        // Not yazılmadıysa otomatik güncelleme geçmiş kaydı ekle
+                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
+                    }
                 }
             } else {
+                const newHistory = [];
+                const initialNote = noteText || "Sözleşme oluşturuldu.";
+                newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
+
                 data.rentals.push({ 
                     id: Date.now(), 
                     company, 
@@ -2134,16 +2203,17 @@
                     otherCost,
                     startDate,
                     endDate: endDate || null,
-                    status: 'active'
+                    status: 'active',
+                    history: newHistory
                 });
-            }
 
-            if (currentUser && currentUser.role !== 'admin' && noteText) {
-                userNotes.unshift({
-                    username: currentUser.username,
-                    date: new Date().toLocaleString('tr-TR'),
-                    note: `[${company}] ${noteText}`
-                });
+                if (currentUser && currentUser.role !== 'admin' && noteText) {
+                    userNotes.unshift({
+                        username: currentUserLabel,
+                        date: currentTimestamp,
+                        note: `[Yeni Sözleşme - ${company}] ${noteText}`
+                    });
+                }
             }
 
             closeModal('rental-modal');
@@ -2162,10 +2232,18 @@
                 rental.status = 'completed';
                 rental.endDate = endDate;
 
+                const currentTimestamp = new Date().toLocaleString('tr-TR');
+                const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
+
+                if (!rental.history) rental.history = [];
+                const endNote = noteText ? `[Sözleşme Sonlandırıldı]: ${noteText}` : "Sözleşme sonlandırıldı.";
+                
+                rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: endNote });
+
                 if (currentUser && currentUser.role !== 'admin' && noteText) {
                     userNotes.unshift({
-                        username: currentUser.username,
-                        date: new Date().toLocaleString('tr-TR'),
+                        username: currentUserLabel,
+                        date: currentTimestamp,
                         note: `[FESİH - ${rental.company}] ${noteText}`
                     });
                 }
@@ -2289,6 +2367,7 @@
                     }
 
                     let addedCount = 0;
+                    const currentTimestamp = new Date().toLocaleString('tr-TR');
 
                     jsonRows.forEach(row => {
                         const keys = Object.keys(row);
@@ -2321,7 +2400,7 @@
                             const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
                             const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
                             const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
-                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
+                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherCost]) : 0;
                             
                             const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
                             const endDate = endKey ? parseExcelDate(row[endKey]) : null;
@@ -2348,7 +2427,10 @@
                                 otherCost: otherCost,
                                 startDate: startDate,
                                 endDate: endDate,
-                                status: 'active'
+                                status: 'active',
+                                history: [
+                                    { username: currentUser ? currentUser.username : 'Excel İçe Aktarım', date: currentTimestamp, note: 'Excel dosyası ile toplu kiralama olarak yüklendi.' }
+                                ]
                             });
 
                             addedCount++;
