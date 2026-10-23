@@ -1504,45 +1504,69 @@ function renderReferees() {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
-       function exportRefereesToExcel() {
-            const selYear = document.getElementById('referee-year-filter').value;
-            const selMonth = document.getElementById('referee-month-filter').value;
+function exportRefereesToExcel() {
+            try {
+                const selYear = String(document.getElementById('referee-year-filter').value).trim();
+                const selMonth = String(document.getElementById('referee-month-filter').value).trim();
 
-            const exportList = data.refereePayments.filter(r => {
-                if (!r.docDate) return false;
-                const parts = r.docDate.split(/[./-]/);
-                let itemYear = "", itemMonth = "";
-                if (parts.length === 3) {
-                    if (parts[2].length === 4) { itemYear = parts[2]; itemMonth = String(parts[1]).padStart(2, '0'); }
-                    else if (parts[0].length === 4) { itemYear = parts[0]; itemMonth = String(parts[1]).padStart(2, '0'); }
+                const exportList = data.refereePayments.filter(r => {
+                    if (!r || !r.docDate) return false;
+                    const strDate = String(r.docDate).trim();
+                    const parts = strDate.split(/[./-]/);
+                    
+                    let itemYear = "", itemMonth = "";
+                    if (parts.length === 3) {
+                        if (parts[2].length === 4) { // gg.aa.yyyy
+                            itemYear = parts[2];
+                            itemMonth = String(parts[1]).padStart(2, '0');
+                        } else if (parts[0].length === 4) { // yyyy-mm-dd
+                            itemYear = parts[0];
+                            itemMonth = String(parts[1]).padStart(2, '0');
+                        }
+                    }
+                    return itemYear === selYear && itemMonth === selMonth;
+                }).map(r => {
+                    const grossNum = parseFloat(r.gross) || 0;
+                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0);
+                    const taxNum = netNum * 0.10;
+
+                    return {
+                        "Soyad": r.lastName || '',
+                        "Ad": r.firstName || '',
+                        "VKN": r.vkn || '',
+                        "TC Kimlik No": r.tckn || '',
+                        "Tür": r.type || '156',
+                        "Gayri Safi Tutar (₺)": netNum.toFixed(2),
+                        "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
+                        "Belge Türü": r.docType || 'Diğer',
+                        "Belge Tarihi": r.docDate || '',
+                        "Belge Sıra No": r.docNo || '',
+                        "Adres": r.address || '',
+                        "Adres No": r.addressNo || '',
+                        "KDV Tevkifat": r.vat || '0',
+                        "Ülke Kodu": r.country || 'TR'
+                    };
+                });
+
+                if (exportList.length === 0) {
+                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait indirilecek hakem ödeme verisi bulunamadı.`);
+                    return;
                 }
-                return itemYear === selYear && itemMonth === selMonth;
-            }).map(r => ({
-                "Soyad": r.lastName,
-                "Ad": r.firstName,
-                "VKN": r.vkn || '',
-                "TC Kimlik No": r.tckn || '',
-                "Tür": r.type || '156',
-                "Gayri Safi Tutar (₺ Net/0.90)": parseFloat(r.net || 0).toFixed(2),
-                "Kesinti Tutarı (₺ %10)": parseFloat(r.tax || 0).toFixed(2),
-                "Belge Türü": r.docType || 'Diğer',
-                "Belge Tarihi": r.docDate || '',
-                "Belge Sıra No": r.docNo || '',
-                "Adres": r.address || '',
-                "Adres No": r.addressNo || '',
-                "KDV Tevkifat": r.vat || '0',
-                "Ülke Kodu": r.country || 'TR'
-            }));
 
-            if (exportList.length === 0) {
-                alert("Seçilen dönemde indirilecek hakem ödeme verisi bulunamadı.");
-                return;
+                if (typeof XLSX === 'undefined') {
+                    alert("SheetJS (XLSX) kütüphanesi yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.");
+                    return;
+                }
+
+                const worksheet = XLSX.utils.json_to_sheet(exportList);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Hakem_Odemeleri");
+
+                XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
+            } catch (err) {
+                console.error("Excel indirme hatası:", err);
+                alert("Excel dosyası oluşturulurken bir hata oluştu: " + err.message);
             }
-
-            const worksheet = XLSX.utils.json_to_sheet(exportList);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Hakem_Odemeleri");
-            XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
         }
 
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
