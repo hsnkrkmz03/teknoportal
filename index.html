@@ -121,7 +121,6 @@
 
             <!-- YEDEKLEME VE DİĞER HESAP BUTONLARI -->
             <div class="p-3 border-t border-slate-800 space-y-2">
-                <!-- YALNIZCA ADMİN KULLANICILARIN GÖRECEĞİ YEDEKLEME BUTONLARI -->
                 <div id="backup-buttons-container" class="space-y-2">
                     <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
                         <i class="fa-solid fa-cloud-arrow-down text-sm min-w-[16px]"></i>
@@ -429,11 +428,11 @@
                 <!-- Özet Kartlar -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Toplam Brüt Ödeme</div>
+                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Net Ödenen Toplam</div>
                         <div class="text-lg font-bold text-blue-600">₺<span id="referee-total-gross">0.00</span></div>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Gayri Safi Tutar (%90)</div>
+                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Gayri Safi Tutar (Net/0.90)</div>
                         <div class="text-lg font-bold text-emerald-600">₺<span id="referee-total-net">0.00</span></div>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -444,14 +443,15 @@
 
                 <!-- Hakem Tablosu -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1200px]">
+                    <table class="w-full text-left border-collapse min-w-[1250px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
+                                <th class="p-3 text-center">Ödendi</th>
                                 <th class="p-3">Ad & Soyad</th>
                                 <th class="p-3">VKN / TCKN</th>
                                 <th class="p-3">Tür</th>
-                                <th class="p-3">Brüt Tutar (₺)</th>
-                                <th class="p-3">Gayri Safi (%90)</th>
+                                <th class="p-3">Net Ödenen (₺)</th>
+                                <th class="p-3">Gayri Safi Tutar</th>
                                 <th class="p-3">Kesinti (%10)</th>
                                 <th class="p-3">Belge Türü</th>
                                 <th class="p-3">Belge Tarihi</th>
@@ -592,13 +592,14 @@
                     </div>
                 </div>
 
+                <!-- HESAPLAMA ALANI: NET ÖDENEN GİRİLİR, GAYRİ SAFİ (Net/0.90) VE KESİNTİ OTOMATİK HESAPLANIR -->
                 <div class="grid grid-cols-3 gap-3 bg-blue-50/60 p-3 rounded-lg border border-blue-100">
                     <div>
-                        <label class="block font-bold text-blue-900 mb-1">Toplam Brüt Tutar (₺)</label>
-                        <input type="number" id="ref-gross" class="w-full border p-2 rounded-lg text-xs font-bold text-blue-600" placeholder="Örn: 1000" oninput="calculateRefereeTax()">
+                        <label class="block font-bold text-blue-900 mb-1">Net Ödenen Tutar (₺)</label>
+                        <input type="number" id="ref-gross" class="w-full border p-2 rounded-lg text-xs font-bold text-blue-600" placeholder="Örn: 900" oninput="calculateRefereeTax()">
                     </div>
                     <div>
-                        <label class="block font-semibold text-emerald-800 mb-1">Gayri Safi Tutar (%90)</label>
+                        <label class="block font-semibold text-emerald-800 mb-1">Gayri Safi Tutar (Net / 0.90)</label>
                         <input type="number" id="ref-net" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-emerald-600" readonly>
                     </div>
                     <div>
@@ -646,6 +647,11 @@
                         <label class="block font-semibold text-gray-600 mb-1">Adres No</label>
                         <input type="text" id="ref-address-no" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 12/A">
                     </div>
+                </div>
+
+                <div class="pt-2 border-t flex items-center space-x-2">
+                    <input type="checkbox" id="ref-is-paid" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
+                    <label for="ref-is-paid" class="font-bold text-emerald-800">Ödeme Yapıldı (Ödendi İşaretle)</label>
                 </div>
             </div>
 
@@ -1284,13 +1290,23 @@
             document.getElementById('referee-month-filter').value = currentMonth;
         }
 
+        // FORMÜL: NET ÖDENEN GİRİLİR, GAYRİ SAFİ (NET/0.90) VE KESİNTİ (GAYRİ SAFİ * 0.10) HESAPLANIR
         function calculateRefereeTax() {
-            const grossVal = parseFloat(document.getElementById('ref-gross').value) || 0;
-            const netVal = grossVal * 0.90;
-            const taxVal = grossVal * 0.10;
+            const grossInput = parseFloat(document.getElementById('ref-gross').value) || 0; // Net Ödenen
+            const netVal = grossInput / 0.90; // Gayri Safi Tutar
+            const taxVal = netVal * 0.10; // Kesinti (%10)
 
             document.getElementById('ref-net').value = netVal.toFixed(2);
             document.getElementById('ref-tax').value = taxVal.toFixed(2);
+        }
+
+        function toggleRefereePaidStatus(id, isChecked) {
+            const item = data.refereePayments.find(r => String(r.id) === String(id));
+            if (item) {
+                item.isPaid = isChecked;
+                saveData();
+                renderReferees();
+            }
         }
 
         function openRefereeModal(editId = null) {
@@ -1316,6 +1332,7 @@
                 document.getElementById('ref-country').value = item.country || 'TR';
                 document.getElementById('ref-address').value = item.address || '';
                 document.getElementById('ref-address-no').value = item.addressNo || '';
+                document.getElementById('ref-is-paid').checked = !!item.isPaid;
             } else {
                 document.getElementById('referee-modal-title').innerText = "Yeni Hakem Ödemesi Ekle";
                 document.getElementById('ref-firstname').value = '';
@@ -1333,6 +1350,7 @@
                 document.getElementById('ref-country').value = 'TR';
                 document.getElementById('ref-address').value = '';
                 document.getElementById('ref-address-no').value = '';
+                document.getElementById('ref-is-paid').checked = false;
             }
 
             document.getElementById('referee-modal').classList.remove('hidden');
@@ -1342,16 +1360,16 @@
             const editId = document.getElementById('editing-referee-id').value;
             const firstName = document.getElementById('ref-firstname').value.trim();
             const lastName = document.getElementById('ref-lastname').value.trim();
-            const gross = parseFloat(document.getElementById('ref-gross').value) || 0;
+            const gross = parseFloat(document.getElementById('ref-gross').value) || 0; // Net Ödenen
             const docDate = document.getElementById('ref-doc-date').value.trim();
 
             if (!firstName || !lastName || gross <= 0) {
-                alert("Lütfen Hakem Adı, Soyadı ve geçerli Brüt Tutar girin.");
+                alert("Lütfen Hakem Adı, Soyadı ve geçerli Net Ödenen Tutar girin.");
                 return;
             }
 
-            const net = gross * 0.90;
-            const tax = gross * 0.10;
+            const net = gross / 0.90; // Gayri Safi
+            const tax = net * 0.10; // Kesinti
 
             const payload = {
                 id: editId || Date.now(),
@@ -1366,7 +1384,8 @@
                 vat: document.getElementById('ref-vat').value.trim(),
                 country: document.getElementById('ref-country').value.trim() || 'TR',
                 address: document.getElementById('ref-address').value.trim(),
-                addressNo: document.getElementById('ref-address-no').value.trim()
+                addressNo: document.getElementById('ref-address-no').value.trim(),
+                isPaid: document.getElementById('ref-is-paid').checked
             };
 
             if (editId) {
@@ -1414,8 +1433,16 @@
                     totalNet += parseFloat(r.net || 0);
                     totalTax += parseFloat(r.tax || 0);
 
+                    const isPaidChecked = !!r.isPaid;
+
                     tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50">
+                        <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
+                            <td class="p-3 text-center">
+                                <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                    onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
+                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500" 
+                                    title="${isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi'}">
+                            </td>
                             <td class="p-3 font-bold text-gray-800">${r.firstName} ${r.lastName}</td>
                             <td class="p-3 text-gray-600">${r.vkn || r.tckn || '-'}</td>
                             <td class="p-3">${r.type || '156'}</td>
@@ -1444,7 +1471,7 @@
             document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="13" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
 
@@ -1462,14 +1489,15 @@
                 }
                 return itemYear === selYear && itemMonth === selMonth;
             }).map(r => ({
+                "Ödeme Durumu": r.isPaid ? 'Ödendi' : 'Ödenmedi',
                 "Soyad": r.lastName,
                 "Ad": r.firstName,
                 "VKN": r.vkn || '',
                 "TC Kimlik No": r.tckn || '',
                 "Tür": r.type || '156',
-                "Brüt Tutar (₺)": parseFloat(r.gross || 0).toFixed(2),
-                "Gayri Safi Tutar (₺ %90)": parseFloat(r.net || 0).toFixed(2),
-                "Kesinti (₺ %10)": parseFloat(r.tax || 0).toFixed(2),
+                "Net Ödenen Tutar (₺)": parseFloat(r.gross || 0).toFixed(2),
+                "Gayri Safi Tutar (₺ Net/0.90)": parseFloat(r.net || 0).toFixed(2),
+                "Kesinti Tutarı (₺ %10)": parseFloat(r.tax || 0).toFixed(2),
                 "Belge Türü": r.docType || 'Diğer',
                 "Belge Tarihi": r.docDate || '',
                 "Belge Sıra No": r.docNo || '',
@@ -1635,7 +1663,6 @@
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
             const hint = document.getElementById('person-m2-calc-hint');
             const suggestionBox = document.getElementById('smart-suggestion-box');
-            const cardsContainer = document.getElementById('smart-suggestion-cards');
 
             if (isNaN(countInput) || countInput <= 0) {
                 hint.innerText = "0 Personel = 0.00 m² İhtiyaç";
