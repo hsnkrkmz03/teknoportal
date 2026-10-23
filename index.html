@@ -414,8 +414,8 @@
                                 <option value="12">Aralık</option>
                             </select>
                         </div>
-                        <button onclick="()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
-                            <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
+                        <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                           <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
                         </button>
                         <button onclick="openRefereeModal()" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
                             <i class="fa-solid fa-plus mr-1.5"></i> Yeni Hakem Ödemesi Ekle
@@ -1550,7 +1550,7 @@ function exportRefereesToExcel() {
                 }
 
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
-                const selMonth = String(document.getElementById('referee-month-filter').value).trim();
+                const selMonth = String(document.getElementById('referee-month-filter').value).trim().padStart(2, '0');
 
                 // Esnek ve hatasız tarih eşleme
                 const filtered = data.refereePayments.filter(r => {
@@ -1560,10 +1560,10 @@ function exportRefereesToExcel() {
                     let y = "", m = "";
                     
                     if (parts.length === 3) {
-                        if (parts[2].length === 4) { // gg.aa.yyyy
+                        if (parts[2].length === 4) { // gg.aa.yyyy (Örn: 15.10.2024)
                             y = parts[2];
                             m = String(parts[1]).padStart(2, '0');
-                        } else if (parts[0].length === 4) { // yyyy-aa-gg
+                        } else if (parts[0].length === 4) { // yyyy-aa-gg (Örn: 2024-10-15)
                             y = parts[0];
                             m = String(parts[1]).padStart(2, '0');
                         }
@@ -1572,7 +1572,7 @@ function exportRefereesToExcel() {
                 });
 
                 if (filtered.length === 0) {
-                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı. Lütfen seçili döneme ait en az 1 kayıt olduğundan emin olun.`);
+                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı. Lütfen filtrelediğiniz ayda kaydınız olduğundan emin olun.`);
                     return;
                 }
 
