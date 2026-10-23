@@ -11,7 +11,7 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- SheetJS (Excel İşlemleri) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased">
 
@@ -119,7 +119,7 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-bold text-slate-800">Yerleşkeler ve Ofisler</h2>
                     <div class="flex gap-2">
-                        <button onclick="openModal('excel-upload-modal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1.5">
+                        <button onclick="openModal('excel-upload-modal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-file-excel"></i> Excel ile Toplu Ofis Yükle
                         </button>
                     </div>
@@ -134,7 +134,7 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-bold text-slate-800">Kiralama Yönetimi</h2>
                     <div class="flex gap-2">
-                        <button onclick="openModal('rental-excel-upload-modal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1.5">
+                        <button onclick="openModal('rental-excel-upload-modal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-semibold flex items-center gap-1.5 shadow-sm">
                             <i class="fa-solid fa-file-excel"></i> Excel ile Toplu Sözleşme Yükle
                         </button>
                     </div>
@@ -212,10 +212,8 @@
 
     <!-- JAVASCRIPT MANTIĞI -->
     <script>
-        // GOOGLE APPS SCRIPT WEB APP URL ADRESİNİZ
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUArRB77ANPEAJ2mBLTFcMgTWWHQmqu7KXz99pqtCKYT_wlc6DiKr9YeLZljBsomW3/exec";
 
-        // Global Durum Değişkenleri
         let data = { campuses: [], rentals: [] };
         let users = [{ id: 1, username: "admin", password: "123456", role: "admin", permissions: { dashboard: true, campuses: true, rentals: true, simulation: true } }];
         let userNotes = [];
@@ -226,7 +224,6 @@
             await fetchCentralData();
         };
 
-        // MERKEZİ BULUT VERİTABANINDAN VERİ ÇEKME
         async function fetchCentralData() {
             if (!APPS_SCRIPT_URL) return;
 
@@ -281,7 +278,6 @@
             }
         }
 
-        // VERİLERİ KAYDETME (BULUT + YEREL)
         async function saveData() {
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
@@ -300,7 +296,6 @@
             }
         }
 
-        // GİRİŞ / ÇIKIŞ İŞLEMLERİ
         function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-username').value.trim();
@@ -333,7 +328,6 @@
             if (id === 'dashboard') renderChart();
         }
 
-        // EKRANLARI ÇİZME
         function renderAll() {
             renderCampuses();
             renderRentals();
@@ -467,11 +461,15 @@
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         // ==========================================
-        // ESNEK EXCEL YÜKLEME FONKSİYONLARI (GÜNCEL)
+        // DÜZELTİLMİŞ EXCEL YÜKLEME FONKSİYONLARI
         // ==========================================
 
-        // 1. TOPLU OFİS YÜKLEME
         function processExcelUpload() {
+            if (typeof XLSX === 'undefined') {
+                alert("SheetJS (Excel) kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.");
+                return;
+            }
+
             const campusId = parseInt(document.getElementById('excel-upload-campus-select').value);
             const fileInput = document.getElementById('excel-file-input');
             const file = fileInput ? fileInput.files[0] : null;
@@ -529,8 +527,12 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // 2. TOPLU SÖZLEŞME YÜKLEME
         function processRentalExcelUpload() {
+            if (typeof XLSX === 'undefined') {
+                alert("SheetJS (Excel) kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin.");
+                return;
+            }
+
             const fileInput = document.getElementById('rental-excel-file-input');
             const file = fileInput ? fileInput.files[0] : null;
 
