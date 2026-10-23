@@ -27,6 +27,8 @@
         .sidebar-collapsed .sidebar-user-info { display: none !important; }
         .sidebar-collapsed .sidebar-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
     </style>
+<!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
@@ -448,6 +450,7 @@
                             <tr>
                                <th class="p-3 text-center">Ödendi</th>
                                 <th class="p-3">Hakem Ad & Soyad</th>
+                                <th class="p-3">IBAN</th>
                                 <th class="p-3">Firma</th>
                                 <th class="p-3">Proje</th>
                                 <th class="p-3">Net Ödenen Tutar</th>
@@ -1543,82 +1546,85 @@ function renderReferees() {
 function exportRefereesToExcel() {
             try {
                 if (!data || !data.refereePayments || data.refereePayments.length === 0) {
-                    alert("Sistemde henüz hiç hakem ödemesi kaydı bulunmuyor.");
+                    alert("Sistemde henüz kayıtlı hakem ödemesi bulunmuyor.");
                     return;
                 }
 
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
                 const selMonth = String(document.getElementById('referee-month-filter').value).trim();
 
-                const exportList = [];
-
-                data.refereePayments.forEach(r => {
-                    if (!r) return;
-
-                    let itemYear = "";
-                    let itemMonth = "";
-
-                    // Tarih bilgisini esnek biçimde ayrıştır (gg.aa.yyyy veya yyyy-mm-dd)
-                    if (r.docDate) {
-                        const dateStr = String(r.docDate).trim();
-                        const parts = dateStr.split(/[./-]/);
-                        if (parts.length === 3) {
-                            if (parts[2].length === 4) { // gg.aa.yyyy
-                                itemYear = parts[2];
-                                itemMonth = String(parts[1]).padStart(2, '0');
-                            } else if (parts[0].length === 4) { // yyyy-mm-dd
-                                itemYear = parts[0];
-                                itemMonth = String(parts[1]).padStart(2, '0');
-                            }
-                        }
+                const filtered = data.refereePayments.filter(r => {
+                    if (!r || !r.docDate) return false;
+                    const dateStr = String(r.docDate).trim();
+                    const parts = dateStr.split(/[./-]/);
+                    let y = "", m = "";
+                    if (parts.length === 3) {
+                        if (parts[2].length === 4) { y = parts[2]; m = String(parts[1]).padStart(2, '0'); }
+                        else if (parts[0].length === 4) { y = parts[0]; m = String(parts[1]).padStart(2, '0'); }
                     }
-
-                    // Eğer yıl ve ay seçilen filtreyle eşleşiyorsa veya kayıt eklenirken tarih boş kalmışsa
-                    if ((itemYear === selYear && itemMonth === selMonth) || (!itemYear && !itemMonth)) {
-                        const grossNum = parseFloat(r.gross) || 0; // Net Ödenen
-                        const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0); // Gayri Safi
-                        const taxNum = netNum * 0.10; // Kesinti
-
-                        exportList.push({
-                            "Soyad": r.lastName || '',
-                            "Ad": r.firstName || '',
-                            "VKN": r.vkn || '',
-                            "TC Kimlik No": r.tckn || '',
-                            "Tür": r.type || '156',
-                            "Gayri Safi Tutar (₺)": netNum.toFixed(2),
-                            "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
-                            "Belge Türü": r.docType || 'Diğer',
-                            "Belge Tarihi": r.docDate || '',
-                            "Belge Sıra No": r.docNo || '',
-                            "Adres": r.address || '',
-                            "Adres No": r.addressNo || '',
-                            "KDV Tevkifat": r.vat || '0',
-                            "Ülke Kodu": r.country || 'TR'
-                        });
-                    }
+                    return y === selYear && m === selMonth;
                 });
 
-                if (exportList.length === 0) {
-                    alert(`Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı. Lütfen seçilen tarihte kayıt olduğundan emin olun.`);
+                if (filtered.length === 0) {
+                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı.`);
                     return;
                 }
 
-                if (typeof XLSX === 'undefined') {
-                    alert("Excel kütüphanesi (XLSX) yüklenemedi. Lütfen internet bağlantınızı kontrol edip sayfayı yenileyin.");
-                    return;
+                const exportList = filtered.map(r => {
+                    const grossNum = parseFloat(r.gross) || 0; // Net Ödenen
+                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0); // Gayri Safi
+                    const taxNum = netNum * 0.10; // Kesinti
+
+                    return {
+                        "Soyad": r.lastName || '',
+                        "Ad": r.firstName || '',
+                        "VKN": r.vkn || '',
+                        "TC Kimlik No": r.tckn || '',
+                        "Tür": r.type || '156',
+                        "Gayri Safi Tutar (TL)": netNum.toFixed(2),
+                        "Kesinti Tutarı (TL)": taxNum.toFixed(2),
+                        "Belge Türü": r.docType || 'Diğer',
+                        "Belge Tarihi": r.docDate || '',
+                        "Belge Sıra No": r.docNo || '',
+                        "Adres": r.address || '',
+                        "Adres No": r.addressNo || '',
+                        "KDV Tevkifat": r.vat || '0',
+                        "Ülke Kodu": r.country || 'TR'
+                    };
+                });
+
+                // Eğer XLSX kütüphanesi hazırsa standart Excel üret
+                if (typeof XLSX !== 'undefined') {
+                    const worksheet = XLSX.utils.json_to_sheet(exportList);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, "Hakem_Odemeleri");
+                    XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
+                } else {
+                    // YEDEK YÖNTEM: Kütüphane engellense bile indirmeyi sağlayan Doğrudan CSV/BOM Yöntemi
+                    let csvContent = "\uFEFF"; // Türkçe karakterlerin düzgün görünmesi için UTF-8 BOM
+                    const headers = Object.keys(exportList[0]);
+                    csvContent += headers.join(";") + "\r\n";
+
+                    exportList.forEach(row => {
+                        const values = headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`);
+                        csvContent += values.join(";") + "\r\n";
+                    });
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `Hakem_Odemeleri_${selMonth}_${selYear}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
 
-                const worksheet = XLSX.utils.json_to_sheet(exportList);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Hakem_Odemeleri");
-
-                XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
             } catch (err) {
                 console.error("Excel İndirme Hatası:", err);
-                alert("Excel dosyası indirilirken hata oluştu: " + err.message);
+                alert("Excel dosyası oluşturulurken hata oluştu: " + err.message);
             }
         }
-
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
         function populateCampusFilters() {
             const dashSelect = document.getElementById('dash-campus-filter');
