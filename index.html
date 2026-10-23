@@ -1162,14 +1162,14 @@
 
         function getOfficeRentedArea(officeId, excludeRentalId = null) {
             return data.rentals
-                .filter(r => r.officeId === officeId && r.status === 'active' && r.id !== excludeRentalId)
+                .filter(r => parseInt(r.officeId) === parseInt(officeId) && r.status === 'active' && parseInt(r.id) !== parseInt(excludeRentalId))
                 .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
         }
 
         function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             let totalArea = 0;
             data.campuses.forEach(c => {
-                const off = c.offices.find(o => o.id === officeId);
+                const off = c.offices.find(o => parseInt(o.id) === parseInt(officeId));
                 if(off) totalArea = parseFloat(off.area);
             });
             const rentedArea = getOfficeRentedArea(officeId, excludeRentalId);
@@ -1192,11 +1192,11 @@
             targetCampuses.forEach(c => {
                 c.offices.forEach(o => {
                     totalArea += parseFloat(o.area);
-                    validOfficeIds.push(o.id);
+                    validOfficeIds.push(parseInt(o.id));
                 });
             });
 
-            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(r.officeId)).forEach(r => {
+            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(parseInt(r.officeId))).forEach(r => {
                 const area = parseFloat(r.allocatedArea || 0);
                 rentedArea += area;
                 rentRevenueExcl += (area * r.unitPrice);
@@ -1447,7 +1447,7 @@
                         statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-red-100 text-red-700">Tamamı Dolu</span>`;
                     }
 
-                    const hasActiveRental = data.rentals.some(r => r.officeId === o.id && r.status === 'active');
+                    const hasActiveRental = data.rentals.some(r => parseInt(r.officeId) === parseInt(o.id) && r.status === 'active');
 
                     return `
                         <div class="flex items-center justify-between p-3.5 bg-gray-50/80 hover:bg-gray-100/80 transition rounded-lg border border-gray-200/80">
@@ -1467,8 +1467,8 @@
                     `;
                 }).join('');
 
-                const campusOfficeIds = c.offices.map(o => o.id);
-                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(r.officeId) && r.status === 'active');
+                const campusOfficeIds = c.offices.map(o => parseInt(o.id));
+                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(parseInt(r.officeId)) && r.status === 'active');
 
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
@@ -1530,7 +1530,7 @@
                     let campusName = "Bilinmiyor";
 
                     data.campuses.forEach(c => {
-                        const off = c.offices.find(o => o.id === r.officeId);
+                        const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
                         if(off) {
                             officeName = off.name;
                             campusName = c.name;
@@ -1585,7 +1585,7 @@
                 let campusId = null;
 
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => o.id === r.officeId);
+                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
                     if(off) {
                         officeName = off.name;
                         campusName = c.name;
@@ -1642,11 +1642,11 @@
                 return;
             }
 
-            const r = data.rentals.find(item => item.id === rentalId);
+            const r = data.rentals.find(item => parseInt(item.id) === parseInt(rentalId));
             if(!r) return;
 
             if(confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi sistemden KALICI OLARAK SİLMEK istediğinize emin misiniz?\n\nBu işlem sonrasında ilgili ofis alanı boşalacaktır.`)) {
-                data.rentals = data.rentals.filter(item => item.id !== rentalId);
+                data.rentals = data.rentals.filter(item => parseInt(item.id) !== parseInt(rentalId));
                 saveData();
             }
         }
@@ -1712,7 +1712,7 @@
             document.getElementById('editing-user-id').value = editUserId || '';
 
             if (editUserId) {
-                const u = users.find(item => item.id === editUserId);
+                const u = users.find(item => parseInt(item.id) === parseInt(editUserId));
                 if (!u) return;
 
                 document.getElementById('user-modal-title').innerText = "Kullanıcı Düzenle";
@@ -1798,7 +1798,7 @@
             };
 
             if(editUserId) {
-                const u = users.find(item => item.id === editUserId);
+                const u = users.find(item => parseInt(item.id) === parseInt(editUserId));
                 if(u) {
                     u.username = username;
                     u.password = password;
@@ -1819,87 +1819,82 @@
 
         function deleteUser(id) {
             if(confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
-                users = users.filter(u => u.id !== id);
+                users = users.filter(u => parseInt(u.id) !== parseInt(id));
                 saveData();
             }
         }
 
-// DÜZELTİLMİŞ SÖZLEŞME DÜZENLEME MODAL FONKSİYONU
-function openRentalModal(editRentalId = null) {
-    const campusSelect = document.getElementById('rent-campus-select');
-    campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
+        function openRentalModal(editRentalId = null) {
+            const campusSelect = document.getElementById('rent-campus-select');
+            campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
 
-    data.campuses.forEach(c => {
-        campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
+            data.campuses.forEach(c => {
+                campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
 
-    document.getElementById('editing-rental-id').value = editRentalId || '';
-    document.getElementById('rent-user-note').value = '';
+            document.getElementById('editing-rental-id').value = editRentalId || '';
+            document.getElementById('rent-user-note').value = '';
 
-    const isUserAdmin = currentUser && currentUser.role === 'admin';
-    const perm = currentUser ? currentUser.permissions : {};
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const perm = currentUser ? currentUser.permissions : {};
 
-    document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
-    document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
-    document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
-    document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
-    document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-    document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+            document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
+            document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
+            document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
+            document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
+            document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+            document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
 
-    if(editRentalId) {
-        // String/Number tip uyuşmazlığını önlemek için sayıya çevirerek ara
-        const targetId = parseInt(editRentalId);
-        const r = data.rentals.find(item => parseInt(item.id) === targetId);
-        
-        if(!r) {
-            alert("Düzenlenecek sözleşme verisi bulunamadı.");
-            return;
-        }
+            if(editRentalId) {
+                const targetId = parseInt(editRentalId);
+                const r = data.rentals.find(item => parseInt(item.id) === targetId);
+                if(!r) {
+                    alert("Düzenlenecek sözleşme verisi bulunamadı.");
+                    return;
+                }
 
-        document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
-        document.getElementById('save-rental-btn').innerText = "Güncelle";
+                document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
+                document.getElementById('save-rental-btn').innerText = "Güncelle";
 
-        let currentCampusId = null;
-        data.campuses.forEach(c => {
-            if(c.offices.some(o => parseInt(o.id) === parseInt(r.officeId))) {
-                currentCampusId = c.id;
+                let currentCampusId = null;
+                data.campuses.forEach(c => {
+                    if(c.offices.some(o => parseInt(o.id) === parseInt(r.officeId))) currentCampusId = c.id;
+                });
+
+                if (currentCampusId) {
+                    campusSelect.value = currentCampusId;
+                    onRentalCampusChange(r.officeId);
+                }
+
+                document.getElementById('rent-company-name').value = r.company || '';
+                document.getElementById('rent-start-date').value = r.startDate || '';
+                document.getElementById('rent-target-end-date').value = r.endDate || '';
+                document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
+                document.getElementById('rent-unit-price').value = r.unitPrice || 0;
+                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 || 0;
+                document.getElementById('rent-other-cost').value = r.otherCost || 0;
+
+            } else {
+                document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
+                document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
+
+                campusSelect.value = '';
+                const officeSelect = document.getElementById('rent-office-select');
+                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+                officeSelect.disabled = true;
+
+                document.getElementById('rent-company-name').value = '';
+                document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('rent-target-end-date').value = '';
+                document.getElementById('rent-allocated-area').value = '';
+                document.getElementById('rent-unit-price').value = '';
+                document.getElementById('rent-common-cost-per-m2').value = '';
+                document.getElementById('rent-other-cost').value = '';
+                document.getElementById('office-available-hint').innerText = '';
             }
-        });
 
-        if (currentCampusId) {
-            campusSelect.value = currentCampusId;
-            onRentalCampusChange(r.officeId);
+            document.getElementById('rental-modal').classList.remove('hidden');
         }
-
-        document.getElementById('rent-company-name').value = r.company || '';
-        document.getElementById('rent-start-date').value = r.startDate || '';
-        document.getElementById('rent-target-end-date').value = r.endDate || '';
-        document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
-        document.getElementById('rent-unit-price').value = r.unitPrice || 0;
-        document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 || 0;
-        document.getElementById('rent-other-cost').value = r.otherCost || 0;
-
-    } else {
-        document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
-        document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
-
-        campusSelect.value = '';
-        const officeSelect = document.getElementById('rent-office-select');
-        officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-        officeSelect.disabled = true;
-
-        document.getElementById('rent-company-name').value = '';
-        document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('rent-target-end-date').value = '';
-        document.getElementById('rent-allocated-area').value = '';
-        document.getElementById('rent-unit-price').value = '';
-        document.getElementById('rent-common-cost-per-m2').value = '';
-        document.getElementById('rent-other-cost').value = '';
-        document.getElementById('office-available-hint').innerText = '';
-    }
-
-    document.getElementById('rental-modal').classList.remove('hidden');
-}
 
         function onRentalCampusChange(selectedOfficeId = null) {
             const campusId = parseInt(document.getElementById('rent-campus-select').value);
@@ -1913,7 +1908,7 @@ function openRentalModal(editRentalId = null) {
                 return;
             }
 
-            const campus = data.campuses.find(c => c.id === campusId);
+            const campus = data.campuses.find(c => parseInt(c.id) === campusId);
             if(!campus) return;
 
             officeSelect.disabled = false;
@@ -1921,7 +1916,7 @@ function openRentalModal(editRentalId = null) {
 
             campus.offices.forEach(o => {
                 const availArea = getOfficeAvailableArea(o.id, editRentalId);
-                if(availArea > 0 || o.id === selectedOfficeId) {
+                if(availArea > 0 || parseInt(o.id) === parseInt(selectedOfficeId)) {
                     officeSelect.innerHTML += `<option value="${o.id}">${o.name} (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</option>`;
                 }
             });
@@ -1939,150 +1934,151 @@ function openRentalModal(editRentalId = null) {
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-// EXCEL TARİH FORMATI (gg.aa.yyyy) DESTEKLİ SÖZLEŞME YÜKLEME FONKSİYONU
-function processRentalExcelUpload() {
-    const fileInput = document.getElementById('rental-excel-file-input');
-    const file = fileInput.files[0];
+        // ESNEK EXCEL SÖZLEŞME YÜKLEME FONKSİYONU (TARİH DÖNÜŞTÜRÜCÜ EKLENDİ)
+        function processRentalExcelUpload() {
+            const fileInput = document.getElementById('rental-excel-file-input');
+            const file = fileInput.files[0];
 
-    if (!file) {
-        alert("Lütfen yüklenecek bir Excel dosyası seçin.");
-        return;
-    }
-
-    // gg.aa.yyyy veya Excel tarih formatını yyyy-mm-dd formatına dönüştürücü
-    function parseExcelDate(val) {
-        if (!val) return null;
-        if (typeof val === 'number') {
-            // Excel Serial Date numarasını Javascript Date objesine çevir
-            const dateObj = XLSX.SSF.parse_date_code(val);
-            if (dateObj) {
-                const y = dateObj.y;
-                const m = String(dateObj.m).padStart(2, '0');
-                const d = String(dateObj.d).padStart(2, '0');
-                return `${y}-${m}-${d}`;
-            }
-        }
-        
-        const str = String(val).trim();
-        // gg.aa.yyyy veya gg/aa/yyyy formatı kontrolü
-        const parts = str.split(/[./-]/);
-        if (parts.length === 3) {
-            // Eğer ilk parça 4 haneli ise (yyyy-mm-dd)
-            if (parts[0].length === 4) {
-                return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-            }
-            // Eğer son parça 4 haneli ise (gg.aa.yyyy)
-            if (parts[2].length === 4) {
-                const d = String(parts[0]).padStart(2, '0');
-                const m = String(parts[1]).padStart(2, '0');
-                const y = parts[2];
-                return `${y}-${m}-${d}`;
-            }
-        }
-        return str; // Varsayılan metin
-    }
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const dataBuffer = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(dataBuffer, { type: 'array' });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { raw: true });
-
-            if (jsonRows.length === 0) {
-                alert("Excel dosyasında veri bulunamadı.");
+            if (!file) {
+                alert("Lütfen yüklenecek bir Excel dosyası seçin.");
                 return;
             }
 
-            let addedCount = 0;
-
-            jsonRows.forEach(row => {
-                const keys = Object.keys(row);
+            // Excel nokta/bölü ayrılmış (gg.aa.yyyy) veya seri tarihini yyyy-mm-dd formatına çevirici
+            function parseExcelDate(val) {
+                if (!val) return null;
                 
-                const companyKey = keys.find(k => k.trim().toLowerCase().includes('firma') || k.trim().toLowerCase().includes('şirket') || k.trim().toLowerCase().includes('kiracı'));
-                const campusKey = keys.find(k => k.trim().toLowerCase().includes('yerleşke') || k.trim().toLowerCase().includes('bina') || k.trim().toLowerCase().includes('kampüs'));
-                const officeKey = keys.find(k => k.trim().toLowerCase().includes('ofis'));
-                
-                const areaKey = keys.find(k => {
-                    const norm = k.trim().toLowerCase();
-                    return norm.includes('m2') || norm.includes('m²') || norm.includes('alan') || norm.includes('metrekare');
-                });
-
-                const unitPriceKey = keys.find(k => {
-                    const norm = k.trim().toLowerCase();
-                    if (norm.includes('alan') && !norm.includes('fiyat')) return false;
-                    return norm.includes('birim') || norm.includes('fiyat') || norm.includes('unit');
-                });
-
-                const commonKey = keys.find(k => k.trim().toLowerCase().includes('ortak'));
-                const otherKey = keys.find(k => k.trim().toLowerCase().includes('katılım') || k.trim().toLowerCase().includes('diğer'));
-                const startKey = keys.find(k => k.trim().toLowerCase().includes('başlangıç') || k.trim().toLowerCase().includes('start'));
-                const endKey = keys.find(k => k.trim().toLowerCase().includes('bitiş') || k.trim().toLowerCase().includes('end'));
-
-                if (companyKey && campusKey && officeKey && row[companyKey] && row[campusKey] && row[officeKey]) {
-                    const companyName = String(row[companyKey]).trim();
-                    const campusName = String(row[campusKey]).trim();
-                    const officeName = String(row[officeKey]).trim();
-                    
-                    const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
-                    const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
-                    const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
-                    const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
-                    
-                    // Tarihleri gg.aa.yyyy formatından yyyy-mm-dd formatına güvenle dönüştür
-                    const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
-                    const endDate = endKey ? parseExcelDate(row[endKey]) : null;
-
-                    let campus = data.campuses.find(c => c.name.toLowerCase() === campusName.toLowerCase());
-                    if (!campus) {
-                        campus = { id: Date.now() + Math.floor(Math.random() * 1000), name: campusName, offices: [] };
-                        data.campuses.push(campus);
+                // Eğer Excel seri numarası olarak geldiyse
+                if (typeof val === 'number') {
+                    const dateObj = XLSX.SSF.parse_date_code(val);
+                    if (dateObj) {
+                        const y = dateObj.y;
+                        const m = String(dateObj.m).padStart(2, '0');
+                        const d = String(dateObj.d).padStart(2, '0');
+                        return `${y}-${m}-${d}`;
                     }
-
-                    let office = campus.offices.find(o => o.name.toLowerCase() === officeName.toLowerCase());
-                    if (!office) {
-                        office = { id: Date.now() + Math.floor(Math.random() * 1000), name: officeName, area: allocatedArea + 50, floor: "1. Kat" };
-                        campus.offices.push(office);
-                    }
-
-                    data.rentals.push({
-                        id: Date.now() + Math.floor(Math.random() * 10000),
-                        company: companyName,
-                        officeId: office.id,
-                        allocatedArea: allocatedArea,
-                        unitPrice: unitPrice,
-                        commonCostPerM2: commonCost,
-                        otherCost: otherCost,
-                        startDate: startDate,
-                        endDate: endDate,
-                        status: 'active'
-                    });
-
-                    addedCount++;
                 }
-            });
 
-            if (addedCount > 0) {
-                alert(`Başarıyla ${addedCount} adet kiralama sözleşmesi sisteme aktarıldı.`);
-                closeModal('rental-excel-upload-modal');
-                saveData();
-            } else {
-                alert("Excel sütunları eşleştirilemedi. 'Firma Adı', 'Yerleşke' ve 'Ofis Adı' sütunlarının olduğundan emin olun.");
+                const str = String(val).trim();
+                const parts = str.split(/[./-]/);
+                
+                if (parts.length === 3) {
+                    // yyyy-mm-dd
+                    if (parts[0].length === 4) {
+                        return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+                    }
+                    // gg.aa.yyyy
+                    if (parts[2].length === 4) {
+                        const d = String(parts[0]).padStart(2, '0');
+                        const m = String(parts[1]).padStart(2, '0');
+                        const y = parts[2];
+                        return `${y}-${m}-${d}`;
+                    }
+                }
+                return str;
             }
 
-        } catch (err) {
-            alert("Excel dosyası işlenirken hata oluştu: " + err.message);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dataBuffer = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(dataBuffer, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { raw: true });
+
+                    if (jsonRows.length === 0) {
+                        alert("Excel dosyasında veri bulunamadı.");
+                        return;
+                    }
+
+                    let addedCount = 0;
+
+                    jsonRows.forEach(row => {
+                        const keys = Object.keys(row);
+                        
+                        // 1. Temel Sütunlar
+                        const companyKey = keys.find(k => k.trim().toLowerCase().includes('firma') || k.trim().toLowerCase().includes('şirket') || k.trim().toLowerCase().includes('kiracı'));
+                        const campusKey = keys.find(k => k.trim().toLowerCase().includes('yerleşke') || k.trim().toLowerCase().includes('bina') || k.trim().toLowerCase().includes('kampüs'));
+                        const officeKey = keys.find(k => k.trim().toLowerCase().includes('ofis'));
+                        
+                        // 2. Alan (m²) Sütunu
+                        const areaKey = keys.find(k => {
+                            const norm = k.trim().toLowerCase();
+                            return norm.includes('m2') || norm.includes('m²') || norm.includes('alan') || norm.includes('metrekare');
+                        });
+
+                        // 3. Birim Fiyat Sütunu
+                        const unitPriceKey = keys.find(k => {
+                            const norm = k.trim().toLowerCase();
+                            if (norm.includes('alan') && !norm.includes('fiyat')) return false;
+                            return norm.includes('birim') || norm.includes('fiyat') || norm.includes('unit');
+                        });
+
+                        // 4. Diğer Ücretler ve Tarihler
+                        const commonKey = keys.find(k => k.trim().toLowerCase().includes('ortak'));
+                        const otherKey = keys.find(k => k.trim().toLowerCase().includes('katılım') || k.trim().toLowerCase().includes('diğer'));
+                        const startKey = keys.find(k => k.trim().toLowerCase().includes('başlangıç') || k.trim().toLowerCase().includes('start'));
+                        const endKey = keys.find(k => k.trim().toLowerCase().includes('bitiş') || k.trim().toLowerCase().includes('end'));
+
+                        if (companyKey && campusKey && officeKey && row[companyKey] && row[campusKey] && row[officeKey]) {
+                            const companyName = String(row[companyKey]).trim();
+                            const campusName = String(row[campusKey]).trim();
+                            const officeName = String(row[officeKey]).trim();
+                            
+                            const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
+                            const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
+                            const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
+                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
+                            
+                            // gg.aa.yyyy formatlarını güvenli yyyy-mm-dd formatına çevir
+                            const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
+                            const endDate = endKey ? parseExcelDate(row[endKey]) : null;
+
+                            let campus = data.campuses.find(c => c.name.toLowerCase() === campusName.toLowerCase());
+                            if (!campus) {
+                                campus = { id: Date.now() + Math.floor(Math.random() * 1000), name: campusName, offices: [] };
+                                data.campuses.push(campus);
+                            }
+
+                            let office = campus.offices.find(o => o.name.toLowerCase() === officeName.toLowerCase());
+                            if (!office) {
+                                office = { id: Date.now() + Math.floor(Math.random() * 1000), name: officeName, area: allocatedArea + 50, floor: "1. Kat" };
+                                campus.offices.push(office);
+                            }
+
+                            data.rentals.push({
+                                id: Date.now() + Math.floor(Math.random() * 10000),
+                                company: companyName,
+                                officeId: office.id,
+                                allocatedArea: allocatedArea,
+                                unitPrice: unitPrice,
+                                commonCostPerM2: commonCost,
+                                otherCost: otherCost,
+                                startDate: startDate,
+                                endDate: endDate,
+                                status: 'active'
+                            });
+
+                            addedCount++;
+                        }
+                    });
+
+                    if (addedCount > 0) {
+                        alert(`Başarıyla ${addedCount} adet kiralama sözleşmesi sisteme aktarıldı.`);
+                        closeModal('rental-excel-upload-modal');
+                        saveData();
+                    } else {
+                        alert("Excel sütunları eşleştirilemedi. 'Firma Adı', 'Yerleşke' ve 'Ofis Adı' sütunlarının olduğundan emin olun.");
+                    }
+
+                } catch (err) {
+                    alert("Excel dosyası işlenirken hata oluştu: " + err.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
         }
-    };
-
-    reader.readAsArrayBuffer(file);
-}
-    };
-
-    reader.readAsArrayBuffer(file);
-}
 
         function updateCharts() {
             const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
@@ -2129,7 +2125,7 @@ function processRentalExcelUpload() {
             targetCampuses.forEach(c => {
                 let campusRevExcl = 0;
                 c.offices.forEach(o => {
-                    data.rentals.filter(r => r.officeId === o.id && r.status === 'active').forEach(r => {
+                    data.rentals.filter(r => parseInt(r.officeId) === parseInt(o.id) && r.status === 'active').forEach(r => {
                         const area = parseFloat(r.allocatedArea || 0);
                         const totalRent = area * r.unitPrice;
                         const totalCommonCost = area * (r.commonCostPerM2 || 0);
@@ -2454,7 +2450,7 @@ function processRentalExcelUpload() {
             }
 
             if(editRentalId) {
-                const rental = data.rentals.find(r => r.id === editRentalId);
+                const rental = data.rentals.find(r => parseInt(r.id) === editRentalId);
                 if(rental) {
                     rental.company = company;
                     rental.officeId = officeId;
@@ -2499,7 +2495,7 @@ function processRentalExcelUpload() {
 
             if(!endDate) return;
 
-            const rental = data.rentals.find(r => r.id === rentalId);
+            const rental = data.rentals.find(r => parseInt(r.id) === rentalId);
             if(rental) {
                 rental.status = 'completed';
                 rental.endDate = endDate;
@@ -2518,7 +2514,7 @@ function processRentalExcelUpload() {
         }
 
         function deleteOffice(campusId, officeId) {
-            const activeRentals = data.rentals.filter(r => r.officeId === officeId && r.status === 'active');
+            const activeRentals = data.rentals.filter(r => parseInt(r.officeId) === parseInt(officeId) && r.status === 'active');
             
             if (activeRentals.length > 0) {
                 const companies = activeRentals.map(r => r.company).join(", ");
@@ -2527,21 +2523,21 @@ function processRentalExcelUpload() {
             }
 
             if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
-                const campus = data.campuses.find(c => c.id === campusId);
+                const campus = data.campuses.find(c => parseInt(c.id) === parseInt(campusId));
                 if(campus) {
-                    campus.offices = campus.offices.filter(o => o.id !== officeId);
-                    data.rentals = data.rentals.filter(r => r.officeId !== officeId);
+                    campus.offices = campus.offices.filter(o => parseInt(o.id) !== parseInt(officeId));
+                    data.rentals = data.rentals.filter(r => parseInt(r.officeId) !== parseInt(officeId));
                 }
                 saveData();
             }
         }
 
         function deleteCampus(campusId) {
-            const campus = data.campuses.find(c => c.id === campusId);
+            const campus = data.campuses.find(c => parseInt(c.id) === parseInt(campusId));
             if (!campus) return;
 
-            const officeIds = campus.offices.map(o => o.id);
-            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(r.officeId) && r.status === 'active');
+            const officeIds = campus.offices.map(o => parseInt(o.id));
+            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(parseInt(r.officeId)) && r.status === 'active');
 
             if (activeRentalsInCampus.length > 0) {
                 const companies = activeRentalsInCampus.map(r => r.company).join(", ");
@@ -2550,7 +2546,7 @@ function processRentalExcelUpload() {
             }
 
             if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
-                data.campuses = data.campuses.filter(c => c.id !== campusId);
+                data.campuses = data.campuses.filter(c => parseInt(c.id) !== parseInt(campusId));
                 saveData();
             }
         }
@@ -2562,7 +2558,7 @@ function processRentalExcelUpload() {
             const filteredRentals = data.rentals.filter(r => {
                 let campusId = null;
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => o.id === r.officeId);
+                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
                     if(off) campusId = c.id;
                 });
 
@@ -2577,7 +2573,7 @@ function processRentalExcelUpload() {
                 let campusName = "Bilinmiyor";
 
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => o.id === r.officeId);
+                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
                     if(off) {
                         officeName = off.name;
                         campusName = c.name;
