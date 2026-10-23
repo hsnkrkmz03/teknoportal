@@ -1826,44 +1826,93 @@ function renderCampuses() {
             const canDeleteOffice = isUserAdmin || perm.officeDelete !== false;
             const canDeleteCampus = isUserAdmin || perm.campusDelete !== false;
 
-            // ================= AKILLI OFİS ÖNERİ MOTORU =================
+            // ================= GELİŞMİŞ ÇOKLU OFİS KOMBİNASYONLU ÖNERİ MOTORU =================
             const suggestionBox = document.getElementById('smart-suggestion-box');
             const suggestionCards = document.getElementById('smart-suggestion-cards');
             
             if (!isNaN(personCount) && personCount > 0 && suggestionBox && suggestionCards) {
                 const targetM2 = personCount * 8;
-                let availableOffices = [];
+                let suggestions = [];
 
-                // Sistemdeki tüm boş/kullanılabilir alanlı ofisleri topla
+                // 1. TEK PARÇA OFİS SEÇENEKLERİNİ BUL
                 data.campuses.forEach(c => {
                     c.offices.forEach(o => {
                         const rented = getOfficeRentedArea(o.id);
                         const avail = o.area - rented;
                         if (avail >= targetM2) {
-                            availableOffices.push({
+                            suggestions.push({
+                                type: 'single',
                                 campusName: c.name,
-                                officeName: o.name,
-                                availArea: avail,
-                                totalArea: o.area
+                                title: `${c.name} - ${o.name}`,
+                                totalAvail: avail,
+                                badge: 'Tek Ofis'
                             });
                         }
                     });
                 });
 
-                // İhtiyaca en yakın/uygun olanları sırala
-                availableOffices.sort((a, b) => a.availArea - b.availArea);
+                // 2. AYNI YERLEŞKEDEKİ BİRDEN FAZLA OFİSİ BİRLEŞTİREREK PAKET OLUŞTUR
+                data.campuses.forEach(c => {
+                    // Yerleşkedeki boş alanı olan tüm ofisleri al
+                    const availOfficesInCampus = c.offices
+                        .map(o => ({ name: o.name, avail: o.area - getOfficeRentedArea(o.id) }))
+                        .filter(o => o.avail > 0);
 
-                if (availableOffices.length > 0) {
+                    // Eğer en az 2 boş ofis varsa kombinasyon dene
+                    if (availOfficesInCampus.length >= 2) {
+                        const n = availOfficesInCampus.length;
+                        // Alt küme kombinasyonlarını tara (2^n)
+                        for (let i = 1; i < (1 << n); i++) {
+                            let comboOffices = [];
+                            let comboTotalM2 = 0;
+
+                            for (let j = 0; j < n; j++) {
+                                if ((i & (1 << j)) !== 0) {
+                                    comboOffices.push(availOfficesInCampus[j]);
+                                    comboTotalM2 += availOfficesInCampus[j].avail;
+                                }
+                            }
+
+                            // Birden fazla ofis içeriyorsa ve toplam alan hedef ihtiyacı karşılıyorsa
+                            if (comboOffices.length > 1 && comboTotalM2 >= targetM2) {
+                                const officeNames = comboOffices.map(o => o.name).join(" + ");
+                                suggestions.push({
+                                    type: 'combo',
+                                    campusName: c.name,
+                                    title: `${c.name} (${officeNames})`,
+                                    totalAvail: comboTotalM2,
+                                    badge: `${comboOffices.length}'li Ofis Paketi`
+                                });
+                            }
+                        }
+                    }
+                });
+
+                // Önerileri ihtiyaca en yakın olandan uzağa doğru sırala
+                suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
+
+                // Tekrarlayan veya çok benzeyen paketleri filtrele (Benzersiz kıl)
+                const uniqueSuggestions = [];
+                const seenTitles = new Set();
+                suggestions.forEach(s => {
+                    if (!seenTitles.has(s.title)) {
+                        seenTitles.add(s.title);
+                        uniqueSuggestions.push(s);
+                    }
+                });
+
+                if (uniqueSuggestions.length > 0) {
                     suggestionCards.innerHTML = '';
-                    // En uygun ilk 4 seçeneği öner
-                    availableOffices.slice(0, 4).forEach(item => {
+                    // En uygun ilk 4 seçeneği ekrana bas
+                    uniqueSuggestions.slice(0, 4).forEach(item => {
+                        const isCombo = item.type === 'combo';
                         suggestionCards.innerHTML += `
-                            <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                            <div class="${isCombo ? 'bg-indigo-50/80 border-indigo-200' : 'bg-emerald-50/80 border-emerald-200'} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
                                 <div>
-                                    <div class="font-bold text-emerald-900 text-xs">${item.campusName} - ${item.officeName}</div>
-                                    <div class="text-[11px] text-emerald-700 mt-0.5">Kullanılabilir Boş Alan: <strong>${item.availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
+                                    <div class="font-bold ${isCombo ? 'text-indigo-900' : 'text-emerald-900'} text-xs">${item.title}</div>
+                                    <div class="text-[11px] ${isCombo ? 'text-indigo-700' : 'text-emerald-700'} mt-0.5">Toplam Kullanılabilir Alan: <strong>${item.totalAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
                                 </div>
-                                <span class="bg-emerald-600 text-white font-bold text-[10px] px-2 py-1 rounded-md">Uygun Seçenek</span>
+                                <span class="${isCombo ? 'bg-indigo-600' : 'bg-emerald-600'} text-white font-bold text-[10px] px-2 py-1 rounded-md shrink-0 ml-2">${item.badge}</span>
                             </div>
                         `;
                     });
@@ -1871,7 +1920,7 @@ function renderCampuses() {
                 } else {
                     suggestionCards.innerHTML = `
                         <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
-                            Aramanıza uygun (${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m² ve üzeri) tek parça boş ofis bulunamadı.
+                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için aynı yerleşke içerisinde tekli veya kombine uygun ofis seçeneği bulunamadı.
                         </div>
                     `;
                     suggestionBox.classList.remove('hidden');
@@ -1879,7 +1928,7 @@ function renderCampuses() {
             } else if (suggestionBox) {
                 suggestionBox.classList.add('hidden');
             }
-            // ============================================================
+            // =================================================================================
 
             data.campuses.forEach(c => {
                 const totalCampusArea = c.offices.reduce((acc, o) => acc + parseFloat(o.area), 0);
@@ -1964,7 +2013,6 @@ function renderCampuses() {
                 `;
             });
         }
-
         function renderExpiringAlerts() {
             const alertContainer = document.getElementById('expiring-rentals-alert');
             const tbody = document.getElementById('expiring-table-body');
