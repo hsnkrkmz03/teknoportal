@@ -352,7 +352,7 @@
                         <button onclick="exportToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-medium text-sm transition perm-export">
                             <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
                         </button>
-                        <button id="btn-new-rental" onclick="openRentalModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm transition perm-edit">
+                        <button id="btn-new-rental" onclick="()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm transition perm-edit">
                             <i class="fa-solid fa-file-signature mr-1.5"></i> Yeni Kiralama Yap
                         </button>
                     </div>
@@ -1553,7 +1553,7 @@
                             <td class="p-2 font-semibold text-gray-700">${r.endDate}</td>
                             <td class="p-2">${statusText}</td>
                             <td class="p-2 text-center">
-                                ${canEdit ? `<button onclick="openRentalModal(${r.id})" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Yenile / Düzenle</button>` : ''}
+                                ${canEdit ? `<button onclick="(${r.id})" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Yenile / Düzenle</button>` : ''}
                                 ${canEnd ? `<button onclick="openEndRentalModal(${r.id})" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-red-700">Bitir</button>` : ''}
                             </td>
                         </tr>
@@ -1569,7 +1569,7 @@
             }
         }
 
-        function renderRentals() {
+function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
 
@@ -1585,7 +1585,7 @@
                 let campusId = null;
 
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => parseInt(o.id) === parseInt(r.officeId));
+                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
                     if(off) {
                         officeName = off.name;
                         campusName = c.name;
@@ -1593,7 +1593,7 @@
                     }
                 });
 
-                if (selectedCampus !== 'all' && campusId !== parseInt(selectedCampus)) return;
+                if (selectedCampus !== 'all' && String(campusId) !== String(selectedCampus)) return;
                 if (selectedStatus !== 'all' && r.status !== selectedStatus) return;
 
                 const area = parseFloat(r.allocatedArea || 0);
@@ -1623,12 +1623,12 @@
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isActive ? `
-                                    ${canEdit ? `<button onclick="openRentalModal(${r.id})" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
-                                    ${canEnd ? `<button onclick="openEndRentalModal(${r.id})" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
+                                    ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
+                                    ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
                                 ` : `
                                     <span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>
                                 `}
-                                ${isUserAdmin ? `<button onclick="deleteContractDirectly(${r.id})" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md" title="Sözleşmeyi Kalıcı Olarak Sil">Sil</button>` : ''}
+                                ${isUserAdmin ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md" title="Sözleşmeyi Kalıcı Olarak Sil">Sil</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -1824,6 +1824,7 @@
             }
         }
 
+// DÜZELTİLMİŞ VE KESİN ÇALIŞAN SÖZLEŞME DÜZENLEME MODALİ
         function openRentalModal(editRentalId = null) {
             const campusSelect = document.getElementById('rent-campus-select');
             campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
@@ -1832,7 +1833,7 @@
                 campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
             });
 
-            document.getElementById('editing-rental-id').value = editRentalId || '';
+            document.getElementById('editing-rental-id').value = editRentalId !== null ? String(editRentalId) : '';
             document.getElementById('rent-user-note').value = '';
 
             const isUserAdmin = currentUser && currentUser.role === 'admin';
@@ -1845,11 +1846,12 @@
             document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
             document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
 
-            if(editRentalId) {
-                const targetId = parseInt(editRentalId);
-                const r = data.rentals.find(item => parseInt(item.id) === targetId);
+            if(editRentalId !== null && editRentalId !== '') {
+                // Tip bağımsız esnek eşleşme (== kullanımı)
+                const r = data.rentals.find(item => String(item.id) === String(editRentalId));
+                
                 if(!r) {
-                    alert("Düzenlenecek sözleşme verisi bulunamadı.");
+                    alert("Düzenlenecek sözleşme verisi veritabanında bulunamadı!");
                     return;
                 }
 
@@ -1858,11 +1860,13 @@
 
                 let currentCampusId = null;
                 data.campuses.forEach(c => {
-                    if(c.offices.some(o => parseInt(o.id) === parseInt(r.officeId))) currentCampusId = c.id;
+                    if(c.offices.some(o => String(o.id) === String(r.officeId))) {
+                        currentCampusId = c.id;
+                    }
                 });
 
-                if (currentCampusId) {
-                    campusSelect.value = currentCampusId;
+                if (currentCampusId !== null) {
+                    campusSelect.value = String(currentCampusId);
                     onRentalCampusChange(r.officeId);
                 }
 
@@ -1870,9 +1874,9 @@
                 document.getElementById('rent-start-date').value = r.startDate || '';
                 document.getElementById('rent-target-end-date').value = r.endDate || '';
                 document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
-                document.getElementById('rent-unit-price').value = r.unitPrice || 0;
-                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 || 0;
-                document.getElementById('rent-other-cost').value = r.otherCost || 0;
+                document.getElementById('rent-unit-price').value = r.unitPrice !== undefined ? r.unitPrice : 0;
+                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 !== undefined ? r.commonCostPerM2 : 0;
+                document.getElementById('rent-other-cost').value = r.otherCost !== undefined ? r.otherCost : 0;
 
             } else {
                 document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
@@ -1897,18 +1901,18 @@
         }
 
         function onRentalCampusChange(selectedOfficeId = null) {
-            const campusId = parseInt(document.getElementById('rent-campus-select').value);
+            const campusSelectVal = document.getElementById('rent-campus-select').value;
             const officeSelect = document.getElementById('rent-office-select');
-            const editRentalId = parseInt(document.getElementById('editing-rental-id').value) || null;
+            const editRentalId = document.getElementById('editing-rental-id').value || null;
 
-            if(!campusId) {
+            if(!campusSelectVal) {
                 officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
                 officeSelect.disabled = true;
                 document.getElementById('office-available-hint').innerText = '';
                 return;
             }
 
-            const campus = data.campuses.find(c => parseInt(c.id) === campusId);
+            const campus = data.campuses.find(c => String(c.id) === String(campusSelectVal));
             if(!campus) return;
 
             officeSelect.disabled = false;
@@ -1916,14 +1920,13 @@
 
             campus.offices.forEach(o => {
                 const availArea = getOfficeAvailableArea(o.id, editRentalId);
-                if(availArea > 0 || parseInt(o.id) === parseInt(selectedOfficeId)) {
+                if(availArea > 0 || String(o.id) === String(selectedOfficeId)) {
                     officeSelect.innerHTML += `<option value="${o.id}">${o.name} (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</option>`;
                 }
             });
 
-            if (selectedOfficeId) {
-                officeSelect.value = selectedOfficeId;
-                onRentalOfficeChange();
+            if (selectedOfficeId !== null && selectedOfficeId !== undefined) {
+                officeSelect.value = String(selectedOfficeId);
             } else {
                 document.getElementById('office-available-hint').innerText = '';
             }
