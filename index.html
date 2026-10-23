@@ -1323,8 +1323,23 @@
             }
         }
 
-       function openRefereeModal(editId = null) {
+function openRefereeModal(editId = null) {
             document.getElementById('editing-referee-id').value = editId || '';
+
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            
+            // Alt Kullanıcılar İçin Kilitlenecek Finansal / Resmi Alanlar
+            const restrictedInputs = [
+                'ref-type', 'ref-gross', 'ref-doc-type', 'ref-doc-date', 
+                'ref-doc-no', 'ref-vat', 'ref-country', 'ref-address', 
+                'ref-address-no', 'ref-is-paid'
+            ];
+
+            // Admin değilse bu alanları kilitler
+            restrictedInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !isUserAdmin;
+            });
 
             if (editId) {
                 const item = data.refereePayments.find(r => String(r.id) === String(editId));
@@ -1374,19 +1389,19 @@
             document.getElementById('referee-modal').classList.remove('hidden');
         }
 
-       function saveRefereePayment() {
+function saveRefereePayment() {
             const editId = document.getElementById('editing-referee-id').value;
             const firstName = document.getElementById('ref-firstname').value.trim();
             const lastName = document.getElementById('ref-lastname').value.trim();
             const gross = parseFloat(document.getElementById('ref-gross').value) || 0;
             const docDate = document.getElementById('ref-doc-date').value.trim();
 
-            if (!firstName || !lastName || gross <= 0) {
-                alert("Lütfen Hakem Adı, Soyadı ve geçerli Net Ödenen Tutar girin.");
+            if (!firstName || !lastName) {
+                alert("Lütfen Hakem Adı ve Soyadını girin.");
                 return;
             }
 
-            const net = gross / 0.90;
+            const net = gross > 0 ? (gross / 0.90) : 0;
             const tax = net * 0.10;
 
             const payload = {
@@ -1436,7 +1451,8 @@ function renderReferees() {
             const selMonth = document.getElementById('referee-month-filter').value;
 
             let totalGross = 0, totalNet = 0, totalTax = 0;
-            const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
 
             data.refereePayments.forEach(r => {
                 let itemYear = "", itemMonth = "";
@@ -1459,14 +1475,15 @@ function renderReferees() {
                         <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
                             <td class="p-3 text-center">
                                 <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                    ${isUserAdmin ? '' : 'disabled'}
                                     onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
-                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500" 
-                                    title="${isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi'}">
+                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
+                                    title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin ödeme durumunu değiştirebilir'}">
                             </td>
                             <td class="p-3 font-bold text-gray-800">${r.firstName} ${r.lastName}</td>
                             <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
                             <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
-                            <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                            <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                             <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
                             <td class="p-3 text-center">
                                 ${canEdit ? `
