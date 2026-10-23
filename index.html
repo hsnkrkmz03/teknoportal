@@ -1783,37 +1783,40 @@ function exportRefereesToExcel() {
             updateCharts();
         }
 
-        function onPersonCountInput() {
+function onPersonCountInput() {
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
             const hint = document.getElementById('person-m2-calc-hint');
             const suggestionBox = document.getElementById('smart-suggestion-box');
 
             if (isNaN(countInput) || countInput <= 0) {
                 hint.innerText = "0 Personel = 0.00 m² İhtiyaç";
-                suggestionBox.classList.add('hidden');
+                if (suggestionBox) suggestionBox.classList.add('hidden');
                 document.getElementById('filter-min-m2').value = '';
                 renderCampuses();
                 return;
             }
 
-            const neededM2 = (countInput * 8);
+            const neededM2 = countInput * 8;
             hint.innerText = `${countInput} Personel x 8 m² = ${neededM2.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m² Net İhtiyaç`;
-            document.getElementById('sug-target-m2').innerText = neededM2.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            const sugTargetEl = document.getElementById('sug-target-m2');
+            if (sugTargetEl) sugTargetEl.innerText = neededM2.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
             document.getElementById('filter-min-m2').value = neededM2;
             renderCampuses();
         }
-
         function toggleCampusDetails(campusId) {
             const body = document.getElementById(`campus-body-${campusId}`);
             if (body) body.classList.toggle('hidden');
         }
 
-        function renderCampuses() {
+function renderCampuses() {
             const container = document.getElementById('campus-list');
             container.innerHTML = '';
 
             const minM2Input = parseFloat(document.getElementById('filter-min-m2').value);
             const maxM2Input = parseFloat(document.getElementById('filter-max-m2').value);
+            const personCount = parseFloat(document.getElementById('filter-person-count').value);
             
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
@@ -1822,6 +1825,61 @@ function exportRefereesToExcel() {
             const canAddOffice = isUserAdmin || perm.officeAdd !== false;
             const canDeleteOffice = isUserAdmin || perm.officeDelete !== false;
             const canDeleteCampus = isUserAdmin || perm.campusDelete !== false;
+
+            // ================= AKILLI OFİS ÖNERİ MOTORU =================
+            const suggestionBox = document.getElementById('smart-suggestion-box');
+            const suggestionCards = document.getElementById('smart-suggestion-cards');
+            
+            if (!isNaN(personCount) && personCount > 0 && suggestionBox && suggestionCards) {
+                const targetM2 = personCount * 8;
+                let availableOffices = [];
+
+                // Sistemdeki tüm boş/kullanılabilir alanlı ofisleri topla
+                data.campuses.forEach(c => {
+                    c.offices.forEach(o => {
+                        const rented = getOfficeRentedArea(o.id);
+                        const avail = o.area - rented;
+                        if (avail >= targetM2) {
+                            availableOffices.push({
+                                campusName: c.name,
+                                officeName: o.name,
+                                availArea: avail,
+                                totalArea: o.area
+                            });
+                        }
+                    });
+                });
+
+                // İhtiyaca en yakın/uygun olanları sırala
+                availableOffices.sort((a, b) => a.availArea - b.availArea);
+
+                if (availableOffices.length > 0) {
+                    suggestionCards.innerHTML = '';
+                    // En uygun ilk 4 seçeneği öner
+                    availableOffices.slice(0, 4).forEach(item => {
+                        suggestionCards.innerHTML += `
+                            <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-200 flex justify-between items-center shadow-2xs">
+                                <div>
+                                    <div class="font-bold text-emerald-900 text-xs">${item.campusName} - ${item.officeName}</div>
+                                    <div class="text-[11px] text-emerald-700 mt-0.5">Kullanılabilir Boş Alan: <strong>${item.availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
+                                </div>
+                                <span class="bg-emerald-600 text-white font-bold text-[10px] px-2 py-1 rounded-md">Uygun Seçenek</span>
+                            </div>
+                        `;
+                    });
+                    suggestionBox.classList.remove('hidden');
+                } else {
+                    suggestionCards.innerHTML = `
+                        <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
+                            Aramanıza uygun (${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m² ve üzeri) tek parça boş ofis bulunamadı.
+                        </div>
+                    `;
+                    suggestionBox.classList.remove('hidden');
+                }
+            } else if (suggestionBox) {
+                suggestionBox.classList.add('hidden');
+            }
+            // ============================================================
 
             data.campuses.forEach(c => {
                 const totalCampusArea = c.offices.reduce((acc, o) => acc + parseFloat(o.area), 0);
