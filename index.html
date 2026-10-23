@@ -1826,7 +1826,7 @@ function renderCampuses() {
             const canDeleteOffice = isUserAdmin || perm.officeDelete !== false;
             const canDeleteCampus = isUserAdmin || perm.campusDelete !== false;
 
-            // ================= GELİŞMİŞ ÇOKLU OFİS KOMBİNASYONLU ÖNERİ MOTORU =================
+            // ================= HIZLI & DONDURMAYAN AKILLI ÖNERİ MOTORU =================
             const suggestionBox = document.getElementById('smart-suggestion-box');
             const suggestionCards = document.getElementById('smart-suggestion-cards');
             
@@ -1834,77 +1834,81 @@ function renderCampuses() {
                 const targetM2 = personCount * 8;
                 let suggestions = [];
 
-                // 1. TEK PARÇA OFİS SEÇENEKLERİNİ BUL
                 data.campuses.forEach(c => {
-                    c.offices.forEach(o => {
-                        const rented = getOfficeRentedArea(o.id);
-                        const avail = o.area - rented;
-                        if (avail >= targetM2) {
+                    // Yerleşkedeki boş ofisleri topla
+                    const availOffices = c.offices
+                        .map(o => ({ name: o.name, avail: o.area - getOfficeRentedArea(o.id) }))
+                        .filter(o => o.avail > 0);
+
+                    // 1. Tekli Ofisleri Kontrol Et
+                    availOffices.forEach(o => {
+                        if (o.avail >= targetM2) {
                             suggestions.push({
                                 type: 'single',
-                                campusName: c.name,
                                 title: `${c.name} - ${o.name}`,
-                                totalAvail: avail,
+                                totalAvail: o.avail,
                                 badge: 'Tek Ofis'
                             });
                         }
                     });
-                });
 
-                // 2. AYNI YERLEŞKEDEKİ BİRDEN FAZLA OFİSİ BİRLEŞTİREREK PAKET OLUŞTUR
-                data.campuses.forEach(c => {
-                    // Yerleşkedeki boş alanı olan tüm ofisleri al
-                    const availOfficesInCampus = c.offices
-                        .map(o => ({ name: o.name, avail: o.area - getOfficeRentedArea(o.id) }))
-                        .filter(o => o.avail > 0);
-
-                    // Eğer en az 2 boş ofis varsa kombinasyon dene
-                    if (availOfficesInCampus.length >= 2) {
-                        const n = availOfficesInCampus.length;
-                        // Alt küme kombinasyonlarını tara (2^n)
-                        for (let i = 1; i < (1 << n); i++) {
-                            let comboOffices = [];
-                            let comboTotalM2 = 0;
-
-                            for (let j = 0; j < n; j++) {
-                                if ((i & (1 << j)) !== 0) {
-                                    comboOffices.push(availOfficesInCampus[j]);
-                                    comboTotalM2 += availOfficesInCampus[j].avail;
-                                }
-                            }
-
-                            // Birden fazla ofis içeriyorsa ve toplam alan hedef ihtiyacı karşılıyorsa
-                            if (comboOffices.length > 1 && comboTotalM2 >= targetM2) {
-                                const officeNames = comboOffices.map(o => o.name).join(" + ");
+                    // 2. İkili Ofis Kombinasyonları (O(N^2) - Asla dondurmaz)
+                    for (let i = 0; i < availOffices.length; i++) {
+                        for (let j = i + 1; j < availOffices.length; j++) {
+                            const total = availOffices[i].avail + availOffices[j].avail;
+                            if (total >= targetM2) {
                                 suggestions.push({
                                     type: 'combo',
-                                    campusName: c.name,
-                                    title: `${c.name} (${officeNames})`,
-                                    totalAvail: comboTotalM2,
-                                    badge: `${comboOffices.length}'li Ofis Paketi`
+                                    title: `${c.name} (${availOffices[i].name} + ${availOffices[j].name})`,
+                                    totalAvail: total,
+                                    badge: '2\'li Ofis Paketi'
+                                });
+                            }
+                        }
+                    }
+
+                    // 3. Çoklu Ofis İhtiyacı Varsa: Yerleşke genel toplamı karşılıyorsa kompakt paket
+                    if (availOffices.length >= 3) {
+                        const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
+                        if (totalCampusAvail >= targetM2) {
+                            // En büyükten küçüğe doğru seçerek hedefi geçen en az ofisli paketi kur
+                            const sorted = [...availOffices].sort((a, b) => b.avail - a.avail);
+                            let runningTotal = 0;
+                            let picked = [];
+                            for (let o of sorted) {
+                                picked.push(o.name);
+                                runningTotal += o.avail;
+                                if (runningTotal >= targetM2) break;
+                            }
+                            if (picked.length > 2) {
+                                suggestions.push({
+                                    type: 'combo',
+                                    title: `${c.name} (${picked.join(" + ")})`,
+                                    totalAvail: runningTotal,
+                                    badge: `${picked.length}'li Ofis Paketi`
                                 });
                             }
                         }
                     }
                 });
 
-                // Önerileri ihtiyaca en yakın olandan uzağa doğru sırala
+                // İhtiyaca en yakın olanları öne al
                 suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
 
-                // Tekrarlayan veya çok benzeyen paketleri filtrele (Benzersiz kıl)
+                // Tekrarları temizle
                 const uniqueSuggestions = [];
-                const seenTitles = new Set();
-                suggestions.forEach(s => {
-                    if (!seenTitles.has(s.title)) {
-                        seenTitles.add(s.title);
+                const seen = new Set();
+                for (let s of suggestions) {
+                    if (!seen.has(s.title)) {
+                        seen.add(s.title);
                         uniqueSuggestions.push(s);
                     }
-                });
+                    if (uniqueSuggestions.length >= 4) break; // İlk 4 en iyi seçenek yeterli
+                }
 
                 if (uniqueSuggestions.length > 0) {
                     suggestionCards.innerHTML = '';
-                    // En uygun ilk 4 seçeneği ekrana bas
-                    uniqueSuggestions.slice(0, 4).forEach(item => {
+                    uniqueSuggestions.forEach(item => {
                         const isCombo = item.type === 'combo';
                         suggestionCards.innerHTML += `
                             <div class="${isCombo ? 'bg-indigo-50/80 border-indigo-200' : 'bg-emerald-50/80 border-emerald-200'} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
@@ -1920,7 +1924,7 @@ function renderCampuses() {
                 } else {
                     suggestionCards.innerHTML = `
                         <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
-                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için aynı yerleşke içerisinde tekli veya kombine uygun ofis seçeneği bulunamadı.
+                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için tekli veya kombine uygun ofis seçeneği bulunamadı.
                         </div>
                     `;
                     suggestionBox.classList.remove('hidden');
@@ -1928,7 +1932,7 @@ function renderCampuses() {
             } else if (suggestionBox) {
                 suggestionBox.classList.add('hidden');
             }
-            // =================================================================================
+            // ===========================================================================
 
             data.campuses.forEach(c => {
                 const totalCampusArea = c.offices.reduce((acc, o) => acc + parseFloat(o.area), 0);
