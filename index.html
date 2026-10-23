@@ -1552,27 +1552,35 @@ function exportRefereesToExcel() {
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
                 const selMonth = String(document.getElementById('referee-month-filter').value).trim();
 
+                // Esnek ve hatasız tarih eşleme
                 const filtered = data.refereePayments.filter(r => {
                     if (!r || !r.docDate) return false;
                     const dateStr = String(r.docDate).trim();
                     const parts = dateStr.split(/[./-]/);
                     let y = "", m = "";
+                    
                     if (parts.length === 3) {
-                        if (parts[2].length === 4) { y = parts[2]; m = String(parts[1]).padStart(2, '0'); }
-                        else if (parts[0].length === 4) { y = parts[0]; m = String(parts[1]).padStart(2, '0'); }
+                        if (parts[2].length === 4) { // gg.aa.yyyy
+                            y = parts[2];
+                            m = String(parts[1]).padStart(2, '0');
+                        } else if (parts[0].length === 4) { // yyyy-aa-gg
+                            y = parts[0];
+                            m = String(parts[1]).padStart(2, '0');
+                        }
                     }
                     return y === selYear && m === selMonth;
                 });
 
                 if (filtered.length === 0) {
-                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı.`);
+                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı. Lütfen seçili döneme ait en az 1 kayıt olduğundan emin olun.`);
                     return;
                 }
 
+                // İstenen Excel formatı (Ödeme durumu, net ödenen, firma, proje ve IBAN hariç eski düzen)
                 const exportList = filtered.map(r => {
-                    const grossNum = parseFloat(r.gross) || 0; // Net Ödenen
-                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0); // Gayri Safi
-                    const taxNum = netNum * 0.10; // Kesinti
+                    const grossNum = parseFloat(r.gross) || 0;
+                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0);
+                    const taxNum = netNum * 0.10;
 
                     return {
                         "Soyad": r.lastName || '',
@@ -1580,8 +1588,8 @@ function exportRefereesToExcel() {
                         "VKN": r.vkn || '',
                         "TC Kimlik No": r.tckn || '',
                         "Tür": r.type || '156',
-                        "Gayri Safi Tutar (TL)": netNum.toFixed(2),
-                        "Kesinti Tutarı (TL)": taxNum.toFixed(2),
+                        "Gayri Safi Tutar (₺)": netNum.toFixed(2),
+                        "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
                         "Belge Türü": r.docType || 'Diğer',
                         "Belge Tarihi": r.docDate || '',
                         "Belge Sıra No": r.docNo || '',
@@ -1592,36 +1600,46 @@ function exportRefereesToExcel() {
                     };
                 });
 
-                // Eğer XLSX kütüphanesi hazırsa standart Excel üret
+                // Doğrudan Blob Tabanlı Güvenli Excel İndirme (XLSX)
                 if (typeof XLSX !== 'undefined') {
-                    const worksheet = XLSX.utils.json_to_sheet(exportList);
-                    const workbook = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(workbook, worksheet, "Hakem_Odemeleri");
-                    XLSX.writeFile(workbook, `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`);
-                } else {
-                    // YEDEK YÖNTEM: Kütüphane engellense bile indirmeyi sağlayan Doğrudan CSV/BOM Yöntemi
-                    let csvContent = "\uFEFF"; // Türkçe karakterlerin düzgün görünmesi için UTF-8 BOM
-                    const headers = Object.keys(exportList[0]);
-                    csvContent += headers.join(";") + "\r\n";
+                    const ws = XLSX.utils.json_to_sheet(exportList);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Hakem_Odemeleri");
 
-                    exportList.forEach(row => {
-                        const values = headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`);
-                        csvContent += values.join(";") + "\r\n";
-                    });
-
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement("a");
+                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    
+                    const fileName = `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`;
                     const url = URL.createObjectURL(blob);
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", `Hakem_Odemeleri_${selMonth}_${selYear}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 200);
+                } else {
+                    // Kütüphane yüklenememişse yedek CSV çıktısı
+                    let csv = "\uFEFF";
+                    const headers = Object.keys(exportList[0]);
+                    csv += headers.join(";") + "\r\n";
+                    exportList.forEach(row => {
+                        csv += headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`).join(";") + "\r\n";
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `Hakem_Odemeleri_${selMonth}_${selYear}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                 }
 
             } catch (err) {
                 console.error("Excel İndirme Hatası:", err);
-                alert("Excel dosyası oluşturulurken hata oluştu: " + err.message);
+                alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
             }
         }
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
