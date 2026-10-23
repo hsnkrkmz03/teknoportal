@@ -446,19 +446,12 @@
                     <table class="w-full text-left border-collapse min-w-[1250px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
-                                <th class="p-3 text-center">Ödendi</th>
-                                <th class="p-3">Ad & Soyad</th>
-                                <th class="p-3">VKN / TCKN</th>
-                                <th class="p-3">Tür</th>
-                                <th class="p-3">Net Ödenen (₺)</th>
-                                <th class="p-3">Gayri Safi Tutar</th>
-                                <th class="p-3">Kesinti (%10)</th>
-                                <th class="p-3">Belge Türü</th>
+                               <th class="p-3 text-center">Ödendi</th>
+                                <th class="p-3">Hakem Ad & Soyad</th>
+                                <th class="p-3">Firma</th>
+                                <th class="p-3">Proje</th>
+                                <th class="p-3">Net Ödenen Tutar</th>
                                 <th class="p-3">Belge Tarihi</th>
-                                <th class="p-3">Sıra No</th>
-                                <th class="p-3">Adres / No</th>
-                                <th class="p-3">KDV Tevkifat</th>
-                                <th class="p-3">Ülke</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -632,6 +625,26 @@
                         <label class="block font-semibold text-gray-600 mb-1">KDV Tevkifat</label>
                         <input type="text" id="ref-vat" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 0">
                     </div>
+                   <!-- YENİ EKLENEN FİRMA VE PROJE BİLGİLERİ -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Firma Adı</label>
+                        <input type="text" id="ref-company" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: ABC Yazılım A.Ş.">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Proje Adı / Kodu</label>
+                        <input type="text" id="ref-project" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: AR-GE 2024-01">
+                    </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="col-span-2">
+                        <label class="block font-semibold text-gray-600 mb-1">Adres</label>
+                        <input type="text" id="ref-address" class="w-full border p-2 rounded-lg text-xs" placeholder="Adres detayları">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Adres No</label>
+                        <input type="text" id="ref-address-no" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 12/A">
+                    </div>
+                </div>
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">Ülke Kodu</label>
                         <input type="text" id="ref-country" class="w-full border p-2 rounded-lg text-xs" value="TR">
@@ -1309,7 +1322,7 @@
             }
         }
 
-        function openRefereeModal(editId = null) {
+       function openRefereeModal(editId = null) {
             document.getElementById('editing-referee-id').value = editId || '';
 
             if (editId) {
@@ -1330,6 +1343,8 @@
                 document.getElementById('ref-doc-no').value = item.docNo || '';
                 document.getElementById('ref-vat').value = item.vat || '0';
                 document.getElementById('ref-country').value = item.country || 'TR';
+                document.getElementById('ref-company').value = item.company || '';
+                document.getElementById('ref-project').value = item.project || '';
                 document.getElementById('ref-address').value = item.address || '';
                 document.getElementById('ref-address-no').value = item.addressNo || '';
                 document.getElementById('ref-is-paid').checked = !!item.isPaid;
@@ -1348,6 +1363,8 @@
                 document.getElementById('ref-doc-no').value = '';
                 document.getElementById('ref-vat').value = '0';
                 document.getElementById('ref-country').value = 'TR';
+                document.getElementById('ref-company').value = '';
+                document.getElementById('ref-project').value = '';
                 document.getElementById('ref-address').value = '';
                 document.getElementById('ref-address-no').value = '';
                 document.getElementById('ref-is-paid').checked = false;
@@ -1356,11 +1373,11 @@
             document.getElementById('referee-modal').classList.remove('hidden');
         }
 
-        function saveRefereePayment() {
+       function saveRefereePayment() {
             const editId = document.getElementById('editing-referee-id').value;
             const firstName = document.getElementById('ref-firstname').value.trim();
             const lastName = document.getElementById('ref-lastname').value.trim();
-            const gross = parseFloat(document.getElementById('ref-gross').value) || 0; // Net Ödenen
+            const gross = parseFloat(document.getElementById('ref-gross').value) || 0;
             const docDate = document.getElementById('ref-doc-date').value.trim();
 
             if (!firstName || !lastName || gross <= 0) {
@@ -1368,8 +1385,8 @@
                 return;
             }
 
-            const net = gross / 0.90; // Gayri Safi
-            const tax = net * 0.10; // Kesinti
+            const net = gross / 0.90;
+            const tax = net * 0.10;
 
             const payload = {
                 id: editId || Date.now(),
@@ -1383,6 +1400,8 @@
                 docNo: document.getElementById('ref-doc-no').value.trim(),
                 vat: document.getElementById('ref-vat').value.trim(),
                 country: document.getElementById('ref-country').value.trim() || 'TR',
+                company: document.getElementById('ref-company').value.trim(),
+                project: document.getElementById('ref-project').value.trim(),
                 address: document.getElementById('ref-address').value.trim(),
                 addressNo: document.getElementById('ref-address-no').value.trim(),
                 isPaid: document.getElementById('ref-is-paid').checked
@@ -1408,7 +1427,7 @@
             }
         }
 
-        function renderReferees() {
+function renderReferees() {
             const tbody = document.getElementById('referee-table-body');
             tbody.innerHTML = '';
 
@@ -1444,17 +1463,10 @@
                                     title="${isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi'}">
                             </td>
                             <td class="p-3 font-bold text-gray-800">${r.firstName} ${r.lastName}</td>
-                            <td class="p-3 text-gray-600">${r.vkn || r.tckn || '-'}</td>
-                            <td class="p-3">${r.type || '156'}</td>
+                            <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
+                            <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
                             <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td class="p-3 font-semibold text-emerald-600">₺${parseFloat(r.net).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td class="p-3 font-semibold text-rose-600">₺${parseFloat(r.tax).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td class="p-3">${r.docType || 'Diğer'}</td>
-                            <td class="p-3">${r.docDate || '-'}</td>
-                            <td class="p-3">${r.docNo || '-'}</td>
-                            <td class="p-3">${r.address || '-'} / ${r.addressNo || '-'}</td>
-                            <td class="p-3">${r.vat || '0'}</td>
-                            <td class="p-3">${r.country || 'TR'}</td>
+                            <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
                             <td class="p-3 text-center">
                                 ${canEdit ? `
                                     <button onclick="openRefereeModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 px-2 py-1 rounded mr-1">Düzenle</button>
@@ -1471,10 +1483,9 @@
             document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="14" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
-
         function exportRefereesToExcel() {
             const selYear = document.getElementById('referee-year-filter').value;
             const selMonth = document.getElementById('referee-month-filter').value;
