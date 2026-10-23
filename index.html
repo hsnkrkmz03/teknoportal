@@ -556,13 +556,14 @@
 
     <!-- MODALLAR -->
 
-    <!-- HAKEM ÖDEMESİ EKLE / DÜZENLE MODALI -->
+  <!-- HAKEM ÖDEMESİ EKLE / DÜZENLE MODALI -->
     <div id="referee-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
             <h3 class="text-xl font-bold mb-4" id="referee-modal-title">Yeni Hakem Ödemesi Ekle</h3>
             <input type="hidden" id="editing-referee-id">
             
             <div class="space-y-4 text-xs">
+                <!-- AD VE SOYAD KUTUCUKLARI -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">Hakem Adı</label>
@@ -574,6 +575,13 @@
                     </div>
                 </div>
 
+                <!-- IBAN KUTUCUĞU -->
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">IBAN Numarası</label>
+                    <input type="text" id="ref-iban" class="w-full border p-2 rounded-lg text-xs font-mono tracking-wider font-bold text-gray-700" placeholder="TRXX XXXX XXXX XXXX XXXX XXXX XX" maxlength="32">
+                </div>
+
+                <!-- VKN VE TCKN KUTUCUKLARI -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">VKN</label>
@@ -585,7 +593,7 @@
                     </div>
                 </div>
 
-                <!-- HESAPLAMA ALANI: NET ÖDENEN GİRİLİR, GAYRİ SAFİ (Net/0.90) VE KESİNTİ OTOMATİK HESAPLANIR -->
+                <!-- HESAPLAMA ALANI: NET ÖDENEN, GAYRİ SAFİ VE KESİNTİ KUTUCUKLARI -->
                 <div class="grid grid-cols-3 gap-3 bg-blue-50/60 p-3 rounded-lg border border-blue-100">
                     <div>
                         <label class="block font-bold text-blue-900 mb-1">Net Ödenen Tutar (₺)</label>
@@ -601,6 +609,7 @@
                     </div>
                 </div>
 
+                <!-- TÜR, BELGE TÜRÜ VE TARİH KUTUCUKLARI -->
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">Tür</label>
@@ -616,6 +625,7 @@
                     </div>
                 </div>
 
+                <!-- SIRA NO, KDV TEVKİFAT VE ÜLKE KODU KUTUCUKLARI -->
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">Belge Sıra No</label>
@@ -625,8 +635,13 @@
                         <label class="block font-semibold text-gray-600 mb-1">KDV Tevkifat</label>
                         <input type="text" id="ref-vat" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 0">
                     </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Ülke Kodu</label>
+                        <input type="text" id="ref-country" class="w-full border p-2 rounded-lg text-xs" value="TR">
                     </div>
-                   <!-- YENİ EKLENEN FİRMA VE PROJE BİLGİLERİ -->
+                </div>
+
+                <!-- FİRMA ADI VE PROJE ADI KUTUCUKLARI -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-600 mb-1">Firma Adı</label>
@@ -636,22 +651,9 @@
                         <label class="block font-semibold text-gray-600 mb-1">Proje Adı / Kodu</label>
                         <input type="text" id="ref-project" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: AR-GE 2024-01">
                     </div>
-                <div class="grid grid-cols-3 gap-3">
-                    <div class="col-span-2">
-                        <label class="block font-semibold text-gray-600 mb-1">Adres</label>
-                        <input type="text" id="ref-address" class="w-full border p-2 rounded-lg text-xs" placeholder="Adres detayları">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Adres No</label>
-                        <input type="text" id="ref-address-no" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 12/A">
-                    </div>
-                </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Ülke Kodu</label>
-                        <input type="text" id="ref-country" class="w-full border p-2 rounded-lg text-xs" value="TR">
-                    </div>
                 </div>
 
+                <!-- ADRES VE ADRES NO KUTUCUKLARI -->
                 <div class="grid grid-cols-3 gap-3">
                     <div class="col-span-2">
                         <label class="block font-semibold text-gray-600 mb-1">Adres</label>
@@ -663,6 +665,7 @@
                     </div>
                 </div>
 
+                <!-- ÖDENDİ ONAY KUTUCUĞU (CHECKBOX) -->
                 <div class="pt-2 border-t flex items-center space-x-2">
                     <input type="checkbox" id="ref-is-paid" class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500">
                     <label for="ref-is-paid" class="font-bold text-emerald-800">Ödeme Yapıldı (Ödendi İşaretle)</label>
@@ -675,7 +678,6 @@
             </div>
         </div>
     </div>
-
     <!-- YEDEK GERİ YÜKLEME MODALI -->
     <div id="restore-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -1322,24 +1324,56 @@
                 renderReferees();
             }
         }
+// IBAN Girişlerini Otomatik Biçimlendirme (TRXX XXXX XXXX XXXX XXXX XXXX XX)
+        function formatIBAN(value) {
+            if (!value) return '';
+            
+            // Tüm harfleri büyüt ve harf/rakam dışındaki tüm karakterleri (boşluklar dahil) temizle
+            let clean = String(value).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
+            // Başta TR yoksa ve rakam girildiyse otomatik TR ekle
+            if (!clean.startsWith('TR')) {
+                clean = 'TR' + clean;
+            }
+
+            // TR harflerinden sonra sadece rakamları al
+            let trPart = clean.substring(0, 2);
+            let digitsPart = clean.substring(2).replace(/[^0-9]/g, '').substring(0, 24);
+
+            let result = trPart;
+            if (digitsPart.length > 0) {
+                result += digitsPart.substring(0, 2); // TRXX kısmı
+            }
+            for (let i = 2; i < digitsPart.length; i += 4) {
+                result += ' ' + digitsPart.substring(i, i + 4); // 4'erli bloklar
+            }
+
+            return result;
+        }
 function openRefereeModal(editId = null) {
             document.getElementById('editing-referee-id').value = editId || '';
 
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             
-            // Alt Kullanıcılar İçin Kilitlenecek Finansal / Resmi Alanlar
+            // Alt Kullanıcılar İçin Kilitlenecek Finansal / Resmi Alanlar (ref-iban izinli bırakılmıştır)
             const restrictedInputs = [
                 'ref-type', 'ref-gross', 'ref-doc-type', 'ref-doc-date', 
                 'ref-doc-no', 'ref-vat', 'ref-country', 'ref-address', 
                 'ref-address-no', 'ref-is-paid'
             ];
 
-            // Admin değilse bu alanları kilitler
             restrictedInputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.disabled = !isUserAdmin;
             });
+
+            // IBAN Formatlama Dinleyicisi
+            const ibanInput = document.getElementById('ref-iban');
+            if (ibanInput) {
+                ibanInput.oninput = function() {
+                    this.value = formatIBAN(this.value);
+                };
+            }
 
             if (editId) {
                 const item = data.refereePayments.find(r => String(r.id) === String(editId));
@@ -1348,6 +1382,7 @@ function openRefereeModal(editId = null) {
                 document.getElementById('referee-modal-title').innerText = "Hakem Ödemesini Düzenle";
                 document.getElementById('ref-firstname').value = item.firstName || '';
                 document.getElementById('ref-lastname').value = item.lastName || '';
+                document.getElementById('ref-iban').value = formatIBAN(item.iban || '');
                 document.getElementById('ref-vkn').value = item.vkn || '';
                 document.getElementById('ref-tckn').value = item.tckn || '';
                 document.getElementById('ref-type').value = item.type || '156';
@@ -1368,6 +1403,7 @@ function openRefereeModal(editId = null) {
                 document.getElementById('referee-modal-title').innerText = "Yeni Hakem Ödemesi Ekle";
                 document.getElementById('ref-firstname').value = '';
                 document.getElementById('ref-lastname').value = '';
+                document.getElementById('ref-iban').value = '';
                 document.getElementById('ref-vkn').value = '';
                 document.getElementById('ref-tckn').value = '';
                 document.getElementById('ref-type').value = '156';
