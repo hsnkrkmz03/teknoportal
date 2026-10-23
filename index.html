@@ -416,7 +416,7 @@
                                 <option value="12">Aralık</option>
                             </select>
                         </div>
-                        <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                        <button onclick="()" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
                             <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
                         </button>
                         <button onclick="openRefereeModal()" class="bg-blue-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
@@ -1504,7 +1504,7 @@ function renderReferees() {
                 tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
             }
         }
-        function exportRefereesToExcel() {
+       function exportRefereesToExcel() {
             const selYear = document.getElementById('referee-year-filter').value;
             const selMonth = document.getElementById('referee-month-filter').value;
 
@@ -1518,13 +1518,11 @@ function renderReferees() {
                 }
                 return itemYear === selYear && itemMonth === selMonth;
             }).map(r => ({
-                "Ödeme Durumu": r.isPaid ? 'Ödendi' : 'Ödenmedi',
                 "Soyad": r.lastName,
                 "Ad": r.firstName,
                 "VKN": r.vkn || '',
                 "TC Kimlik No": r.tckn || '',
                 "Tür": r.type || '156',
-                "Net Ödenen Tutar (₺)": parseFloat(r.gross || 0).toFixed(2),
                 "Gayri Safi Tutar (₺ Net/0.90)": parseFloat(r.net || 0).toFixed(2),
                 "Kesinti Tutarı (₺ %10)": parseFloat(r.tax || 0).toFixed(2),
                 "Belge Türü": r.docType || 'Diğer',
