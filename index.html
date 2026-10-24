@@ -866,9 +866,8 @@
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-campuses" class="rounded text-blue-600" checked> <span>Yerleşke & Ofis Yönetimi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-rentals" class="rounded text-blue-600" checked> <span>Kiralama Takibi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-referees" class="rounded text-blue-600" checked> <span>Hakem Ödemeleri</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-payments" class="rounded text-blue-600" checked> <span>Ödemeler Takibi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-simulation" class="rounded text-blue-600" checked> <span>TÜFE/ÜFE Simülatörü</span></label>
-                        </div>
+                    </div>
                     </div>
 
                     <div class="border-t pt-3">
@@ -1344,7 +1343,7 @@
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
-            document.getElementById('nav-payments').style.display = (isUserAdmin || currentUser.permissions.payments !== false) ? 'flex' : 'none';
+            document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
             document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
             const backupContainer = document.getElementById('backup-buttons-container');
@@ -2454,7 +2453,7 @@
             });
         }
 
-        function openUserModal(editUserId = null) {
+function openUserModal(editUserId = null) {
             document.getElementById('editing-user-id').value = editUserId ? String(editUserId) : '';
 
             if (editUserId) {
@@ -2471,7 +2470,6 @@
                 document.getElementById('perm-campuses').checked = p.campuses !== false;
                 document.getElementById('perm-rentals').checked = p.rentals !== false;
                 document.getElementById('perm-referees').checked = p.referees !== false;
-                document.getElementById('perm-payments').checked = p.payments !== false;
                 document.getElementById('perm-simulation').checked = p.simulation !== false;
                 document.getElementById('perm-can-edit').checked = p.canEdit !== false;
                 document.getElementById('perm-can-export').checked = p.canExport !== false;
@@ -2497,7 +2495,6 @@
                 document.getElementById('perm-campuses').checked = true;
                 document.getElementById('perm-rentals').checked = true;
                 document.getElementById('perm-referees').checked = true;
-                document.getElementById('perm-payments').checked = true;
                 document.getElementById('perm-simulation').checked = true;
                 document.getElementById('perm-can-edit').checked = true;
                 document.getElementById('perm-can-export').checked = true;
@@ -2527,7 +2524,7 @@
             else permBox.classList.remove('opacity-40', 'pointer-events-none');
         }
 
-        function saveUser() {
+function saveUser() {
             const editUserId = document.getElementById('editing-user-id').value || null;
             const username = document.getElementById('user-input-username').value.trim();
             const password = document.getElementById('user-input-password').value.trim();
@@ -2540,7 +2537,7 @@
                 campuses: role === 'admin' ? true : document.getElementById('perm-campuses').checked,
                 rentals: role === 'admin' ? true : document.getElementById('perm-rentals').checked,
                 referees: role === 'admin' ? true : document.getElementById('perm-referees').checked,
-                payments: role === 'admin' ? true : document.getElementById('perm-payments').checked,
+                payments: role === 'admin', // Alt kullanıcılar ödemeler takibine erişemez
                 simulation: role === 'admin' ? true : document.getElementById('perm-simulation').checked,
                 canEdit: role === 'admin' ? true : document.getElementById('perm-can-edit').checked,
                 canExport: role === 'admin' ? true : document.getElementById('perm-can-export').checked,
