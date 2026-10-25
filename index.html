@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teknopark Yönetim Paneli</title>
+    <title>Teknopark Ofis Kiralama & Yönetim Paneli</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -181,9 +181,9 @@
                     <div class="flex flex-wrap items-center gap-3">
                         <div class="flex items-center space-x-2">
                             <label for="dash-campus-filter" class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-filter mr-1"></i> Yerleşke:</label>
-                            <select id="dash-campus-filter" class="border rounded-lg px-3 py-1.5 text-sm bg-white font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="renderDashboard()"></select>
+                            <select id="dash-campus-filter" class="border rounded-lg px-3 py-1.5 text-xs bg-white font-semibold shadow-2xs focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderDashboard()"></select>
                         </div>
-                        <button onclick="exportDashboardVisualPDF()" class="bg-rose-600 text-white px-3.5 py-1.5 rounded-lg hover:bg-rose-700 font-medium text-sm transition flex items-center shadow-sm perm-export">
+                        <button onclick="exportDashboardVisualPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
                             <i class="fa-solid fa-file-pdf mr-1.5"></i> Dashboard Raporu (Görsel PDF)
                         </button>
                     </div>
@@ -267,11 +267,11 @@
                         <p class="text-xs text-gray-500">Yerleşkeleri yönetin, manuel veya Excel dosyası ile toplu ofis ekleyin.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button id="btn-excel-office" onclick="openExcelUploadModal()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 font-medium text-sm transition perm-edit">
-                            <i class="fa-solid fa-file-excel mr-1"></i> Excel ile Toplu Ofis Yükle
+                        <button id="btn-excel-office" onclick="openExcelUploadModal()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition perm-edit shadow-sm">
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> Excel ile Toplu Ofis Yükle
                         </button>
-                        <button id="btn-add-campus" onclick="openCampusModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium text-sm transition perm-edit">
-                            <i class="fa-solid fa-plus mr-1"></i> Yeni Yerleşke Ekle
+                        <button id="btn-add-campus" onclick="openCampusModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition perm-edit shadow-sm">
+                            <i class="fa-solid fa-plus mr-1.5"></i> Yeni Yerleşke Ekle
                         </button>
                     </div>
                 </div>
@@ -320,7 +320,7 @@
                 <div id="campus-list" class="space-y-4"></div>
             </section>
 
-            <!-- 3. KİRALAMA TAKİBİ SEKMESİ (DÜZELTİLDİ: FİLTRELER ALT SATIRDA SAĞA YASLI) -->
+            <!-- 3. KİRALAMA TAKİBİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI FİLTRELER) -->
             <section id="tab-rentals" class="hidden">
                 <div id="expiring-rentals-alert" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
                     <div class="flex items-center space-x-2 text-amber-800 font-bold mb-3">
@@ -352,16 +352,16 @@
                             <p class="text-xs text-gray-500">Aktif ve sonlanmış sözleşmeleri filtreleyin ve dışa aktarın.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="openRentalExcelUploadModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-medium text-sm transition perm-edit">
+                            <button onclick="openRentalExcelUploadModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition perm-edit shadow-sm">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Excel ile Sözleşme Yükle
                             </button>
-                            <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-sm transition perm-export">
+                            <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition perm-export shadow-sm">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
                             </button>
-                            <button onclick="exportToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-medium text-sm transition perm-export">
+                            <button onclick="exportToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition perm-export shadow-sm">
                                 <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
                             </button>
-                            <button id="btn-new-rental" onclick="openRentalModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium text-sm transition perm-edit">
+                            <button id="btn-new-rental" onclick="openRentalModal()" class="bg-green-600 text-white px-3.5 py-2 rounded-lg hover:bg-green-700 font-semibold text-xs transition perm-edit shadow-sm">
                                 <i class="fa-solid fa-file-signature mr-1.5"></i> Yeni Kiralama Yap
                             </button>
                         </div>
@@ -407,7 +407,7 @@
                 </div>
             </section>
 
-            <!-- 4. HAKEM ÖDEMELERİ SEKMESİ (DÜZELTİLDİ: FİLTRELER ALT SATIRDA SAĞA YASLI) -->
+            <!-- 4. HAKEM ÖDEMELERİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI DÖNEM FİLTRESİ) -->
             <section id="tab-referees" class="hidden">
                 <div class="mb-6 space-y-3">
                     <!-- Üst Satır: Başlık ve Butonlar -->
@@ -417,10 +417,10 @@
                             <p class="text-xs text-gray-500">Hakemlere yapılan ödemeleri aylık bazda yönetin, hesaplayın ve Excel olarak indirin.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                            <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
                             </button>
-                            <button onclick="openRefereeModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
+                            <button onclick="openRefereeModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
                                 <i class="fa-solid fa-plus mr-1.5"></i> Yeni Hakem Ödemesi Ekle
                             </button>
                         </div>
@@ -485,7 +485,7 @@
                 </div>
             </section>
 
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (FİLTRELER ALT SATIRDA SAĞA YASLI) -->
+            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI DÖNEM FİLTRESİ) -->
             <section id="tab-payments" class="hidden">
                 <div class="mb-6 space-y-3">
                     <!-- Üst Satır: Başlık ve Butonlar -->
@@ -505,10 +505,10 @@
                                 </button>
                             </div>
 
-                            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
                             </button>
-                            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
+                            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
                                 <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
                             </button>
                         </div>
@@ -647,7 +647,7 @@
                         <h1 class="text-2xl font-bold text-gray-800">Kullanıcı & İzin Yönetimi</h1>
                         <p class="text-xs text-gray-500">Sisteme yeni alt kullanıcılar ekleyin ve kiralama takibindeki her detayı ince yetkilerle tanımlayın.</p>
                     </div>
-                    <button onclick="openUserModal()" class="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 font-medium text-sm transition">
+                    <button onclick="openUserModal()" class="bg-amber-600 text-white px-3.5 py-2 rounded-lg hover:bg-amber-700 font-semibold text-xs transition flex items-center shadow-sm">
                         <i class="fa-solid fa-user-plus mr-1.5"></i> Yeni Kullanıcı Tanımla
                     </button>
                 </div>
@@ -1386,7 +1386,6 @@
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
-            // Ödemeler Takibi SADECE Admin Kullanıcıya Görünür
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
             document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
@@ -1446,7 +1445,7 @@
             if(tab === 'users') renderUsers();
         }
 
-        // ==================== ÖDEMELER TAKİBİ MODÜLÜ (GELİŞMİŞ DÖNEMSEL VE TARİH ROZETLİ) ====================
+        // ==================== ÖDEMELER TAKİBİ MODÜLÜ ====================
         function populatePaymentsYearFilter() {
             const yearSelect = document.getElementById('payments-year-filter');
             if (!yearSelect) return;
@@ -1463,9 +1462,9 @@
             if (!dateStr) return { year: "", month: "" };
             const parts = String(dateStr).trim().split(/[./-]/);
             if (parts.length === 3) {
-                if (parts[2].length === 4) { // gg.aa.yyyy
+                if (parts[2].length === 4) {
                     return { year: parts[2], month: String(parts[1]).padStart(2, '0') };
-                } else if (parts[0].length === 4) { // yyyy-aa-gg
+                } else if (parts[0].length === 4) {
                     return { year: parts[0], month: String(parts[1]).padStart(2, '0') };
                 }
             }
@@ -1492,7 +1491,6 @@
         function getAllPaymentsList() {
             let list = [];
 
-            // A) Hakem Ödemelerinden Çekilenler (Muhatap: Hakem Ad Soyad, Açıklama: Proje Adı/Kodu)
             (data.refereePayments || []).forEach(r => {
                 list.push({
                     id: r.id,
@@ -1508,7 +1506,6 @@
                 });
             });
 
-            // B) El İle Girilen Fatura / Gider Ödemeleri (Muhatap: Firma Adı, Açıklama: Manuel Girdiğiniz Açıklama)
             (data.manualPayments || []).forEach(m => {
                 list.push({
                     id: m.id,
@@ -2056,7 +2053,22 @@
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                     }, 200);
+                } else {
+                    let csv = "\uFEFF";
+                    const headers = Object.keys(exportList[0]);
+                    csv += headers.join(";") + "\r\n";
+                    exportList.forEach(row => {
+                        csv += headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`).join(";") + "\r\n";
+                    });
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `Hakem_Odemeleri_${selMonth}_${selYear}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
                 }
+
             } catch (err) {
                 console.error("Excel İndirme Hatası:", err);
                 alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
