@@ -110,7 +110,7 @@
                     <i class="fa-solid fa-user-check text-lg min-w-[20px]"></i>
                     <span class="sidebar-text text-sm truncate">Hakem Ödemeleri</span>
                 </button>
-                <!-- ÖDEMELER TAKİBİ SEKMESİ -->
+                <!-- ÖDEMELER TAKİBİ SEKMESİ (SADECE ADMİNE GÖRÜNÜR) -->
                 <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
                     <i class="fa-solid fa-money-bill-transfer text-lg min-w-[20px]"></i>
                     <span class="sidebar-text text-sm truncate">Ödemeler Takibi</span>
@@ -468,14 +468,34 @@
                 </div>
             </section>
 
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (YENİ MODÜL) -->
+            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (GÜNCELLENMİŞ MİMARİ: AYLIK FİLTRE VE ÖDEME TARİHİ ROZETİ) -->
             <section id="tab-payments" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">Ödemeler Takibi</h1>
-                        <p class="text-xs text-gray-500">Hakem ödemeleri ve el ile girilen firma fatura ödemelerini tek merkezden yönetin.</p>
+                        <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
+                        <!-- Dönem Filtresi (Yıl ve Ay) -->
+                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-lg shadow-2xs">
+                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1"></i> Dönem:</label>
+                            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
+                            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
+                                <option value="01">Ocak</option>
+                                <option value="02">Şubat</option>
+                                <option value="03">Mart</option>
+                                <option value="04">Nisan</option>
+                                <option value="05">Mayıs</option>
+                                <option value="06">Haziran</option>
+                                <option value="07">Temmuz</option>
+                                <option value="08">Ağustos</option>
+                                <option value="09">Eylül</option>
+                                <option value="10">Ekim</option>
+                                <option value="11">Kasım</option>
+                                <option value="12">Aralık</option>
+                            </select>
+                        </div>
+
                         <!-- Ödenecek / Ödenen Filtresi -->
                         <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
                             <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
@@ -487,7 +507,7 @@
                         </div>
 
                         <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
-                            <i class="fa-solid fa-file-excel mr-1.5"></i> Listeyi Excel İndir
+                            <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
                         </button>
                         <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
                             <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
@@ -499,7 +519,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                         <div>
-                            <div class="text-gray-500 text-xs font-medium mb-1">Listelenen Toplam Kalem Sayısı</div>
+                            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Kalem Sayısı</div>
                             <div class="text-xl font-bold text-gray-800" id="pay-total-count">0</div>
                         </div>
                         <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -519,10 +539,10 @@
 
                 <!-- Tablo -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                    <table class="w-full text-left border-collapse min-w-[1050px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
-                                <th class="p-3 text-center">Durum</th>
+                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
                                 <th class="p-3">Tür</th>
                                 <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
                                 <th class="p-3">IBAN Bilgisi</th>
@@ -867,7 +887,7 @@
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-rentals" class="rounded text-blue-600" checked> <span>Kiralama Takibi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-referees" class="rounded text-blue-600" checked> <span>Hakem Ödemeleri</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-simulation" class="rounded text-blue-600" checked> <span>TÜFE/ÜFE Simülatörü</span></label>
-                    </div>
+                        </div>
                     </div>
 
                     <div class="border-t pt-3">
@@ -1121,6 +1141,7 @@
 
         window.onload = async function() {
             populateRefereeYearFilter();
+            populatePaymentsYearFilter();
             await fetchCentralData();
 
             const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
@@ -1141,7 +1162,7 @@
                         else if (currentUser.permissions.campuses) switchTab('campuses');
                         else if (currentUser.permissions.rentals) switchTab('rentals');
                         else if (currentUser.permissions.referees) switchTab('referees');
-                        else if (currentUser.permissions.payments !== false) switchTab('payments');
+                        else if (currentUser.role === 'admin') switchTab('payments');
                         else if (currentUser.permissions.simulation) switchTab('simulation');
                         else if (currentUser.role === 'admin') switchTab('users');
                     }
@@ -1285,7 +1306,7 @@
                 else if (currentUser.permissions.campuses) switchTab('campuses');
                 else if (currentUser.permissions.rentals) switchTab('rentals');
                 else if (currentUser.permissions.referees) switchTab('referees');
-                else if (currentUser.permissions.payments !== false) switchTab('payments');
+                else if (currentUser.role === 'admin') switchTab('payments');
                 else if (currentUser.permissions.simulation) switchTab('simulation');
                 else if (currentUser.role === 'admin') switchTab('users');
             } else {
@@ -1343,6 +1364,7 @@
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
+            // Ödemeler Takibi SADECE Admin Kullanıcıya Görünür
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
             document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
@@ -1402,7 +1424,32 @@
             if(tab === 'users') renderUsers();
         }
 
-        // ==================== ÖDEMELER TAKİBİ MODÜLÜ (YENİ MİMARİ) ====================
+        // ==================== ÖDEMELER TAKİBİ MODÜLÜ (GELİŞMİŞ DÖNEMSEL VE TARİH ROZETLİ) ====================
+        function populatePaymentsYearFilter() {
+            const yearSelect = document.getElementById('payments-year-filter');
+            if (!yearSelect) return;
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+            }
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            document.getElementById('payments-month-filter').value = currentMonth;
+        }
+
+        function extractYearMonth(dateStr) {
+            if (!dateStr) return { year: "", month: "" };
+            const parts = String(dateStr).trim().split(/[./-]/);
+            if (parts.length === 3) {
+                if (parts[2].length === 4) { // gg.aa.yyyy
+                    return { year: parts[2], month: String(parts[1]).padStart(2, '0') };
+                } else if (parts[0].length === 4) { // yyyy-aa-gg
+                    return { year: parts[0], month: String(parts[1]).padStart(2, '0') };
+                }
+            }
+            return { year: "", month: "" };
+        }
+
         function setPaymentStatusFilter(status) {
             currentPaymentFilter = status;
             const btnPending = document.getElementById('btn-pay-filter-pending');
@@ -1433,7 +1480,9 @@
                     iban: r.iban || '-',
                     desc: r.project ? r.project : (r.company || '-'),
                     amount: parseFloat(r.gross) || 0,
-                    isPaid: !!r.isPaid
+                    isPaid: !!r.isPaid,
+                    date: r.docDate || '',
+                    paymentDate: r.paymentDate || ''
                 });
             });
 
@@ -1447,7 +1496,9 @@
                     iban: m.iban || '-',
                     desc: m.desc || '-',
                     amount: parseFloat(m.amount) || 0,
-                    isPaid: !!m.isPaid
+                    isPaid: !!m.isPaid,
+                    date: m.date || '',
+                    paymentDate: m.paymentDate || ''
                 });
             });
 
@@ -1459,9 +1510,26 @@
             if (!tbody) return;
             tbody.innerHTML = '';
 
+            const selYearEl = document.getElementById('payments-year-filter');
+            const selMonthEl = document.getElementById('payments-month-filter');
+            const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
+            const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+
             const allList = getAllPaymentsList();
             const isPending = currentPaymentFilter === 'pending';
-            const filtered = allList.filter(item => isPending ? !item.isPaid : item.isPaid);
+
+            const filtered = allList.filter(item => {
+                if (isPending ? item.isPaid : !item.isPaid) return false;
+
+                // Ödenenlerde öncelikle paymentDate, ödeneceklerde ait olduğu belge/fatura tarihi baz alınır
+                const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
+                const { year, month } = extractYearMonth(targetDate);
+                
+                if (year && month) {
+                    return year === selYear && month === selMonth;
+                }
+                return true;
+            });
 
             let totalAmt = 0;
 
@@ -1472,10 +1540,17 @@
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition">
                         <td class="p-3 text-center">
-                            <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
-                                onchange="togglePaymentPaidStatus('${item.source}', '${item.id}', this.checked)"
-                                class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500"
-                                title="${item.isPaid ? 'Ödenmedi olarak geri al' : 'Ödendi olarak işaretle'}">
+                            <div class="inline-flex items-center space-x-2">
+                                <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
+                                    onchange="togglePaymentPaidStatus('${item.source}', '${item.id}', this.checked)"
+                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500"
+                                    title="${item.isPaid ? 'Ödenmedi olarak geri al' : 'Ödendi olarak işaretle'}">
+                                ${item.paymentDate ? `
+                                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${item.paymentDate}
+                                    </span>
+                                ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
+                            </div>
                         </td>
                         <td class="p-3">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReferee ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">
@@ -1499,17 +1574,25 @@
             document.getElementById('pay-total-amount').innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">${isPending ? 'Ödenecek bekleyen kayıt bulunmuyor.' : 'Ödenmiş kayıt bulunmuyor.'}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
             }
         }
 
         function togglePaymentPaidStatus(source, id, isChecked) {
+            const todayStr = new Date().toLocaleDateString('tr-TR');
+
             if (source === 'referee') {
                 const refItem = data.refereePayments.find(r => String(r.id) === String(id));
-                if (refItem) refItem.isPaid = isChecked;
+                if (refItem) {
+                    refItem.isPaid = isChecked;
+                    refItem.paymentDate = isChecked ? todayStr : '';
+                }
             } else if (source === 'manual') {
                 const manItem = data.manualPayments.find(m => String(m.id) === String(id));
-                if (manItem) manItem.isPaid = isChecked;
+                if (manItem) {
+                    manItem.isPaid = isChecked;
+                    manItem.paymentDate = isChecked ? todayStr : '';
+                }
             }
             saveData();
             renderPayments();
@@ -1544,7 +1627,8 @@
                 id: Date.now(),
                 name, iban, amount, desc,
                 isPaid: false,
-                date: new Date().toLocaleDateString('tr-TR')
+                date: new Date().toLocaleDateString('tr-TR'),
+                paymentDate: ''
             });
 
             closeModal('manual-payment-modal');
@@ -1562,17 +1646,28 @@
 
         function exportPaymentsToExcel() {
             try {
+                const selYear = document.getElementById('payments-year-filter').value;
+                const selMonth = document.getElementById('payments-month-filter').value;
+
                 const allList = getAllPaymentsList();
                 const isPending = currentPaymentFilter === 'pending';
-                const filtered = allList.filter(item => isPending ? !item.isPaid : item.isPaid);
+
+                const filtered = allList.filter(item => {
+                    if (isPending ? item.isPaid : !item.isPaid) return false;
+                    const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
+                    const { year, month } = extractYearMonth(targetDate);
+                    if (year && month) return year === selYear && month === selMonth;
+                    return true;
+                });
 
                 if (filtered.length === 0) {
-                    alert("İndirilecek ödeme kaydı bulunamadı.");
+                    alert(`Seçilen ${selMonth}/${selYear} dönemine ait indirilecek kayıt bulunamadı.`);
                     return;
                 }
 
                 const exportList = filtered.map(item => ({
                     "Durum": item.isPaid ? 'Ödendi' : 'Ödenecek',
+                    "Ödeme Tarihi": item.paymentDate || '-',
                     "Tür": item.sourceLabel,
                     "Firma Adı / Hakem Ad Soyad": item.name,
                     "IBAN Bilgisi": item.iban,
@@ -1583,13 +1678,13 @@
                 if (typeof XLSX !== 'undefined') {
                     const ws = XLSX.utils.json_to_sheet(exportList);
                     const wb = XLSX.utils.book_new();
-                    const sheetName = isPending ? "Odenecekler_Listesi" : "Odenenler_Listesi";
+                    const sheetName = isPending ? "Odenecekler" : "Odenenler";
                     XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
                     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
                     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                     
-                    const fileName = `${sheetName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    const fileName = `${sheetName}_${selMonth}_${selYear}.xlsx`;
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -1629,9 +1724,11 @@
         }
 
         function toggleRefereePaidStatus(id, isChecked) {
+            const todayStr = new Date().toLocaleDateString('tr-TR');
             const item = data.refereePayments.find(r => String(r.id) === String(id));
             if (item) {
                 item.isPaid = isChecked;
+                item.paymentDate = isChecked ? todayStr : '';
                 saveData();
                 renderReferees();
                 renderPayments();
@@ -1747,6 +1844,7 @@
 
             const net = gross > 0 ? (gross / 0.90) : 0;
             const tax = net * 0.10;
+            const isPaid = document.getElementById('ref-is-paid').checked;
 
             const payload = {
                 id: editId || Date.now(),
@@ -1765,7 +1863,8 @@
                 project: document.getElementById('ref-project').value.trim(),
                 address: document.getElementById('ref-address').value.trim(),
                 addressNo: document.getElementById('ref-address-no').value.trim(),
-                isPaid: document.getElementById('ref-is-paid').checked
+                isPaid: isPaid,
+                paymentDate: isPaid ? (editId ? (data.refereePayments.find(r => String(r.id) === String(editId))?.paymentDate || new Date().toLocaleDateString('tr-TR')) : new Date().toLocaleDateString('tr-TR')) : ''
             };
 
             if (editId) {
@@ -2453,7 +2552,7 @@
             });
         }
 
-function openUserModal(editUserId = null) {
+        function openUserModal(editUserId = null) {
             document.getElementById('editing-user-id').value = editUserId ? String(editUserId) : '';
 
             if (editUserId) {
@@ -2524,7 +2623,7 @@ function openUserModal(editUserId = null) {
             else permBox.classList.remove('opacity-40', 'pointer-events-none');
         }
 
-function saveUser() {
+        function saveUser() {
             const editUserId = document.getElementById('editing-user-id').value || null;
             const username = document.getElementById('user-input-username').value.trim();
             const password = document.getElementById('user-input-password').value.trim();
