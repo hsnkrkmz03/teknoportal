@@ -468,56 +468,57 @@
                 </div>
             </section>
 
-<!-- YENİ GÜNCELLENMİŞ KOD: DÖNEM FİLTRESİ ALT SATIRDA SAĞA YASLI -->
-<div class="mb-6 space-y-3">
-    <!-- Üst Satır: Başlık ve Butonlar -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Ödemeler Takibi</h1>
-            <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <!-- Ödenecek / Ödenen Filtresi -->
-            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
-                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
-                </button>
-                <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
-                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
-                </button>
-            </div>
+            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (DÜZELTİLDİ: SADECE KENDİ SEKMESİNDE AÇILIR) -->
+            <section id="tab-payments" class="hidden">
+                <div class="mb-6 space-y-3">
+                    <!-- Üst Satır: Başlık ve Butonlar -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Ödemeler Takibi</h1>
+                            <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <!-- Ödenecek / Ödenen Filtresi -->
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
+                                <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
+                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
+                                </button>
+                                <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
+                                </button>
+                            </div>
 
-            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
-                <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
-            </button>
-            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
-                <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
-            </button>
-        </div>
-    </div>
+                            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
+                            </button>
+                            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
+                            </button>
+                        </div>
+                    </div>
 
-    <!-- Alt Satır: Sağa Yaslı Dönem Filtresi -->
-    <div class="flex justify-end">
-        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
-            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
-            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
-            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
-                <option value="01">Ocak</option>
-                <option value="02">Şubat</option>
-                <option value="03">Mart</option>
-                <option value="04">Nisan</option>
-                <option value="05">Mayıs</option>
-                <option value="06">Haziran</option>
-                <option value="07">Temmuz</option>
-                <option value="08">Ağustos</option>
-                <option value="09">Eylül</option>
-                <option value="10">Ekim</option>
-                <option value="11">Kasım</option>
-                <option value="12">Aralık</option>
-            </select>
-        </div>
-    </div>
-</div>
+                    <!-- Alt Satır: Sağa Yaslı Dönem Filtresi -->
+                    <div class="flex justify-end">
+                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
+                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+                            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
+                            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
+                                <option value="01">Ocak</option>
+                                <option value="02">Şubat</option>
+                                <option value="03">Mart</option>
+                                <option value="04">Nisan</option>
+                                <option value="05">Mayıs</option>
+                                <option value="06">Haziran</option>
+                                <option value="07">Temmuz</option>
+                                <option value="08">Ağustos</option>
+                                <option value="09">Eylül</option>
+                                <option value="10">Ekim</option>
+                                <option value="11">Kasım</option>
+                                <option value="12">Aralık</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Özet Kartlar -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -929,157 +930,6 @@
         </div>
     </div>
 
-    <!-- DİĞER MODALLAR (CAMPUS, OFFICE, EXCEL, RENTAL) -->
-    <div id="campus-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-4">Yeni Yerleşke Ekle</h3>
-            <input type="text" id="new-campus-name" placeholder="Yerleşke Adı (Örn: A Blok / AR-GE Binası)" class="w-full border p-2.5 rounded-lg mb-4">
-            <div class="flex justify-end space-x-2">
-                <button onclick="closeModal('campus-modal')" class="px-4 py-2 bg-gray-200 rounded-lg">İptal</button>
-                <button onclick="saveCampus()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="office-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-4">Yeni Ofis Ekle</h3>
-            <input type="hidden" id="office-campus-id">
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Ofis Adı / No</label>
-                    <input type="text" id="new-office-name" placeholder="Örn: Ofis 101" class="w-full border p-2 rounded-lg">
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Kat Numarası</label>
-                        <input type="text" id="new-office-floor" placeholder="Örn: 1. Kat / Zemin" class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Toplam Büyüklük (m²)</label>
-                        <input type="number" id="new-office-area" placeholder="Örn: 75" class="w-full border p-2 rounded-lg">
-                    </div>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button onclick="closeModal('office-modal')" class="px-4 py-2 bg-gray-200 rounded-lg">İptal</button>
-                <button onclick="saveOffice()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Kaydet</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="excel-upload-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-2">Excel ile Toplu Ofis Yükle</h3>
-            <p class="text-xs text-gray-500 mb-4">Excel dosyanızda Ofis Adı, Büyüklük ve isteğe bağlı Kat No sütunları bulunmalıdır.</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Ofislerin Ekleneceği Yerleşke</label>
-                    <select id="excel-upload-campus-select" class="w-full border p-2.5 rounded-lg text-sm"></select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Excel Dosyası Seçin (.xlsx / .xls)</label>
-                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="w-full border p-2 rounded-lg text-xs file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:bg-emerald-50 file:text-emerald-700 font-medium">
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button onclick="closeModal('excel-upload-modal')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-medium">İptal</button>
-                <button onclick="processExcelUpload()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition">Yüklemeyi Tamamla</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- KİRALAMA VE DÜZENLEME MODALI -->
-    <div id="rental-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-lg overflow-y-auto max-h-[90vh]">
-            <h3 class="text-xl font-bold mb-4" id="rental-modal-title">Ofis Kiralama Sözleşmesi</h3>
-            <input type="hidden" id="editing-rental-id">
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kiracı Firma Adı</label>
-                    <input type="text" id="rent-company-name" class="w-full border p-2 rounded-lg" placeholder="ABC Yazılım A.Ş.">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">1. Bina / Yerleşke Seçimi</label>
-                    <select id="rent-campus-select" class="w-full border p-2 rounded-lg" onchange="onRentalCampusChange()"></select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">2. Kiralanacak Ofis Seçimi</label>
-                    <select id="rent-office-select" class="w-full border p-2 rounded-lg" onchange="onRentalOfficeChange()" disabled>
-                        <option value="">Önce Yerleşke/Bina Seçiniz...</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Sözleşme Başlangıç Tarihi</label>
-                        <input type="date" id="rent-start-date" class="w-full border p-2 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Planlanan Sözleşme Bitiş Tarihi</label>
-                        <input type="date" id="rent-target-end-date" class="w-full border p-2 rounded-lg">
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kiralanacak Alan (m²)</label>
-                    <input type="number" id="rent-allocated-area" class="w-full border p-2 rounded-lg" placeholder="100">
-                    <span class="text-[10px] text-gray-400" id="office-available-hint"></span>
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Birim Kira</label>
-                        <input type="number" id="rent-unit-price" class="w-full border p-2 rounded-lg" placeholder="250">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Ortak Gider</label>
-                        <input type="number" id="rent-common-cost-per-m2" class="w-full border p-2 rounded-lg" placeholder="50">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Diğer Katılım</label>
-                        <input type="number" id="rent-other-cost" class="w-full border p-2 rounded-lg" placeholder="500">
-                    </div>
-                </div>
-
-                <div id="rental-history-section" class="hidden pt-3 border-t">
-                    <label class="block text-xs font-bold text-gray-700 mb-1 flex items-center space-x-1">
-                        <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
-                        <span>Sözleşme Değişiklik Geçmişi ve Açıklamalar:</span>
-                    </label>
-                    <div id="rental-history-list" class="bg-gray-50 border rounded-lg p-2.5 max-h-36 overflow-y-auto text-xs space-y-2 mb-2"></div>
-                </div>
-
-                <div class="pt-2 border-t">
-                    <label class="block text-xs font-semibold text-indigo-900 mb-1">Yeni Değişiklik Notu / Açıklama Ekle (İsteğe Bağlı)</label>
-                    <textarea id="rent-user-note" rows="2" class="w-full border p-2 rounded-lg text-xs" placeholder="Yapılan değişiklik hakkında kalıcı bir açıklama yazın..."></textarea>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button onclick="closeModal('rental-modal')" class="px-4 py-2 bg-gray-200 rounded-lg">İptal</button>
-                <button onclick="saveRental()" class="px-4 py-2 bg-green-600 text-white rounded-lg" id="save-rental-btn">Kiralama Tamamla</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="end-rental-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-4 text-red-600">Sözleşmeyi Sonlandır</h3>
-            <input type="hidden" id="end-rental-id">
-            <div class="mb-4 space-y-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Sözleşme Bitiş Tarihi</label>
-                    <input type="date" id="rent-end-date" class="w-full border p-2 rounded-lg">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-indigo-900 mb-1">Yöneticiye Fesih Açıklaması Bırak</label>
-                    <textarea id="rent-end-user-note" rows="2" class="w-full border p-2 rounded-lg text-xs" placeholder="Sözleşmenin sonlandırılma gerekçesini yazın..."></textarea>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button onclick="closeModal('end-rental-modal')" class="px-4 py-2 bg-gray-200 rounded-lg">İptal</button>
-                <button onclick="confirmEndRental()" class="px-4 py-2 bg-red-600 text-white rounded-lg">Sözleşmeyi Bitir</button>
-            </div>
-        </div>
-    </div>
-
     <!-- UYGULAMA MANTIĞI & GOOGLE APPS SCRIPT BULUT SENKRONİZASYONU -->
     <script>
         Chart.register(ChartDataLabels);
@@ -1368,7 +1218,6 @@
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
-            // Ödemeler Takibi SADECE Admin Kullanıcıya Görünür
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
             document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
@@ -1525,7 +1374,6 @@
             const filtered = allList.filter(item => {
                 if (isPending ? item.isPaid : !item.isPaid) return false;
 
-                // Ödenenlerde öncelikle paymentDate, ödeneceklerde ait olduğu belge/fatura tarihi baz alınır
                 const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
                 const { year, month } = extractYearMonth(targetDate);
                 
