@@ -468,52 +468,56 @@
                 </div>
             </section>
 
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (GÜNCELLENMİŞ MİMARİ: AYLIK FİLTRE VE ÖDEME TARİHİ ROZETİ) -->
-            <section id="tab-payments" class="hidden">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-800">Ödemeler Takibi</h1>
-                        <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <!-- Dönem Filtresi (Yıl ve Ay) -->
-                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-2.5 py-1.5 rounded-lg shadow-2xs">
-                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1"></i> Dönem:</label>
-                            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
-                            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
-                                <option value="01">Ocak</option>
-                                <option value="02">Şubat</option>
-                                <option value="03">Mart</option>
-                                <option value="04">Nisan</option>
-                                <option value="05">Mayıs</option>
-                                <option value="06">Haziran</option>
-                                <option value="07">Temmuz</option>
-                                <option value="08">Ağustos</option>
-                                <option value="09">Eylül</option>
-                                <option value="10">Ekim</option>
-                                <option value="11">Kasım</option>
-                                <option value="12">Aralık</option>
-                            </select>
-                        </div>
+<!-- YENİ GÜNCELLENMİŞ KOD: DÖNEM FİLTRESİ ALT SATIRDA SAĞA YASLI -->
+<div class="mb-6 space-y-3">
+    <!-- Üst Satır: Başlık ve Butonlar -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Ödemeler Takibi</h1>
+            <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- Ödenecek / Ödenen Filtresi -->
+            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
+                <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
+                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
+                </button>
+                <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
+                </button>
+            </div>
 
-                        <!-- Ödenecek / Ödenen Filtresi -->
-                        <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                            <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
-                                <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
-                            </button>
-                            <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
-                                <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
-                            </button>
-                        </div>
+            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
+                <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
+            </button>
+            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
+                <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
+            </button>
+        </div>
+    </div>
 
-                        <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-medium text-xs transition flex items-center shadow-sm perm-export">
-                            <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
-                        </button>
-                        <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-medium text-xs transition flex items-center shadow-sm perm-edit">
-                            <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
-                        </button>
-                    </div>
-                </div>
+    <!-- Alt Satır: Sağa Yaslı Dönem Filtresi -->
+    <div class="flex justify-end">
+        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
+            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
+            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
+                <option value="01">Ocak</option>
+                <option value="02">Şubat</option>
+                <option value="03">Mart</option>
+                <option value="04">Nisan</option>
+                <option value="05">Mayıs</option>
+                <option value="06">Haziran</option>
+                <option value="07">Temmuz</option>
+                <option value="08">Ağustos</option>
+                <option value="09">Eylül</option>
+                <option value="10">Ekim</option>
+                <option value="11">Kasım</option>
+                <option value="12">Aralık</option>
+            </select>
+        </div>
+    </div>
+</div>
 
                 <!-- Özet Kartlar -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
