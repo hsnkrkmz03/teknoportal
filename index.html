@@ -1573,7 +1573,7 @@ function getAllPaymentsList() {
                     sourceLabel: 'Hakem Ödemesi',
                     name: `${r.firstName || ''} ${r.lastName || ''}`.trim() || 'İsimsiz Hakem',
                     iban: r.iban || '-',
-                    desc: r.project ? r.project : (r.company || '-'),
+                    desc: [r.company, r.project].filter(Boolean).join(" / ") || "-",
                     amount: parseFloat(r.gross) || 0,
                     isPaid: !!r.isPaid,
                     date: r.docDate || '',
