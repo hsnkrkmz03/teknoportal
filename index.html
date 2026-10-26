@@ -225,7 +225,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- DOLULUK ORANI GRAFİK KARTI (DİNAMİK BAŞLIK & GARANTİLİ DIŞ ETİKETLER) -->
+                        <!-- DOLULUK ORANI GRAFİK KARTI (DİNAMİK BAŞLIK & GEOMETRİK DIŞ ROZETLER) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                             <h3 class="text-base font-bold text-gray-800 mb-2 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
                             <div class="w-full h-[280px] relative flex items-center justify-center">
@@ -261,7 +261,7 @@
                 </div>
             </section>
 
-            <!-- 2. YERLEŞKE & OFİS SEKMESİ -->
+            <!-- 2. YERLEŞKE & OFİS SEKMESİ (GELİŞMİŞ FİLTRE VE ÇAPRAZ ÖNERİ MOTORU) -->
             <section id="tab-campuses" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
@@ -300,12 +300,12 @@
 
                         <div class="col-span-2 bg-gray-50/80 p-3 rounded-lg border border-gray-200 flex flex-col justify-between">
                             <label class="block text-xs font-bold text-gray-700 mb-1">
-                                <i class="fa-solid fa-ruler-combined mr-1 text-gray-600"></i> Manuel m² Aralığı İle Arama
+                                <i class="fa-solid fa-ruler-combined mr-1 text-gray-600"></i> Manuel Boş m² Aralığı İle Arama
                             </label>
                             <div class="flex items-center space-x-2">
-                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="renderCampuses()">
+                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
                                 <span class="text-gray-400 text-xs font-bold">-</span>
-                                <input type="number" id="filter-max-m2" placeholder="Max Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="renderCampuses()">
+                                <input type="number" id="filter-max-m2" placeholder="Max Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
                             </div>
                         </div>
                     </div>
@@ -933,11 +933,11 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Kat Numarası</label>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Kat Numarası</label>
                         <input type="text" id="new-office-floor" placeholder="Örn: 1. Kat / Zemin" class="w-full border p-2 rounded-lg">
                     </div>
                     <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Toplam Büyüklük (m²)</label>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Toplam Büyüklük (m²)</label>
                         <input type="number" id="new-office-area" placeholder="Örn: 75" class="w-full border p-2 rounded-lg">
                     </div>
                 </div>
@@ -1063,7 +1063,6 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
-        // DataLabels eklentisini kaydediyoruz (Genel grafikler için)
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -2160,10 +2159,10 @@
         function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             let totalArea = 0;
             data.campuses.forEach(c => {
-                const off = c.offices.find(o => String(o.id) === String(officeId));
-                if(off) totalArea = parseFloat(off.area);
+                const off = (c.offices || []).find(o => String(o.id) === String(officeId));
+                if(off) totalArea = parseFloat(off.area || 0);
             });
-            return totalArea - getOfficeRentedArea(officeId, excludeRentalId);
+            return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
         }
 
         function getStats(selectedCampusId = 'all') {
@@ -2244,20 +2243,18 @@
         function deleteUserNote(index) { userNotes.splice(index, 1); saveData(); }
         function clearAllUserNotes() { if(confirm("Tüm bildirim notlarını temizlemek istediğinize emin misiniz?")) { userNotes = []; saveData(); } }
 
-        // ==================== DASHBOARD & GELİŞMİŞ GRAFİK BAŞLIK SENKRONİZASYONU ====================
+        // ==================== DASHBOARD & GRAFİK BAŞLIK SENKRONİZASYONU ====================
         function renderDashboard() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
 
-            // Seçilen Yerleşkenin Gerçek İsmini Bul
             let currentCampusName = "Tüm Yerleşkeler";
             if (selectedCampus !== 'all') {
                 const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
                 if (foundCampus) currentCampusName = foundCampus.name;
             }
 
-            // 1. Kart Başlıklarını ve Rozetleri Güncelle
             const occTitleEl = document.getElementById('dash-occupancy-chart-title');
             if (occTitleEl) {
                 occTitleEl.innerText = `${currentCampusName} Doluluk Oranı`;
@@ -2268,7 +2265,6 @@
                 badgeLabelEl.innerText = `${currentCampusName} Doluluk:`;
             }
 
-            // 2. Metrik Kartları
             document.getElementById('dash-total-area').innerText = stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('dash-rented-area').innerText = stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('dash-available-area').innerText = stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2289,6 +2285,7 @@
             updateCharts();
         }
 
+        // ==================== AKILLI OFİS ÖNERİ & GELİŞMİŞ FİLTRELEME MOTORU ====================
         function onPersonCountInput() {
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
             const hint = document.getElementById('person-m2-calc-hint');
@@ -2297,7 +2294,6 @@
             if (isNaN(countInput) || countInput <= 0) {
                 hint.innerText = "0 Personel = 0.00 m² İhtiyaç";
                 if (suggestionBox) suggestionBox.classList.add('hidden');
-                document.getElementById('filter-min-m2').value = '';
                 renderCampuses();
                 return;
             }
@@ -2308,7 +2304,15 @@
             const sugTargetEl = document.getElementById('sug-target-m2');
             if (sugTargetEl) sugTargetEl.innerText = neededM2.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             
-            document.getElementById('filter-min-m2').value = neededM2;
+            renderCampuses();
+        }
+
+        function onManualM2Input() {
+            // Manuel m² girildiğinde personel hesap kutusunu sıfırla ki çakışmasın
+            document.getElementById('filter-person-count').value = '';
+            document.getElementById('person-m2-calc-hint').innerText = "0 Personel = 0.00 m² İhtiyaç";
+            const suggestionBox = document.getElementById('smart-suggestion-box');
+            if (suggestionBox) suggestionBox.classList.add('hidden');
             renderCampuses();
         }
 
@@ -2321,8 +2325,10 @@
             const container = document.getElementById('campus-list');
             container.innerHTML = '';
 
-            const minM2Input = parseFloat(document.getElementById('filter-min-m2').value);
-            const maxM2Input = parseFloat(document.getElementById('filter-max-m2').value);
+            const minM2Val = document.getElementById('filter-min-m2').value.trim();
+            const maxM2Val = document.getElementById('filter-max-m2').value.trim();
+            const minM2Input = minM2Val !== '' ? parseFloat(minM2Val) : NaN;
+            const maxM2Input = maxM2Val !== '' ? parseFloat(maxM2Val) : NaN;
             const personCount = parseFloat(document.getElementById('filter-person-count').value);
             
             const isUserAdmin = currentUser && currentUser.role === 'admin';
@@ -2336,15 +2342,18 @@
             const suggestionBox = document.getElementById('smart-suggestion-box');
             const suggestionCards = document.getElementById('smart-suggestion-cards');
             
+            // 1. PERSONEL SAYISINA GÖRE ÇAPRAZ VE KOMBİNE ÖNERİ ROBOTU
             if (!isNaN(personCount) && personCount > 0 && suggestionBox && suggestionCards) {
                 const targetM2 = personCount * 8;
                 let suggestions = [];
 
+                // A) Tek Yerleşke İçi Tekli ve Çoklu Kombinasyonlar
                 data.campuses.forEach(c => {
                     const availOffices = (c.offices || [])
-                        .map(o => ({ name: o.name, avail: parseFloat(o.area || 0) - getOfficeRentedArea(o.id) }))
+                        .map(o => ({ name: o.name, campusName: c.name, avail: parseFloat(o.area || 0) - getOfficeRentedArea(o.id) }))
                         .filter(o => o.avail > 0);
 
+                    // Tek ofis yeterli mi?
                     availOffices.forEach(o => {
                         if (o.avail >= targetM2) {
                             suggestions.push({
@@ -2356,6 +2365,7 @@
                         }
                     });
 
+                    // 2'li kombinasyon
                     for (let i = 0; i < availOffices.length; i++) {
                         for (let j = i + 1; j < availOffices.length; j++) {
                             const total = availOffices[i].avail + availOffices[j].avail;
@@ -2369,8 +2379,60 @@
                             }
                         }
                     }
+
+                    // 3 ve daha fazla ofis kombinasyonu
+                    if (availOffices.length >= 3) {
+                        const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
+                        if (totalCampusAvail >= targetM2) {
+                            const sorted = [...availOffices].sort((a, b) => b.avail - a.avail);
+                            let runningTotal = 0;
+                            let picked = [];
+                            for (let o of sorted) {
+                                picked.push(o.name);
+                                runningTotal += o.avail;
+                                if (runningTotal >= targetM2) break;
+                            }
+                            if (picked.length > 2) {
+                                suggestions.push({
+                                    type: 'combo',
+                                    title: `${c.name} (${picked.join(" + ")})`,
+                                    totalAvail: runningTotal,
+                                    badge: `${picked.length}'li Ofis Paketi`
+                                });
+                            }
+                        }
+                    }
                 });
 
+                // B) Çapraz Yerleşke Kombinasyonları (Eğer tek yerleşkeler yetersiz kalırsa veya alternatif olarak)
+                const allAvailableGlobalOffices = [];
+                data.campuses.forEach(c => {
+                    (c.offices || []).forEach(o => {
+                        const av = parseFloat(o.area || 0) - getOfficeRentedArea(o.id);
+                        if (av > 0) allAvailableGlobalOffices.push({ name: o.name, campusName: c.name, avail: av });
+                    });
+                });
+
+                if (suggestions.length === 0 && allAvailableGlobalOffices.length > 1) {
+                    const sortedGlobal = [...allAvailableGlobalOffices].sort((a, b) => b.avail - a.avail);
+                    let runningTotal = 0;
+                    let picked = [];
+                    for (let o of sortedGlobal) {
+                        picked.push(`${o.campusName}: ${o.name}`);
+                        runningTotal += o.avail;
+                        if (runningTotal >= targetM2) break;
+                    }
+                    if (runningTotal >= targetM2) {
+                        suggestions.push({
+                            type: 'cross',
+                            title: `Çapraz Yerleşke Paketi: ${picked.join(" + ")}`,
+                            totalAvail: runningTotal,
+                            badge: 'Çapraz Yerleşke Çözümü'
+                        });
+                    }
+                }
+
+                // Hedefe en yakın olanları öne çıkar (En az israf)
                 suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
 
                 const uniqueSuggestions = [];
@@ -2386,14 +2448,18 @@
                 if (uniqueSuggestions.length > 0) {
                     suggestionCards.innerHTML = '';
                     uniqueSuggestions.forEach(item => {
+                        const isCross = item.type === 'cross';
                         const isCombo = item.type === 'combo';
+                        const badgeColor = isCross ? 'bg-purple-600' : (isCombo ? 'bg-indigo-600' : 'bg-emerald-600');
+                        const boxBg = isCross ? 'bg-purple-50/80 border-purple-200' : (isCombo ? 'bg-indigo-50/80 border-indigo-200' : 'bg-emerald-50/80 border-emerald-200');
+
                         suggestionCards.innerHTML += `
-                            <div class="${isCombo ? 'bg-indigo-50/80 border-indigo-200' : 'bg-emerald-50/80 border-emerald-200'} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
+                            <div class="${boxBg} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
                                 <div>
-                                    <div class="font-bold ${isCombo ? 'text-indigo-900' : 'text-emerald-900'} text-xs">${item.title}</div>
-                                    <div class="text-[11px] ${isCombo ? 'text-indigo-700' : 'text-emerald-700'} mt-0.5">Toplam Kullanılabilir Alan: <strong>${item.totalAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
+                                    <div class="font-bold text-gray-900 text-xs">${item.title}</div>
+                                    <div class="text-[11px] text-gray-700 mt-0.5">Toplam Kullanılabilir Alan: <strong>${item.totalAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
                                 </div>
-                                <span class="${isCombo ? 'bg-indigo-600' : 'bg-emerald-600'} text-white font-bold text-[10px] px-2 py-1 rounded-md shrink-0 ml-2">${item.badge}</span>
+                                <span class="${badgeColor} text-white font-bold text-[10px] px-2 py-1 rounded-md shrink-0 ml-2">${item.badge}</span>
                             </div>
                         `;
                     });
@@ -2401,7 +2467,7 @@
                 } else {
                     suggestionCards.innerHTML = `
                         <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
-                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için uygun ofis bulunamadı.
+                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için tüm yerleşkeler genelinde dahi yeterli boş ofis kapasitesi bulunamadı.
                         </div>
                     `;
                     suggestionBox.classList.remove('hidden');
@@ -2410,6 +2476,7 @@
                 suggestionBox.classList.add('hidden');
             }
 
+            // 2. YERLEŞKE VE OFİSLERİN LİSTELENMESİ (MİN-MAX BOŞ m² FİLTRELEME)
             data.campuses.forEach(c => {
                 const totalCampusArea = (c.offices || []).reduce((acc, o) => acc + parseFloat(o.area || 0), 0);
                 
@@ -2422,7 +2489,7 @@
 
                 let officesHtml = filteredOffices.map(o => {
                     const rentedArea = getOfficeRentedArea(o.id);
-                    const availArea = parseFloat(o.area || 0) - rentedArea;
+                    const availArea = Math.max(0, parseFloat(o.area || 0) - rentedArea);
                     const floorInfo = o.floor ? ` | ${o.floor}` : '';
                     
                     let statusBadge = '';
@@ -2457,6 +2524,10 @@
                 const campusOfficeIds = (c.offices || []).map(o => String(o.id));
                 const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
+                // Eğer filtreleme uygulanmışsa ve bu yerleşkede kriterlere uyan ofis varsa gövdeyi otomatik açık göster
+                const isFiltered = !isNaN(minM2Input) || !isNaN(maxM2Input);
+                const shouldOpenBody = isFiltered && filteredOffices.length > 0;
+
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
                         <div class="p-5 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails('${c.id}')">
@@ -2465,7 +2536,7 @@
                                 <div>
                                     <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                         <span>${c.name}</span>
-                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${(c.offices || []).length} Ofis</span>
+                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${filteredOffices.length} / ${(c.offices || []).length} Ofis</span>
                                     </h2>
                                     <p class="text-xs text-gray-500 mt-0.5">Toplam Yerleşke Alanı: <strong>${totalCampusArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</strong></p>
                                 </div>
@@ -2486,8 +2557,8 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="campus-body-${c.id}" class="hidden p-5 bg-gray-50/30 border-t border-gray-100 space-y-3">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${officesHtml || '<p class="text-xs text-gray-400 col-span-2 p-2">Arama kriterlerinize uygun ofis bulunamadı.</p>'}</div>
+                        <div id="campus-body-${c.id}" class="${shouldOpenBody ? '' : 'hidden'} p-5 bg-gray-50/30 border-t border-gray-100 space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${officesHtml || '<p class="text-xs text-gray-400 col-span-2 p-2">Arama kriterlerinize uygun boş ofis bulunamadı.</p>'}</div>
                         </div>
                     </div>
                 `;
@@ -3174,24 +3245,22 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // ==================== GRAFİK YÖNETİMİ & ÇOK OKUNAKLI KILAVUZ ÇİZGİLİ DONUT EKLENTİSİ ====================
+        // ==================== GRAFİK YÖNETİMİ & KESİN GEOMETRİK DOUGHNUT EKLENTİSİ ====================
         function updateCharts() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
 
-            // Seçili Yerleşke Adı
             let currentCampusName = "Tüm Yerleşkeler";
             if (selectedCampus !== 'all') {
                 const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
                 if (foundCampus) currentCampusName = foundCampus.name;
             }
 
-            // 1. DOLULUK ORANI: DIŞARI ÇIKAN KILAVUZ ÇİZGİLİ / ROZETLİ ÖZEL DOUGHNUT GRAFİĞİ
+            // 1. DOLULUK ORANI: ASLA DIŞARI TAŞMAYAN VE ÇAKIŞMAYAN ÖZEL DOUGHNUT GRAFİĞİ
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
-            // Garantili ve her zaman tuval içinde kalan dış kılavuz çizgi eklentisi
             const doughnutCalloutPlugin = {
                 id: 'doughnutCallout',
                 afterDraw: function(chart) {
@@ -3202,91 +3271,76 @@
                     const total = stats.totalArea;
                     if (total <= 0) return;
 
-                    meta.data.forEach((element, index) => {
-                        const val = chart.data.datasets[0].data[index];
-                        if (val === undefined || val === null || val <= 0) return;
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+                    const outerRadius = meta.data[0].outerRadius || Math.min(width, height) * 0.32;
 
-                        const percentage = ((val / total) * 100).toFixed(1);
-                        const labelText = `${val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
+                    const items = [
+                        { label: 'Kiralanan Alan', val: stats.rentedArea, color: '#059669', textColor: '#065f46', side: 'left' },
+                        { label: 'Boş Alan', val: stats.availableArea, color: '#d97706', textColor: '#92400e', side: 'right' }
+                    ];
 
-                        // Açı ve merkez hesabı
-                        let angle = (element.startAngle + element.endAngle) / 2;
-                        // Eğer tek dilim varsa (örneğin %100 dolu veya boş)
-                        if (element.startAngle === 0 && Math.abs(element.endAngle - Math.PI * 2) < 0.05) {
-                            angle = index === 0 ? -Math.PI / 4 : Math.PI / 4;
-                        }
+                    items.forEach((item) => {
+                        if (item.val <= 0) return;
 
-                        const outerRadius = element.outerRadius;
-                        const centerPoint = element.getCenterPoint();
+                        const percentage = ((item.val / total) * 100).toFixed(1);
+                        const labelText = `${item.val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
 
-                        // Yayın dış çeperindeki başlangıç noktası
-                        const startX = centerPoint.x + Math.cos(angle) * outerRadius;
-                        const startY = centerPoint.y + Math.sin(angle) * outerRadius;
+                        const isLeft = item.side === 'left';
+                        const fixedAngle = isLeft ? (-Math.PI * 0.75) : (-Math.PI * 0.25);
 
-                        // Kılavuz dirsek noktası
-                        const elbowDistance = outerRadius + 15;
-                        const elbowX = centerPoint.x + Math.cos(angle) * elbowDistance;
-                        const elbowY = centerPoint.y + Math.sin(angle) * elbowDistance;
+                        const startX = centerX + Math.cos(fixedAngle) * outerRadius;
+                        const startY = centerY + Math.sin(fixedAngle) * outerRadius;
 
-                        // Yatay yönlendirme (Sağ/Sol)
-                        const isRight = Math.cos(angle) >= 0;
-                        const horizontalLength = 20;
-                        let endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
-                        let endY = elbowY;
+                        const elbowX = centerX + Math.cos(fixedAngle) * (outerRadius + 18);
+                        const elbowY = centerY + Math.sin(fixedAngle) * (outerRadius + 18);
 
-                        // Canvas sınırlarına çarpmayı önleme (Clamping)
-                        endX = Math.max(70, Math.min(width - 70, endX));
-                        endY = Math.max(25, Math.min(height - 45, endY));
-
-                        const colorPrimary = index === 0 ? '#059669' : '#d97706';
-                        const colorText = index === 0 ? '#065f46' : '#92400e';
+                        const endX = isLeft ? Math.max(10, elbowX - 25) : Math.min(width - 10, elbowX + 25);
+                        const endY = elbowY;
 
                         ctx.save();
 
-                        // 1. Kılavuz Çizgi Çizimi
+                        // Kılavuz Çizgi
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(elbowX, elbowY);
                         ctx.lineTo(endX, endY);
-                        ctx.strokeStyle = colorPrimary;
-                        ctx.lineWidth = 1.5;
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = 1.6;
                         ctx.stroke();
 
-                        // 2. Dilim Çeperindeki Nokta
+                        // Dilim Üzerindeki Nokta
                         ctx.beginPath();
                         ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
-                        ctx.fillStyle = colorPrimary;
+                        ctx.fillStyle = item.color;
                         ctx.fill();
 
-                        // 3. Rozet / Bilgi Kutusu Çizimi
+                        // Rozet / Bilgi Kutusu
                         ctx.font = 'bold 10px sans-serif';
                         ctx.textBaseline = 'middle';
-                        ctx.textAlign = isRight ? 'left' : 'right';
+                        ctx.textAlign = isLeft ? 'right' : 'left';
 
-                        const textX = endX + (isRight ? 6 : -6);
+                        const textX = isLeft ? endX - 6 : endX + 6;
                         const textY = endY;
 
                         const textWidth = ctx.measureText(labelText).width;
                         const padX = 5, padY = 3;
-                        const boxX = isRight ? textX - padX : textX - textWidth - padX;
+                        const boxX = isLeft ? textX - textWidth - padX : textX - padX;
                         const boxY = textY - 7 - padY;
                         const boxW = textWidth + (padX * 2);
                         const boxH = 14 + (padY * 2);
 
-                        // Beyaz arka plan gölgesi
                         ctx.fillStyle = '#ffffff';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
                         ctx.shadowBlur = 4;
                         ctx.fillRect(boxX, boxY, boxW, boxH);
 
-                        // İnce kenar çizgisi
                         ctx.shadowColor = 'transparent';
-                        ctx.strokeStyle = colorPrimary;
+                        ctx.strokeStyle = item.color;
                         ctx.lineWidth = 1;
                         ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-                        // Etiket Metni
-                        ctx.fillStyle = colorText;
+                        ctx.fillStyle = item.textColor;
                         ctx.fillText(labelText, textX, textY);
 
                         ctx.restore();
@@ -3312,10 +3366,10 @@
                     cutout: '60%',
                     layout: {
                         padding: {
-                            top: 20,
-                            bottom: 20,
-                            left: 30,
-                            right: 30
+                            top: 25,
+                            bottom: 25,
+                            left: 40,
+                            right: 40
                         }
                     },
                     plugins: {
