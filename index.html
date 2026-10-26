@@ -550,31 +550,6 @@
 
 <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (VADE UYARILI & DÜZENLENEBİLİR TARİHLİ) -->
             <section id="tab-payments" class="hidden">
-                <!-- VADESİ DOLAN / YAKLAŞAN ÖDEMELER UYARI KUTUSU -->
-                <div id="overdue-payments-alert" class="hidden mb-6 bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
-                    <div class="flex items-center space-x-2 text-rose-800 font-bold mb-3">
-                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
-                        <span>Son Ödeme Tarihi Dolan veya Yaklaşan Kalemler (Gecikmiş / &le; 3 Gün)</span>
-                        <span id="overdue-pay-count-badge" class="bg-rose-200 text-rose-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-rose-100/60 text-rose-900 font-semibold uppercase">
-                                <tr>
-                                    <th class="p-2">Tür</th>
-                                    <th class="p-2">Alıcı / Firma</th>
-                                    <th class="p-2">Açıklama</th>
-                                    <th class="p-2">Tutar</th>
-                                    <th class="p-2">Son Ödeme Tarihi</th>
-                                    <th class="p-2">Kalan Süre</th>
-                                    <th class="p-2 text-center">Hızlı İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="overdue-pay-table-body" class="divide-y divide-rose-200/50"></tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <div class="mb-6 space-y-3">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
@@ -1626,74 +1601,6 @@
             return list;
         }
 
-        // Vadesi yaklaşan veya geciken ödemelerin üst kutucuğunu çizer
-        function renderOverduePaymentsAlert(allList) {
-            const alertBox = document.getElementById('overdue-payments-alert');
-            const tbody = document.getElementById('overdue-pay-table-body');
-            const badge = document.getElementById('overdue-pay-count-badge');
-            if (!alertBox || !tbody) return;
-
-            tbody.innerHTML = '';
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            // Sadece ödenmemiş ve son ödeme tarihi girilmiş kalemler
-            const pendingWithDue = allList.filter(p => !p.isPaid && p.dueDate);
-            let count = 0;
-
-            pendingWithDue.forEach(p => {
-                const due = new Date(p.dueDate);
-                due.setHours(0, 0, 0, 0);
-                const diffTime = due - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                // Gecikmiş (diffDays < 0) veya 3 gün ve daha az kalmış olanlar
-                if (diffDays <= 3) {
-                    count++;
-                    const isOverdue = diffDays < 0;
-                    const isToday = diffDays === 0;
-
-                    let badgeStatus = '';
-                    if (isOverdue) {
-                        badgeStatus = `<span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${Math.abs(diffDays)} Gün Gecikti!</span>`;
-                    } else if (isToday) {
-                        badgeStatus = `<span class="bg-red-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] animate-pulse">Bugün Son Gün!</span>`;
-                    } else {
-                        badgeStatus = `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${diffDays} Gün Kaldı</span>`;
-                    }
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-rose-100/40">
-                            <td class="p-2 font-semibold text-gray-700">${p.sourceLabel}</td>
-                            <td class="p-2 font-bold text-gray-900">${p.name}</td>
-                            <td class="p-2 text-gray-600">${p.desc}</td>
-                            <td class="p-2 font-bold text-blue-700">₺${p.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td class="p-2 font-semibold text-gray-800">${toTRDate(p.dueDate)}</td>
-                            <td class="p-2">${badgeStatus}</td>
-                            <td class="p-2 text-center">
-                                <button onclick="quickPayPayment('${p.source}', '${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[11px] font-bold shadow-2xs transition">
-                                    <i class="fa-solid fa-check mr-1"></i> Şimdi Öde
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-
-            if (count > 0) {
-                badge.innerText = count;
-                alertBox.classList.remove('hidden');
-            } else {
-                alertBox.classList.add('hidden');
-            }
-        }
-
-        // Hızlı ödeme butonu (Uyarı kutusu için)
-        function quickPayPayment(source, id) {
-            const todayISO = new Date().toISOString().split('T')[0];
-            togglePaymentPaidStatus(source, id, true, todayISO);
-        }
-
         function renderPayments() {
             const tbody = document.getElementById('payments-table-body');
             if (!tbody) return;
@@ -1706,7 +1613,6 @@
             const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
 
             const allList = getAllPaymentsList();
-            renderOverduePaymentsAlert(allList);
 
             const isPending = currentPaymentFilter === 'pending';
 
