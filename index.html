@@ -320,7 +320,7 @@
                 <div id="campus-list" class="space-y-4"></div>
             </section>
 
-            <!-- 3. KİRALAMA TAKİBİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI FİLTRELER) -->
+            <!-- 3. KİRALAMA TAKİBİ SEKMESİ -->
             <section id="tab-rentals" class="hidden">
                 <div id="expiring-rentals-alert" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
                     <div class="flex items-center space-x-2 text-amber-800 font-bold mb-3">
@@ -407,16 +407,26 @@
                 </div>
             </section>
 
-            <!-- 4. HAKEM ÖDEMELERİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI DÖNEM FİLTRESİ) -->
+            <!-- 4. HAKEM ÖDEMELERİ SEKMESİ (ÖDENECEK/ÖDENEN BUTONLARI EKLENDİ) -->
             <section id="tab-referees" class="hidden">
                 <div class="mb-6 space-y-3">
-                    <!-- Üst Satır: Başlık ve Butonlar -->
+                    <!-- Üst Satır: Başlık, Durum Filtresi ve Butonlar -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h1 class="text-2xl font-bold text-gray-800">Hakem Ödemeleri Takibi</h1>
                             <p class="text-xs text-gray-500">Hakemlere yapılan ödemeleri aylık bazda yönetin, hesaplayın ve Excel olarak indirin.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
+                            <!-- Hakem Ödenecek / Ödenen Durum Filtresi -->
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
+                                <button id="btn-ref-filter-pending" onclick="setRefereeStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
+                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
+                                </button>
+                                <button id="btn-ref-filter-paid" onclick="setRefereeStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
+                                </button>
+                            </div>
+
                             <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
                             </button>
@@ -452,7 +462,7 @@
                 <!-- Özet Kartlar -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Net Ödenen Toplam</div>
+                        <div class="text-gray-500 text-xs font-medium mb-1" id="ref-total-gross-label">Seçili Dönem Net Ödenecek Toplam</div>
                         <div class="text-lg font-bold text-blue-600">₺<span id="referee-total-gross">0.00</span></div>
                     </div>
                     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -475,7 +485,7 @@
                                 <th class="p-3">IBAN</th>
                                 <th class="p-3">Firma</th>
                                 <th class="p-3">Proje</th>
-                                <th class="p-3">Net Ödenen Tutar</th>
+                                <th class="p-3">Net Tutar</th>
                                 <th class="p-3">Belge Tarihi</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
@@ -485,7 +495,7 @@
                 </div>
             </section>
 
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (STANDARTLAŞTIRILMIŞ BUTONLAR VE SAĞA YASLI DÖNEM FİLTRESİ) -->
+            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ (TÜR SÜTUNU FİLTRESİ ENTEGRE EDİLDİ) -->
             <section id="tab-payments" class="hidden">
                 <div class="mb-6 space-y-3">
                     <!-- Üst Satır: Başlık ve Butonlar -->
@@ -565,7 +575,16 @@
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
                                 <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
-                                <th class="p-3">Tür</th>
+                                <th class="p-3">
+                                    <div class="flex items-center space-x-1">
+                                        <span>Tür</span>
+                                        <select id="pay-type-filter" onchange="renderPayments()" class="border border-gray-300 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            <option value="all">Tümü</option>
+                                            <option value="referee">Hakem Ödemesi</option>
+                                            <option value="manual">Fatura / Gider</option>
+                                        </select>
+                                    </div>
+                                </th>
                                 <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
@@ -1155,6 +1174,7 @@
         let simulationChartInstance = null;
 
         let currentPaymentFilter = 'pending'; // 'pending' (Ödenecekler) veya 'paid' (Ödenenler)
+        let currentRefereeFilter = 'pending'; // 'pending' (Ödenecekler) veya 'paid' (Ödenenler)
 
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
@@ -1386,6 +1406,7 @@
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
+            // Ödemeler Takibi SADECE Admin Kullanıcıya Görünür
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
             document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
@@ -1533,12 +1554,14 @@
             const selMonthEl = document.getElementById('payments-month-filter');
             const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
             const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+            const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
 
             const allList = getAllPaymentsList();
             const isPending = currentPaymentFilter === 'pending';
 
             const filtered = allList.filter(item => {
                 if (isPending ? item.isPaid : !item.isPaid) return false;
+                if (selectedType !== 'all' && item.source !== selectedType) return false;
 
                 const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
                 const { year, month } = extractYearMonth(targetDate);
@@ -1548,6 +1571,9 @@
                 }
                 return true;
             });
+
+            // En yeni eklenen en üstte çıksın (ID bazlı azalan sıralama)
+            filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 
             let totalAmt = 0;
 
@@ -1592,7 +1618,7 @@
             document.getElementById('pay-total-amount').innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
             }
         }
 
@@ -1641,7 +1667,8 @@
                 return;
             }
 
-            data.manualPayments.push({
+            // Yeni eklenen en üste gelsin diye unshift ile ekliyoruz
+            data.manualPayments.unshift({
                 id: Date.now(),
                 name, iban, amount, desc,
                 isPaid: false,
@@ -1666,17 +1693,21 @@
             try {
                 const selYear = document.getElementById('payments-year-filter').value;
                 const selMonth = document.getElementById('payments-month-filter').value;
+                const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
 
                 const allList = getAllPaymentsList();
                 const isPending = currentPaymentFilter === 'pending';
 
                 const filtered = allList.filter(item => {
                     if (isPending ? item.isPaid : !item.isPaid) return false;
+                    if (selectedType !== 'all' && item.source !== selectedType) return false;
                     const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
                     const { year, month } = extractYearMonth(targetDate);
                     if (year && month) return year === selYear && month === selMonth;
                     return true;
                 });
+
+                filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 
                 if (filtered.length === 0) {
                     alert(`Seçilen ${selMonth}/${selYear} dönemine ait indirilecek kayıt bulunamadı.`);
@@ -1730,6 +1761,24 @@
             }
             const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
             document.getElementById('referee-month-filter').value = currentMonth;
+        }
+
+        function setRefereeStatusFilter(status) {
+            currentRefereeFilter = status;
+            const btnPending = document.getElementById('btn-ref-filter-pending');
+            const btnPaid = document.getElementById('btn-ref-filter-paid');
+            const grossLabel = document.getElementById('ref-total-gross-label');
+
+            if (status === 'pending') {
+                btnPending.className = "px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition";
+                btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+                if(grossLabel) grossLabel.innerText = "Seçili Dönem Net Ödenecek Toplam";
+            } else {
+                btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
+                btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+                if(grossLabel) grossLabel.innerText = "Seçili Dönem Net Ödenen Toplam";
+            }
+            renderReferees();
         }
 
         function calculateRefereeTax() {
@@ -1865,7 +1914,7 @@
             const isPaid = document.getElementById('ref-is-paid').checked;
 
             const payload = {
-                id: editId || Date.now(),
+                id: editId ? Number(editId) : Date.now(),
                 firstName, lastName,
                 iban: document.getElementById('ref-iban').value.trim(),
                 vkn: document.getElementById('ref-vkn').value.trim(),
@@ -1889,7 +1938,8 @@
                 const idx = data.refereePayments.findIndex(r => String(r.id) === String(editId));
                 if (idx !== -1) data.refereePayments[idx] = payload;
             } else {
-                data.refereePayments.push(payload);
+                // Yeni kayıt en üstte çıksın diye unshift kullanıyoruz
+                data.refereePayments.unshift(payload);
             }
 
             closeModal('referee-modal');
@@ -1917,56 +1967,63 @@
             let totalGross = 0, totalNet = 0, totalTax = 0;
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
+            const isPending = currentRefereeFilter === 'pending';
 
-            data.refereePayments.forEach(r => {
-                let itemYear = "", itemMonth = "";
-                if (r.docDate) {
-                    const parts = r.docDate.split(/[./-]/);
-                    if (parts.length === 3) {
-                        if (parts[2].length === 4) { itemYear = parts[2]; itemMonth = String(parts[1]).padStart(2, '0'); }
-                        else if (parts[0].length === 4) { itemYear = parts[0]; itemMonth = String(parts[1]).padStart(2, '0'); }
-                    }
+            // Hakem ödemelerini filtrele: Seçilen ay/yıl ve Ödendi/Ödenecek durumu
+            const filteredReferees = data.refereePayments.filter(r => {
+                const isPaid = !!r.isPaid;
+                if (isPending ? isPaid : !isPaid) return false;
+
+                const targetDate = (!isPending && r.paymentDate) ? r.paymentDate : r.docDate;
+                const { year, month } = extractYearMonth(targetDate);
+                
+                if (year && month) {
+                    return year === selYear && month === selMonth;
                 }
+                return true;
+            });
 
-                if (itemYear === selYear && itemMonth === selMonth) {
-                    totalGross += parseFloat(r.gross || 0);
-                    totalNet += parseFloat(r.net || 0);
-                    totalTax += parseFloat(r.tax || 0);
+            // En yeni eklenen en üstte çıksın (ID bazlı azalan sıralama)
+            filteredReferees.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 
-                    const isPaidChecked = !!r.isPaid;
-                    const ibanDisplay = (r.iban && r.iban.trim() !== '') ? r.iban.trim() : '-';
+            filteredReferees.forEach(r => {
+                totalGross += parseFloat(r.gross || 0);
+                totalNet += parseFloat(r.net || 0);
+                totalTax += parseFloat(r.tax || 0);
 
-                    tbody.innerHTML += `
-                        <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
-                            <td class="p-3 text-center">
-                                <div class="inline-flex items-center space-x-1.5 justify-center">
-                                    <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
-                                        ${isUserAdmin ? '' : 'disabled'}
-                                        onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
-                                        class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
-                                        title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin ödeme durumunu değiştirebilir'}">
-                                    ${r.paymentDate ? `
-                                        <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
-                                            <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${r.paymentDate}
-                                        </span>
-                                    ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
-                                </div>
-                            </td>
-                            <td class="p-3 font-bold text-gray-800">${r.firstName || ''} ${r.lastName || ''}</td>
-                            <td class="p-3 text-gray-700 font-mono text-[11px] font-bold tracking-tight">${ibanDisplay}</td>
-                            <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
-                            <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
-                            <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                            <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
-                            <td class="p-3 text-center">
-                                ${canEdit ? `
-                                    <button onclick="openRefereeModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 px-2 py-1 rounded mr-1">Düzenle</button>
-                                    <button onclick="deleteRefereePayment('${r.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
-                                ` : '-'}
-                            </td>
-                        </tr>
-                    `;
-                }
+                const isPaidChecked = !!r.isPaid;
+                const ibanDisplay = (r.iban && r.iban.trim() !== '') ? r.iban.trim() : '-';
+
+                tbody.innerHTML += `
+                    <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
+                        <td class="p-3 text-center">
+                            <div class="inline-flex items-center space-x-1.5 justify-center">
+                                <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                    ${isUserAdmin ? '' : 'disabled'}
+                                    onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
+                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
+                                    title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin ödeme durumunu değiştirebilir'}">
+                                ${r.paymentDate ? `
+                                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${r.paymentDate}
+                                    </span>
+                                ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
+                            </div>
+                        </td>
+                        <td class="p-3 font-bold text-gray-800">${r.firstName || ''} ${r.lastName || ''}</td>
+                        <td class="p-3 text-gray-700 font-mono text-[11px] font-bold tracking-tight">${ibanDisplay}</td>
+                        <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
+                        <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
+                        <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                        <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
+                        <td class="p-3 text-center">
+                            ${canEdit ? `
+                                <button onclick="openRefereeModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 px-2 py-1 rounded mr-1">Düzenle</button>
+                                <button onclick="deleteRefereePayment('${r.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `;
             });
 
             document.getElementById('referee-total-gross').innerText = totalGross.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1974,7 +2031,7 @@
             document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait hakem ödeme kaydı bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} hakem kaydı bulunamadı.</td></tr>`;
             }
         }
 
@@ -1987,27 +2044,23 @@
 
                 const selYear = String(document.getElementById('referee-year-filter').value).trim();
                 const selMonth = String(document.getElementById('referee-month-filter').value).trim().padStart(2, '0');
+                const isPending = currentRefereeFilter === 'pending';
 
                 const filtered = data.refereePayments.filter(r => {
-                    if (!r || !r.docDate) return false;
-                    const dateStr = String(r.docDate).trim();
-                    const parts = dateStr.split(/[./-]/);
-                    let y = "", m = "";
+                    const isPaid = !!r.isPaid;
+                    if (isPending ? isPaid : !isPaid) return false;
+
+                    const targetDate = (!isPending && r.paymentDate) ? r.paymentDate : r.docDate;
+                    const { year, month } = extractYearMonth(targetDate);
                     
-                    if (parts.length === 3) {
-                        if (parts[2].length === 4) {
-                            y = parts[2];
-                            m = String(parts[1]).padStart(2, '0');
-                        } else if (parts[0].length === 4) {
-                            y = parts[0];
-                            m = String(parts[1]).padStart(2, '0');
-                        }
-                    }
-                    return y === selYear && m === selMonth;
+                    if (year && month) return year === selYear && month === selMonth;
+                    return true;
                 });
 
+                filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+
                 if (filtered.length === 0) {
-                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait hakem ödeme kaydı bulunamadı. Lütfen filtrelediğiniz ayda kaydınız olduğundan emin olun.`);
+                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait ${isPending ? 'ödenecek' : 'ödenmiş'} hakem ödeme kaydı bulunamadı.`);
                     return;
                 }
 
@@ -2017,11 +2070,13 @@
                     const taxNum = netNum * 0.10;
 
                     return {
+                        "Durum": r.isPaid ? 'Ödendi' : 'Ödenecek',
                         "Soyad": r.lastName || '',
                         "Ad": r.firstName || '',
                         "VKN": r.vkn || '',
                         "TC Kimlik No": r.tckn || '',
                         "Tür": r.type || '156',
+                        "Net Tutar (₺)": grossNum.toFixed(2),
                         "Gayri Safi Tutar (₺)": netNum.toFixed(2),
                         "Kesinti Tutarı (₺ %10)": taxNum.toFixed(2),
                         "Belge Türü": r.docType || 'Diğer',
@@ -2037,12 +2092,13 @@
                 if (typeof XLSX !== 'undefined') {
                     const ws = XLSX.utils.json_to_sheet(exportList);
                     const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "Hakem_Odemeleri");
+                    const sheetName = isPending ? "Hakem_Odenecekler" : "Hakem_Odenenler";
+                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
                     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
                     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                     
-                    const fileName = `Hakem_Odemeleri_${selMonth}_${selYear}.xlsx`;
+                    const fileName = `${sheetName}_${selMonth}_${selYear}.xlsx`;
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -2053,22 +2109,7 @@
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                     }, 200);
-                } else {
-                    let csv = "\uFEFF";
-                    const headers = Object.keys(exportList[0]);
-                    csv += headers.join(";") + "\r\n";
-                    exportList.forEach(row => {
-                        csv += headers.map(h => `"${String(row[h]).replace(/"/g, '""')}"`).join(";") + "\r\n";
-                    });
-                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `Hakem_Odemeleri_${selMonth}_${selYear}.csv`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
                 }
-
             } catch (err) {
                 console.error("Excel İndirme Hatası:", err);
                 alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
@@ -2920,7 +2961,8 @@
                 const initialNote = noteText || "Sözleşme oluşturuldu.";
                 newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
 
-                data.rentals.push({ 
+                // Yeni sözleşmeyi en üste ekliyoruz
+                data.rentals.unshift({ 
                     id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
                     startDate, endDate: endDate || null, status: 'active', history: newHistory
                 });
@@ -3081,7 +3123,7 @@
                                 campus.offices.push(office);
                             }
 
-                            data.rentals.push({
+                            data.rentals.unshift({
                                 id: Date.now() + Math.floor(Math.random() * 10000),
                                 company: companyName, officeId: office.id, allocatedArea, unitPrice,
                                 commonCostPerM2: commonCost, otherCost, startDate, endDate, status: 'active',
