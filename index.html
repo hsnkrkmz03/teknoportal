@@ -1563,7 +1563,7 @@
             return isoStr;
         }
 
-        function getAllPaymentsList() {
+function getAllPaymentsList() {
             let list = [];
 
             (data.refereePayments || []).forEach(r => {
@@ -1577,7 +1577,7 @@
                     amount: parseFloat(r.gross) || 0,
                     isPaid: !!r.isPaid,
                     date: r.docDate || '',
-                    dueDate: r.docDate ? toISODate(r.docDate) : '',
+                    dueDate: '', // HAKEM ÖDEMELERİ VADE / SON GÜN UYARILARINDAN MUAF TUTULDU
                     paymentDate: r.paymentDate || ''
                 });
             });
@@ -1593,7 +1593,7 @@
                     amount: parseFloat(m.amount) || 0,
                     isPaid: !!m.isPaid,
                     date: m.date || '',
-                    dueDate: m.dueDate ? toISODate(m.dueDate) : '',
+                    dueDate: m.dueDate ? toISODate(m.dueDate) : '', // Sadece manuel faturalarda vade takibi çalışır
                     paymentDate: m.paymentDate || ''
                 });
             });
@@ -1639,9 +1639,9 @@
                 totalAmt += item.amount;
                 const isReferee = item.source === 'referee';
 
-                // Vade durumu rozeti
+                // Vade durumu rozeti (Hakem ödemeleri tamamen muaftır)
                 let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
-                if (item.dueDate) {
+                if (!isReferee && item.dueDate) {
                     const due = new Date(item.dueDate);
                     due.setHours(0, 0, 0, 0);
                     const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
