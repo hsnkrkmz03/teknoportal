@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teknopark Yönetim Paneli</title>
+    <title>Teknopark Ofis Kiralama & Yönetim Paneli</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -115,10 +115,6 @@
                     <i class="fa-solid fa-money-bill-transfer text-lg min-w-[20px]"></i>
                     <span class="sidebar-text text-sm truncate">Ödemeler Takibi</span>
                 </button>
-                <button onclick="switchTab('simulation')" id="nav-simulation" title="TÜFE/ÜFE Simülatörü" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-calculator text-lg min-w-[20px]"></i>
-                    <span class="sidebar-text text-sm truncate">TÜFE/ÜFE Simülatörü</span>
-                </button>
                 
                 <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition">
                     <i class="fa-solid fa-users-gear text-lg min-w-[20px]"></i>
@@ -229,9 +225,15 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <h3 class="text-base font-bold text-gray-800 mb-4" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
-                            <div class="w-64 mx-auto"><canvas id="occupancyChart"></canvas></div>
+                        <!-- DOLULUK ORANI GRAFİK KARTI (GELİŞMİŞ İLİŞKİ YOLLU OKLU ETİKETLER) -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                            <h3 class="text-base font-bold text-gray-800 mb-2" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
+                            <div class="w-full max-w-[340px] mx-auto relative py-2">
+                                <canvas id="occupancyChart"></canvas>
+                            </div>
+                            <div class="text-[11px] text-center text-gray-400 italic mt-2">
+                                Grafiğin dışına yönlendirilen göstergeler kiralanan ve boş alanları belirtir.
+                            </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 class="text-base font-bold text-gray-800 mb-4">Yerleşke Bazlı Gelir Dağılımı (KDV Dahil)</h3>
@@ -320,7 +322,7 @@
                 <div id="campus-list" class="space-y-4"></div>
             </section>
 
-            <!-- 3. KİRALAMA TAKİBİ SEKMESİ (A-Z SIRALAMA & FİRMA ARAMA KUTUSU EKLENDİ) -->
+            <!-- 3. KİRALAMA TAKİBİ SEKMESİ -->
             <section id="tab-rentals" class="hidden">
                 <div id="expiring-rentals-alert" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
                     <div class="flex items-center space-x-2 text-amber-800 font-bold mb-3">
@@ -387,7 +389,6 @@
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
                                 <th class="p-4">Durum</th>
-                                <!-- FİRMA ADI SÜTUNU: ARAMA İKONU VE AÇILIR KUTU ENTEGRELİ -->
                                 <th class="p-4 relative">
                                     <div class="flex items-center space-x-1.5">
                                         <span>Firma Adı</span>
@@ -395,7 +396,6 @@
                                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                                         </button>
                                     </div>
-                                    <!-- Açılır Arama Kutusu -->
                                     <div id="rental-company-search-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-30 min-w-[210px]" onclick="event.stopPropagation()">
                                         <div class="relative">
                                             <input type="text" id="rental-company-search-input" placeholder="Firma adı ile ara..." oninput="renderRentals()" class="w-full pl-7 pr-6 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal text-gray-800">
@@ -434,10 +434,10 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
                                 <button id="btn-ref-filter-pending" onclick="setRefereeStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
-                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
+                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
                                 </button>
                                 <button id="btn-ref-filter-paid" onclick="setRefereeStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
+                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
                                 </button>
                             </div>
 
@@ -603,69 +603,7 @@
                 </div>
             </section>
 
-            <!-- 6. TÜFE/ÜFE KİRA ARTIŞ SİMÜLATÖRÜ SEKMESİ -->
-            <section id="tab-simulation" class="hidden">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-bold text-gray-800">Kira Artış Oranı (TÜFE/ÜFE) ve Gelecek Dönem Gelir Simülatörü</h1>
-                    <p class="text-sm text-gray-500">Mevcut aktif kira portföyünün gelecek yıllardaki gelir projeksiyonunu simüle edin.</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
-                        <h2 class="text-lg font-bold text-gray-800 border-b pb-2">Simülasyon Parametreleri</h2>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Mevcut Aylık Başlangıç Ciro Tabanı (₺ KDV Dahil)</label>
-                            <input type="number" id="sim-base-revenue" class="w-full border p-2.5 rounded-lg text-lg font-bold text-blue-600" oninput="runSimulation()">
-                            <span class="text-[11px] text-gray-400">Varsayılan: Aktif sistem cirosu. Değiştirebilirsiniz.</span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Tahmini Yıllık TÜFE / ÜFE Artış Oranı (%)</label>
-                            <input type="range" id="sim-inflation-rate" min="0" max="100" value="45" step="1" class="w-full" oninput="updateSimInflationLabel(); runSimulation();">
-                            <div class="flex justify-between text-xs text-gray-500 font-semibold mt-1">
-                                <span>%0</span>
-                                <span id="sim-inflation-val" class="text-blue-600 font-bold text-sm">%45.00</span>
-                                <span>%100</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Simülasyon Vadesi (Yıl)</label>
-                            <select id="sim-years" class="w-full border p-2.5 rounded-lg" onchange="runSimulation()">
-                                <option value="3">3 Yıllık Projeksiyon</option>
-                                <option value="5" selected>5 Yıllık Projeksiyon</option>
-                                <option value="10">10 Yıllık Projeksiyon</option>
-                            </select>
-                        </div>
-                        <div class="pt-4 border-t border-gray-100">
-                            <button onclick="resetSimToBase()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold py-2 rounded-lg transition">
-                                Mevcut Aktif Portföy Ciro Verisini Yükle
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between space-y-6">
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-800 mb-4">Gelecek Dönem Tahmini Yıllık Ciro Grafiği</h2>
-                            <div><canvas id="simulationChart"></canvas></div>
-                        </div>
-                        <div class="overflow-x-auto border-t pt-4">
-                            <h3 class="text-sm font-bold text-gray-700 mb-3">Yıllık Ciro ve Kira Artış Detayı</h3>
-                            <table class="w-full text-left border-collapse text-xs">
-                                <thead class="bg-gray-50 border-b text-gray-500 uppercase">
-                                    <tr>
-                                        <th class="p-2.5">Yıl</th>
-                                        <th class="p-2.5">Uygulanan Artış</th>
-                                        <th class="p-2.5">Aylık Ort. Ciro (KDV Dahil)</th>
-                                        <th class="p-2.5 text-right">Tahmini Yıllık Toplam Ciro</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="sim-table-body" class="divide-y divide-gray-100"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 7. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
+            <!-- 6. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
             <section id="tab-users" class="hidden">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -934,7 +872,6 @@
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-campuses" class="rounded text-blue-600" checked> <span>Yerleşke & Ofis Yönetimi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-rentals" class="rounded text-blue-600" checked> <span>Kiralama Takibi</span></label>
                             <label class="flex items-center space-x-2"><input type="checkbox" id="perm-referees" class="rounded text-blue-600" checked> <span>Hakem Ödemeleri</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-simulation" class="rounded text-blue-600" checked> <span>TÜFE/ÜFE Simülatörü</span></label>
                         </div>
                     </div>
 
@@ -1126,6 +1063,7 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
+        // DataLabels eklentisini kaydediyoruz (Genel grafikler için)
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -1138,7 +1076,7 @@
                 password: "123456",
                 role: "admin",
                 permissions: {
-                    dashboard: true, campuses: true, rentals: true, referees: true, payments: true, simulation: true,
+                    dashboard: true, campuses: true, rentals: true, referees: true, payments: true,
                     canEdit: true, canExport: true, rentalPriceEdit: true, rentalCommonCostEdit: true,
                     rentalOtherCostEdit: true, rentalAreaEdit: true, rentalDatesEdit: true,
                     rentalEndContract: true, campusAdd: true, campusDelete: true, officeAdd: true, officeDelete: true
@@ -1178,17 +1116,15 @@
         let occupancyChartInstance = null;
         let revenueChartInstance = null;
         let comparisonChartInstance = null;
-        let simulationChartInstance = null;
 
-        let currentPaymentFilter = 'pending'; // 'pending' (Ödenecekler) veya 'paid' (Ödenenler)
-        let currentRefereeFilter = 'pending'; // 'pending' (Ödenecekler) veya 'paid' (Ödenenler)
+        let currentPaymentFilter = 'pending';
+        let currentRefereeFilter = 'pending';
 
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
             sidebar.classList.toggle('sidebar-collapsed');
         }
 
-        // Firma Arama Kutusunu Açma / Kapatma
         function toggleRentalCompanySearch(e) {
             e.stopPropagation();
             const box = document.getElementById('rental-company-search-box');
@@ -1210,7 +1146,6 @@
             if (box) box.classList.add('hidden');
         }
 
-        // Sayfa geneline tıklandığında açılır arama kutusunu kapat
         window.addEventListener('click', function(e) {
             const searchBox = document.getElementById('rental-company-search-box');
             if (searchBox && !searchBox.classList.contains('hidden')) {
@@ -1235,14 +1170,12 @@
                         applyUserPermissionsUI();
                         populateCampusFilters();
                         renderAll();
-                        resetSimToBase();
 
                         if (currentUser.permissions.dashboard) switchTab('dashboard');
                         else if (currentUser.permissions.campuses) switchTab('campuses');
                         else if (currentUser.permissions.rentals) switchTab('rentals');
                         else if (currentUser.permissions.referees) switchTab('referees');
                         else if (currentUser.role === 'admin') switchTab('payments');
-                        else if (currentUser.permissions.simulation) switchTab('simulation');
                         else if (currentUser.role === 'admin') switchTab('users');
                     }
                 } catch(e) { console.error("Oturum yükleme hatası:", e); }
@@ -1271,7 +1204,6 @@
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
                 if (targetData) {
-                    // AKILLI BİRLEŞTİRME (Smart Merge)
                     const localReferees = data.refereePayments || [];
                     const cloudReferees = targetData.refereePayments || [];
                     const refMap = new Map();
@@ -1398,14 +1330,12 @@
                 applyUserPermissionsUI();
                 populateCampusFilters();
                 renderAll();
-                resetSimToBase();
 
                 if (currentUser.permissions.dashboard) switchTab('dashboard');
                 else if (currentUser.permissions.campuses) switchTab('campuses');
                 else if (currentUser.permissions.rentals) switchTab('rentals');
                 else if (currentUser.permissions.referees) switchTab('referees');
                 else if (currentUser.role === 'admin') switchTab('payments');
-                else if (currentUser.permissions.simulation) switchTab('simulation');
                 else if (currentUser.role === 'admin') switchTab('users');
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
@@ -1463,7 +1393,6 @@
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
-            document.getElementById('nav-simulation').style.display = (isUserAdmin || currentUser.permissions.simulation) ? 'flex' : 'none';
 
             const backupContainer = document.getElementById('backup-buttons-container');
             if (backupContainer) backupContainer.style.display = isUserAdmin ? 'block' : 'none';
@@ -1494,7 +1423,7 @@
         }
 
         function switchTab(tab) {
-            ['dashboard', 'campuses', 'rentals', 'referees', 'payments', 'simulation', 'users'].forEach(t => {
+            ['dashboard', 'campuses', 'rentals', 'referees', 'payments', 'users'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
 
@@ -1517,7 +1446,6 @@
             if(tab === 'dashboard') updateCharts();
             if(tab === 'referees') renderReferees();
             if(tab === 'payments') renderPayments();
-            if(tab === 'simulation') runSimulation();
             if(tab === 'users') renderUsers();
         }
 
@@ -2567,50 +2495,6 @@
             });
         }
 
-        function renderExpiringAlerts() {
-            const alertContainer = document.getElementById('expiring-rentals-alert');
-            const tbody = document.getElementById('expiring-table-body');
-            tbody.innerHTML = '';
-            const today = new Date();
-            let count = 0;
-
-            const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.permissions.canEdit);
-            const canEnd = currentUser && (currentUser.role === 'admin' || currentUser.permissions.rentalEndContract);
-
-            data.rentals.filter(r => r.status === 'active' && r.endDate).forEach(r => {
-                const endDate = new Date(r.endDate);
-                const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-
-                if (diffDays <= 30) {
-                    count++;
-                    let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
-                    data.campuses.forEach(c => {
-                        const off = c.offices.find(o => String(o.id) === String(r.officeId));
-                        if(off) { officeName = off.name; campusName = c.name; }
-                    });
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-amber-100/30">
-                            <td class="p-2 font-bold text-gray-800">${r.company}</td>
-                            <td class="p-2 text-gray-600">${campusName} - ${officeName}</td>
-                            <td class="p-2 font-semibold text-gray-700">${r.endDate}</td>
-                            <td class="p-2 font-bold text-amber-800">${diffDays <= 0 ? 'Süresi Doldu!' : diffDays + ' Gün Kaldı'}</td>
-                            <td class="p-2 text-center">
-                                ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Düzenle</button>` : ''}
-                                ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-red-700">Bitir</button>` : ''}
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-
-            if (count > 0) {
-                document.getElementById('expiring-count-badge').innerText = count;
-                alertContainer.classList.remove('hidden');
-            } else { alertContainer.classList.add('hidden'); }
-        }
-
-        // KİRALAMA LİSTESİ: A-Z SIRALAMA VE FİRMA ARAMASI DESTEKLİ
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
@@ -2624,7 +2508,6 @@
             const canEnd = currentUser && (currentUser.role === 'admin' || currentUser.permissions.rentalEndContract);
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
-            // 1. Filtrele
             let filteredRentals = data.rentals.filter(r => {
                 let officeName = "Bilinmiyor", campusName = "Bilinmiyor", campusId = null;
 
@@ -2640,7 +2523,6 @@
                 return true;
             });
 
-            // 2. Firma Adına Göre Otomatik Alfabetik (A-Z) Sırala (Türkçe duyarlı)
             filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
             filteredRentals.forEach(r => {
@@ -2741,7 +2623,6 @@
                 document.getElementById('perm-campuses').checked = p.campuses !== false;
                 document.getElementById('perm-rentals').checked = p.rentals !== false;
                 document.getElementById('perm-referees').checked = p.referees !== false;
-                document.getElementById('perm-simulation').checked = p.simulation !== false;
                 document.getElementById('perm-can-edit').checked = p.canEdit !== false;
                 document.getElementById('perm-can-export').checked = p.canExport !== false;
 
@@ -2766,7 +2647,6 @@
                 document.getElementById('perm-campuses').checked = true;
                 document.getElementById('perm-rentals').checked = true;
                 document.getElementById('perm-referees').checked = true;
-                document.getElementById('perm-simulation').checked = true;
                 document.getElementById('perm-can-edit').checked = true;
                 document.getElementById('perm-can-export').checked = true;
 
@@ -2809,7 +2689,6 @@
                 rentals: role === 'admin' ? true : document.getElementById('perm-rentals').checked,
                 referees: role === 'admin' ? true : document.getElementById('perm-referees').checked,
                 payments: role === 'admin',
-                simulation: role === 'admin' ? true : document.getElementById('perm-simulation').checked,
                 canEdit: role === 'admin' ? true : document.getElementById('perm-can-edit').checked,
                 canExport: role === 'admin' ? true : document.getElementById('perm-can-export').checked,
                 
@@ -3250,38 +3129,135 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // ==================== GRAFİK YÖNETİMİ & DIŞARI OKLU ÖZEL ETİKET EKLENTİSİ ====================
         function updateCharts() {
             const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
             const stats = getStats(selectedCampus);
 
+            // 1. DOLULUK ORANI: DIŞARI ÇIKAN OKLU / KILAVUZ ÇİZGİLİ ÖZEL DOUGHNUT GRAFİĞİ
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
+
+            // Özel Ok & Dış Etiket Çizim Eklentisi (Custom Plugin)
+            const doughnutCalloutPlugin = {
+                id: 'doughnutCallout',
+                afterDraw: function(chart) {
+                    const { ctx } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data || meta.data.length === 0) return;
+
+                    const total = stats.totalArea;
+
+                    meta.data.forEach((element, index) => {
+                        const val = chart.data.datasets[0].data[index];
+                        if (!val || val <= 0) return;
+
+                        const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
+                        const labelText = `${val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
+
+                        // Dilim açısı ve koordinatları
+                        const angle = (element.startAngle + element.endAngle) / 2;
+                        const outerRadius = element.outerRadius;
+                        const centerPoint = element.getCenterPoint();
+
+                        // Yayın dış çeperindeki çıkış noktası
+                        const startX = centerPoint.x + Math.cos(angle) * outerRadius;
+                        const startY = centerPoint.y + Math.sin(angle) * outerRadius;
+
+                        // Dışarıya uzanan dirsek noktası
+                        const elbowDistance = outerRadius + 18;
+                        const elbowX = centerPoint.x + Math.cos(angle) * elbowDistance;
+                        const elbowY = centerPoint.y + Math.sin(angle) * elbowDistance;
+
+                        // Yatay yön (Sağa mı sola mı uzanacak?)
+                        const isRight = Math.cos(angle) >= 0;
+                        const horizontalLength = 22;
+                        const endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
+                        const endY = elbowY;
+
+                        ctx.save();
+
+                        // 1. Kılavuz Çizgi ve Oku Çiz
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(elbowX, elbowY);
+                        ctx.lineTo(endX, endY);
+                        ctx.strokeStyle = index === 0 ? '#059669' : '#d97706'; // Kiralanan: Yeşil, Boş: Amber
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+
+                        // 2. Çıkış noktasına minik bir bağlantı noktası koy
+                        ctx.beginPath();
+                        ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
+                        ctx.fillStyle = index === 0 ? '#059669' : '#d97706';
+                        ctx.fill();
+
+                        // 3. Rozet / Etiket Metnini Yazdır
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = isRight ? 'left' : 'right';
+
+                        const textX = endX + (isRight ? 6 : -6);
+                        const textY = endY;
+
+                        // Metin arka plan kutucuğu (okunabilirlik için)
+                        const textWidth = ctx.measureText(labelText).width;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                        const bgPadX = 4, bgPadY = 3;
+                        const rectX = isRight ? textX - bgPadX : textX - textWidth - bgPadX;
+                        ctx.fillRect(rectX, textY - 7 - bgPadY, textWidth + (bgPadX * 2), 14 + (bgPadY * 2));
+
+                        // İnce çerçeve
+                        ctx.strokeStyle = 'rgba(209, 213, 219, 0.8)';
+                        ctx.lineWidth = 0.8;
+                        ctx.strokeRect(rectX, textY - 7 - bgPadY, textWidth + (bgPadX * 2), 14 + (bgPadY * 2));
+
+                        // Yazıyı yaz
+                        ctx.fillStyle = index === 0 ? '#065f46' : '#92400e';
+                        ctx.fillText(labelText, textX, textY);
+
+                        ctx.restore();
+                    });
+                }
+            };
+
             occupancyChartInstance = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Kiralanan Alan (m²)', 'Boş Alan (m²)'],
+                    labels: ['Kiralanan Alan', 'Boş Alan'],
                     datasets: [{
                         data: [stats.rentedArea, stats.availableArea],
                         backgroundColor: ['#10b981', '#f59e0b'],
-                        borderWidth: 2, borderColor: '#ffffff'
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
+                    layout: {
+                        // Okların ve etiketlerin tuval dışına taşmaması için ferah padding
+                        padding: 48
+                    },
                     plugins: {
-                        legend: { position: 'bottom' },
-                        datalabels: {
-                            color: '#ffffff', font: { weight: 'bold', size: 11 },
-                            formatter: function(value) {
-                                const total = stats.totalArea;
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(2) : (0).toFixed(2);
-                                return value > 0 ? `${value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}m²\n(%${percentage})` : '';
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { size: 11, weight: 'bold' }
                             }
+                        },
+                        // Standart iç DataLabels'ı kapatıyoruz (artık oklar gösteriyor)
+                        datalabels: {
+                            display: false
                         }
                     }
-                }
+                },
+                plugins: [doughnutCalloutPlugin]
             });
 
+            // 2. GELİR DAĞILIMI
             const campusLabels = [];
             const campusRevenues = [];
             const targetCampuses = selectedCampus === 'all' 
@@ -3319,6 +3295,7 @@
                 }
             });
 
+            // 3. KARŞILAŞTIRMA GRAFİĞİ
             const totalStats = getStats('all');
             const ctx3 = document.getElementById('comparisonChart').getContext('2d');
             if (comparisonChartInstance) comparisonChartInstance.destroy();
@@ -3432,70 +3409,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function updateSimInflationLabel() {
-            const val = parseFloat(document.getElementById('sim-inflation-rate').value);
-            document.getElementById('sim-inflation-val').innerText = `%${val.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
-        }
-
-        function resetSimToBase() {
-            const stats = getStats('all');
-            document.getElementById('sim-base-revenue').value = stats.totalRevenueIncl.toFixed(2);
-            runSimulation();
-        }
-
-        function runSimulation() {
-            const baseRevenue = parseFloat(document.getElementById('sim-base-revenue').value) || 0;
-            const rate = parseFloat(document.getElementById('sim-inflation-rate').value) / 100;
-            const years = parseInt(document.getElementById('sim-years').value);
-
-            const labels = [];
-            const annualTotals = [];
-            const simTableBody = document.getElementById('sim-table-body');
-            simTableBody.innerHTML = '';
-
-            let currentMonthlyRevenue = baseRevenue;
-
-            for (let t = 0; t <= years; t++) {
-                const yearLabel = t === 0 ? "Başlangıç (Mevcut)" : `${t}. Yıl`;
-                labels.push(yearLabel);
-
-                if (t > 0) currentMonthlyRevenue = currentMonthlyRevenue * (1 + rate);
-                const annualTotal = currentMonthlyRevenue * 12;
-                annualTotals.push(annualTotal);
-
-                simTableBody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-2.5 font-bold text-gray-800">${yearLabel}</td>
-                        <td class="p-2.5 font-semibold text-blue-600">${t === 0 ? '-' : `%${(rate * 100).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} Artış`}</td>
-                        <td class="p-2.5">₺${currentMonthlyRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                        <td class="p-2.5 text-right font-bold text-emerald-600">₺${annualTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                `;
-            }
-
-            const ctxSim = document.getElementById('simulationChart').getContext('2d');
-            if (simulationChartInstance) simulationChartInstance.destroy();
-
-            simulationChartInstance = new Chart(ctxSim, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Tahmini Yıllık Toplam Ciro (₺ KDV Dahil)',
-                        data: annualTotals, borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.1)', fill: true, tension: 0.3, pointRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '₺' + value.toLocaleString('tr-TR', { minimumFractionDigits: 2 }); } } } },
-                    plugins: { datalabels: { display: false } }
-                }
-            });
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
         function getExportData() {
             const selectedCampus = document.getElementById('rentals-campus-filter').value || 'all';
             const selectedStatus = document.getElementById('rentals-status-filter').value || 'all';
@@ -3514,7 +3427,6 @@
                 return campusMatch && statusMatch && searchMatch;
             });
 
-            // İndirme dosyasında da alfabetik sıralı olsun
             filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
             return filteredRentals.map(r => {
