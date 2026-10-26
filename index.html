@@ -1,4 +1,38 @@
-<!-- GİRİŞ EKRANI -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teknopark Ofis Kiralama & Yönetim Paneli</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js DataLabels Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Excel (SheetJS), PDF (jsPDF) ve Ekran Görüntüsü (html2canvas) Kütüphaneleri -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* Sol Menü Daraltma Geçiş Efekti ve Stilleri */
+        aside { transition: width 0.3s ease-in-out; }
+        .sidebar-collapsed { width: 4.5rem !important; }
+        .sidebar-collapsed .sidebar-text, 
+        .sidebar-collapsed .sidebar-user-info { display: none !important; }
+        .sidebar-collapsed .sidebar-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+    </style>
+    <!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <!-- GİRİŞ EKRANI -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-900 px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
             <div class="text-center mb-6">
@@ -35,94 +69,89 @@
         </div>
     </div>
 
-    <!-- ANA PANEL (TAM EKRAN SABİTLENMİŞ YAPI) -->
-    <div id="app" class="hidden h-screen w-screen flex overflow-hidden">
-        
+    <!-- ANA PANEL -->
+    <div id="app" class="hidden min-h-screen flex">
         <!-- Sol Menü (Sidebar) -->
-        <aside id="main-sidebar" class="w-64 h-screen bg-slate-900 text-white flex flex-col justify-between shrink-0 relative transition-all duration-300 z-20 shadow-xl">
-            
-            <!-- ÜST ALAN: Logo ve Başlık -->
-            <div class="shrink-0">
-                <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                    <div class="text-base font-bold flex items-center space-x-2 overflow-hidden">
-                        <i class="fa-solid fa-microchip text-blue-400 text-lg"></i>
-                        <span class="sidebar-text truncate">Teknopark Panel</span>
-                    </div>
-                    <!-- Menü Daraltma / Genişletme Butonu -->
-                    <button type="button" onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition" title="Menüyü Daralt/Genişlet">
-                        <i class="fa-solid fa-bars text-base"></i>
-                    </button>
+        <aside id="main-sidebar" class="w-64 bg-slate-900 text-white flex flex-col relative transition-all duration-300">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="text-lg font-bold flex items-center space-x-2 overflow-hidden">
+                    <i class="fa-solid fa-microchip text-blue-400 text-xl"></i>
+                    <span class="sidebar-text truncate">Teknopark Panel</span>
                 </div>
+                <!-- Menü Daraltma / Genişletme Butonu -->
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition" title="Menüyü Daralt/Genişlet">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
 
-                <!-- Kullanıcı Bilgisi Alanı -->
-                <div class="px-4 py-2.5 border-b border-slate-800/60 sidebar-user-info bg-slate-950/30">
-                    <div class="text-xs text-gray-400 flex items-center justify-between">
-                        <span class="truncate mr-2">Giriş: <strong id="current-user-display" class="text-white">Admin</strong></span>
-                        <span id="current-role-badge" class="bg-blue-900 text-blue-300 text-[10px] px-2 py-0.5 rounded font-semibold shrink-0">Yönetici</span>
-                    </div>
+            <!-- Kullanıcı Bilgisi Alanı -->
+            <div class="px-5 py-3 border-b border-slate-800/60 sidebar-user-info">
+                <div class="text-xs text-gray-400 flex items-center justify-between">
+                    <span>Giriş Yapan: <strong id="current-user-display" class="text-white">Admin</strong></span>
+                    <span id="current-role-badge" class="bg-blue-900 text-blue-300 text-[10px] px-2 py-0.5 rounded font-semibold">Yönetici</span>
                 </div>
             </div>
 
-            <!-- ORTA ALAN: Navigasyon Butonları -->
-            <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                    <i class="fa-solid fa-chart-pie text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Dashboard & Analiz</span>
+            <nav class="flex-1 p-3 space-y-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-chart-pie text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Dashboard & Analiz</span>
                 </button>
-                <button onclick="switchTab('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                    <i class="fa-solid fa-city text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Yerleşke & Ofisler</span>
+                <button onclick="switchTab('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-city text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Yerleşke & Ofisler</span>
                 </button>
-                <button onclick="switchTab('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                    <i class="fa-solid fa-file-contract text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Kiralama Takibi</span>
+                <button onclick="switchTab('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-file-contract text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Kiralama Takibi</span>
                 </button>
                 <!-- HAKEM ÖDEMELERİ SEKMESİ -->
-                <button onclick="switchTab('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                    <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Hakem Ödemeleri</span>
+                <button onclick="switchTab('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-user-check text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Hakem Ödemeleri</span>
                 </button>
-                <!-- ÖDEMELER TAKİBİ SEKMESİ -->
-                <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                    <i class="fa-solid fa-money-bill-transfer text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Ödemeler Takibi</span>
+                <!-- ÖDEMELER TAKİBİ SEKMESİ (SADECE ADMİNE GÖRÜNÜR) -->
+                <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-money-bill-transfer text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Ödemeler Takibi</span>
                 </button>
-                <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition text-xs font-semibold">
-                    <i class="fa-solid fa-users-gear text-base min-w-[20px]"></i>
-                    <span class="sidebar-text truncate">Kullanıcı Yönetimi</span>
+                
+                <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition">
+                    <i class="fa-solid fa-users-gear text-lg min-w-[20px]"></i>
+                    <span class="sidebar-text text-sm truncate">Kullanıcı Yönetimi</span>
                 </button>
             </nav>
 
-            <!-- ALT ALAN: Sabit Alt Butonlar -->
-            <div class="p-3 border-t border-slate-800 space-y-1.5 shrink-0 bg-slate-950/40">
-                <div id="backup-buttons-container" class="space-y-1.5">
-                    <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-cloud-arrow-down text-xs min-w-[16px]"></i>
+            <!-- YEDEKLEME VE DİĞER HESAP BUTONLARI -->
+            <div class="p-3 border-t border-slate-800 space-y-2">
+                <div id="backup-buttons-container" class="space-y-2">
+                    <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-cloud-arrow-down text-sm min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Buluttan Veri Çek</span>
                     </button>
-                    <button onclick="exportSystemJSON()" title="Verileri Yedekle (JSON)" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-download text-xs min-w-[16px]"></i>
+                    <button onclick="exportSystemJSON()" title="Verileri Yedekle (JSON)" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-download text-sm min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Verileri Yedekle</span>
                     </button>
-                    <button onclick="openRestoreModal()" title="Yedek Geri Yükle" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-upload text-xs min-w-[16px]"></i>
+                    <button onclick="openRestoreModal()" title="Yedek Geri Yükle" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
+                        <i class="fa-solid fa-upload text-sm min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Yedek Geri Yükle</span>
                     </button>
                 </div>
 
-                <button onclick="openProfileModal()" title="Hesap / Profil Ayarları" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
-                    <i class="fa-solid fa-user-gear text-xs min-w-[16px]"></i>
+                <button onclick="openProfileModal()" title="Hesap / Profil Ayarları" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
+                    <i class="fa-solid fa-user-gear text-sm min-w-[16px]"></i>
                     <span class="sidebar-text truncate">Profil Ayarları</span>
                 </button>
-                <button onclick="logout()" title="Çıkış Yap" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
-                    <i class="fa-solid fa-right-from-bracket text-xs min-w-[16px]"></i>
+                <button onclick="logout()" title="Çıkış Yap" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                    <i class="fa-solid fa-right-from-bracket text-sm min-w-[16px]"></i>
                     <span class="sidebar-text truncate">Çıkış Yap</span>
                 </button>
             </div>
         </aside>
 
-        <!-- SAĞ İÇERİK ALANI (TEK VE BAĞIMSIZ KAYDIRILABİLİR) -->
-        <main class="flex-1 h-screen overflow-y-auto p-8 bg-gray-100">
+        <!-- İçerik Alanı -->
+        <main class="flex-1 p-8 overflow-y-auto">
             
             <!-- 1. DASHBOARD SEKMESİ -->
             <section id="tab-dashboard" class="hidden">
@@ -196,52 +225,22 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- MERKEZİ METRİKLİ DOLULUK KARTI (TEK VE TEMİZ KAPSAYICI) -->
+                        <!-- DOLULUK ORANI GRAFİK KARTI (DİNAMİK BAŞLIK & GEOMETRİK DIŞ ROZETLER) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                            <div class="flex items-center justify-between mb-2">
-                                <h3 class="text-base font-bold text-gray-800 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
-                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700" id="dash-occupancy-badge">Canlı Oran</span>
-                            </div>
-
-                            <!-- Ortasında Yüzde Yazan Halka Alanı -->
-                            <div class="w-full h-[220px] relative flex items-center justify-center my-1">
+                            <h3 class="text-base font-bold text-gray-800 mb-2 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
+                            <div class="w-full h-[280px] relative flex items-center justify-center">
                                 <canvas id="occupancyChart"></canvas>
-                                <!-- Halka Merkezindeki Büyük Yüzde ve Metin -->
-                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                                    <span class="text-2xl font-black text-gray-800 tracking-tight" id="donut-center-percentage">%0.0</span>
-                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Doluluk Oranı</span>
-                                </div>
                             </div>
-
-                            <!-- Alt Renkli Dağılım Rozet Kartları -->
-                            <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 mt-2">
-                                <div class="bg-emerald-50/70 border border-emerald-100 rounded-lg p-2.5 flex items-center space-x-2.5">
-                                    <div class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></div>
-                                    <div class="overflow-hidden">
-                                        <div class="text-[10px] font-bold text-emerald-800 uppercase">Kiralanan Alan</div>
-                                        <div class="text-xs font-black text-emerald-950 truncate" id="badge-rented-m2">0.00 m²</div>
-                                        <div class="text-[10px] font-semibold text-emerald-600" id="badge-rented-pct">%0.0</div>
-                                    </div>
-                                </div>
-                                <div class="bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 flex items-center space-x-2.5">
-                                    <div class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></div>
-                                    <div class="overflow-hidden">
-                                        <div class="text-[10px] font-bold text-amber-800 uppercase">Boş Alan</div>
-                                        <div class="text-xs font-black text-amber-950 truncate" id="badge-available-m2">0.00 m²</div>
-                                        <div class="text-[10px] font-semibold text-amber-600" id="badge-available-pct">%0.0</div>
-                                    </div>
-                                </div>
+                            <div class="text-[11px] text-center text-gray-400 italic mt-2">
+                                Dağılım etiketleri ve metrekare değerleri grafik üzerinde yönlendirilmiştir.
                             </div>
                         </div>
-
-                        <!-- GELİR DAĞILIMI KARTI -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 class="text-base font-bold text-gray-800 mb-4">Yerleşke Bazlı Gelir Dağılımı (KDV Dahil)</h3>
                             <div><canvas id="revenueChart"></canvas></div>
                         </div>
                     </div>
 
-                    <!-- KARŞILAŞTIRMA GRAFİĞİ -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4 border-b pb-3">
                             <div>
@@ -260,6 +259,8 @@
                         <div class="h-72"><canvas id="comparisonChart"></canvas></div>
                     </div>
                 </div>
+            </section>
+
             <!-- 2. YERLEŞKE & OFİS SEKMESİ (GELİŞMİŞ FİLTRE VE ÇAPRAZ ÖNERİ MOTORU) -->
             <section id="tab-campuses" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -3256,60 +3257,97 @@
                 if (foundCampus) currentCampusName = foundCampus.name;
             }
 
-// 1. DOLULUK ORANI: MERKEZİ YÜZDELİ VE ALT ROZETLİ TEMİZ DOUGHNUT
+            // 1. DOLULUK ORANI: ASLA DIŞARI TAŞMAYAN VE ÇAKIŞMAYAN ÖZEL DOUGHNUT GRAFİĞİ
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
-            const total = stats.totalArea;
-            const rentedPct = total > 0 ? ((stats.rentedArea / total) * 100).toFixed(1) : "0.0";
-            const availPct = total > 0 ? ((stats.availableArea / total) * 100).toFixed(1) : "0.0";
+            const doughnutCalloutPlugin = {
+                id: 'doughnutCallout',
+                afterDraw: function(chart) {
+                    const { ctx, width, height } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data || meta.data.length === 0) return;
 
-            // Merkezdeki Büyük Yüzde Metnini Güncelle
-            const centerPctEl = document.getElementById('donut-center-percentage');
-            if (centerPctEl) centerPctEl.innerText = `%${stats.occupancyRate}`;
+                    const total = stats.totalArea;
+                    if (total <= 0) return;
 
-            // Alt Rozet Kartlarındaki Değerleri Güncelle
-            const rentedM2El = document.getElementById('badge-rented-m2');
-            const rentedPctEl = document.getElementById('badge-rented-pct');
-            const availM2El = document.getElementById('badge-available-m2');
-            const availPctEl = document.getElementById('badge-available-pct');
+                    const centerX = width / 2;
+                    const centerY = height / 2;
+                    const outerRadius = meta.data[0].outerRadius || Math.min(width, height) * 0.32;
 
-            if (rentedM2El) rentedM2El.innerText = `${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-            if (rentedPctEl) rentedPctEl.innerText = `%${rentedPct} Pay`;
-            if (availM2El) availM2El.innerText = `${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-            if (availPctEl) availPctEl.innerText = `%${availPct} Pay`;
+                    const items = [
+                        { label: 'Kiralanan Alan', val: stats.rentedArea, color: '#059669', textColor: '#065f46', side: 'left' },
+                        { label: 'Boş Alan', val: stats.availableArea, color: '#d97706', textColor: '#92400e', side: 'right' }
+                    ];
 
-            occupancyChartInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Kiralanan Alan', 'Boş Alan'],
-                    datasets: [{
-                        data: [stats.rentedArea, stats.availableArea],
-                        backgroundColor: ['#10b981', '#f59e0b'],
-                        borderWidth: 3,
-                        borderColor: '#ffffff',
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '72%', // Merkeze geniş ferah alan bırakır
-                    plugins: {
-                        legend: { display: false }, // Legend alt kartlara taşındığı için kapatıldı
-                        datalabels: { display: false }, // Karmaşık etiketler kaldırıldı
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const val = context.raw || 0;
-                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
-                                    return ` ${context.label}: ${val.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m² (%${pct})`;
-                                }
-                            }
-                        }
-                    }
+                    items.forEach((item) => {
+                        if (item.val <= 0) return;
+
+                        const percentage = ((item.val / total) * 100).toFixed(1);
+                        const labelText = `${item.val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
+
+                        const isLeft = item.side === 'left';
+                        const fixedAngle = isLeft ? (-Math.PI * 0.75) : (-Math.PI * 0.25);
+
+                        const startX = centerX + Math.cos(fixedAngle) * outerRadius;
+                        const startY = centerY + Math.sin(fixedAngle) * outerRadius;
+
+                        const elbowX = centerX + Math.cos(fixedAngle) * (outerRadius + 18);
+                        const elbowY = centerY + Math.sin(fixedAngle) * (outerRadius + 18);
+
+                        const endX = isLeft ? Math.max(10, elbowX - 25) : Math.min(width - 10, elbowX + 25);
+                        const endY = elbowY;
+
+                        ctx.save();
+
+                        // Kılavuz Çizgi
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(elbowX, elbowY);
+                        ctx.lineTo(endX, endY);
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = 1.6;
+                        ctx.stroke();
+
+                        // Dilim Üzerindeki Nokta
+                        ctx.beginPath();
+                        ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
+                        ctx.fillStyle = item.color;
+                        ctx.fill();
+
+                        // Rozet / Bilgi Kutusu
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = isLeft ? 'right' : 'left';
+
+                        const textX = isLeft ? endX - 6 : endX + 6;
+                        const textY = endY;
+
+                        const textWidth = ctx.measureText(labelText).width;
+                        const padX = 5, padY = 3;
+                        const boxX = isLeft ? textX - textWidth - padX : textX - padX;
+                        const boxY = textY - 7 - padY;
+                        const boxW = textWidth + (padX * 2);
+                        const boxH = 14 + (padY * 2);
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+                        ctx.shadowBlur = 4;
+                        ctx.fillRect(boxX, boxY, boxW, boxH);
+
+                        ctx.shadowColor = 'transparent';
+                        ctx.strokeStyle = item.color;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+                        ctx.fillStyle = item.textColor;
+                        ctx.fillText(labelText, textX, textY);
+
+                        ctx.restore();
+                    });
                 }
-            });
+            };
+
             occupancyChartInstance = new Chart(ctx1, {
                 type: 'doughnut',
                 data: {
