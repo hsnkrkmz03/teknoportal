@@ -548,8 +548,33 @@
                 </div>
             </section>
 
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
+<!-- 5. ÖDEMELER TAKİBİ SEKMESİ (VADE UYARILI & DÜZENLENEBİLİR TARİHLİ) -->
             <section id="tab-payments" class="hidden">
+                <!-- VADESİ DOLAN / YAKLAŞAN ÖDEMELER UYARI KUTUSU -->
+                <div id="overdue-payments-alert" class="hidden mb-6 bg-rose-50 border border-rose-200 rounded-xl p-5 shadow-sm">
+                    <div class="flex items-center space-x-2 text-rose-800 font-bold mb-3">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg"></i>
+                        <span>Son Ödeme Tarihi Dolan veya Yaklaşan Kalemler (Gecikmiş / &le; 3 Gün)</span>
+                        <span id="overdue-pay-count-badge" class="bg-rose-200 text-rose-900 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-rose-100/60 text-rose-900 font-semibold uppercase">
+                                <tr>
+                                    <th class="p-2">Tür</th>
+                                    <th class="p-2">Alıcı / Firma</th>
+                                    <th class="p-2">Açıklama</th>
+                                    <th class="p-2">Tutar</th>
+                                    <th class="p-2">Son Ödeme Tarihi</th>
+                                    <th class="p-2">Kalan Süre</th>
+                                    <th class="p-2 text-center">Hızlı İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overdue-pay-table-body" class="divide-y divide-rose-200/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="mb-6 space-y-3">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
@@ -619,7 +644,7 @@
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[1050px]">
+                    <table class="w-full text-left border-collapse min-w-[1150px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
                                 <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
@@ -636,6 +661,7 @@
                                 <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
+                                <th class="p-3">Son Ödeme (Vade)</th>
                                 <th class="p-3">Ödenecek Tutar</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
@@ -684,7 +710,7 @@
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 class="text-lg font-bold mb-4 text-gray-800" id="manual-payment-modal-title">Yeni Fatura / Gider Ödemesi Ekle</h3>
             <input type="hidden" id="editing-manual-payment-id">
-            <div class="space-y-3 text-xs">
+                <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold text-gray-600 mb-1">Firma / Alıcı Adı</label>
                     <input type="text" id="manual-pay-name" class="w-full border p-2 rounded-lg" placeholder="Örn: Elektrik Dağıtım A.Ş.">
@@ -693,9 +719,15 @@
                     <label class="block font-semibold text-gray-600 mb-1">IBAN Numarası</label>
                     <input type="text" id="manual-pay-iban" class="w-full border p-2 rounded-lg font-mono font-bold" placeholder="TRXX XXXX..." maxlength="32">
                 </div>
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Ödeme Tutarı (₺)</label>
-                    <input type="number" id="manual-pay-amount" class="w-full border p-2 rounded-lg font-bold text-blue-600" placeholder="0.00">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Ödeme Tutarı (₺)</label>
+                        <input type="number" id="manual-pay-amount" class="w-full border p-2 rounded-lg font-bold text-blue-600" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-rose-700 mb-1">Son Ödeme Tarihi (Vade)</label>
+                        <input type="date" id="manual-pay-due-date" class="w-full border p-2 rounded-lg font-semibold bg-rose-50/40 border-rose-200 text-gray-800">
+                    </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-600 mb-1">Açıklama (Fatura No / Gider Kalemi)</label>
@@ -1533,6 +1565,29 @@
             renderPayments();
         }
 
+// Tarih formatlarını (YYYY-MM-DD veya GG.AA.YYYY) YYYY-MM-DD'ye normalize eder
+        function toISODate(dateStr) {
+            if (!dateStr) return '';
+            const clean = String(dateStr).trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
+            const parts = clean.split(/[./-]/);
+            if (parts.length === 3) {
+                if (parts[2].length === 4) { // 27.10.2026 -> 2026-10-27
+                    return `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+                }
+            }
+            return '';
+        }
+
+        function toTRDate(isoStr) {
+            if (!isoStr) return '';
+            const parts = String(isoStr).trim().split('-');
+            if (parts.length === 3 && parts[0].length === 4) {
+                return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            }
+            return isoStr;
+        }
+
         function getAllPaymentsList() {
             let list = [];
 
@@ -1547,6 +1602,7 @@
                     amount: parseFloat(r.gross) || 0,
                     isPaid: !!r.isPaid,
                     date: r.docDate || '',
+                    dueDate: r.docDate ? toISODate(r.docDate) : '',
                     paymentDate: r.paymentDate || ''
                 });
             });
@@ -1562,11 +1618,80 @@
                     amount: parseFloat(m.amount) || 0,
                     isPaid: !!m.isPaid,
                     date: m.date || '',
+                    dueDate: m.dueDate ? toISODate(m.dueDate) : '',
                     paymentDate: m.paymentDate || ''
                 });
             });
 
             return list;
+        }
+
+        // Vadesi yaklaşan veya geciken ödemelerin üst kutucuğunu çizer
+        function renderOverduePaymentsAlert(allList) {
+            const alertBox = document.getElementById('overdue-payments-alert');
+            const tbody = document.getElementById('overdue-pay-table-body');
+            const badge = document.getElementById('overdue-pay-count-badge');
+            if (!alertBox || !tbody) return;
+
+            tbody.innerHTML = '';
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Sadece ödenmemiş ve son ödeme tarihi girilmiş kalemler
+            const pendingWithDue = allList.filter(p => !p.isPaid && p.dueDate);
+            let count = 0;
+
+            pendingWithDue.forEach(p => {
+                const due = new Date(p.dueDate);
+                due.setHours(0, 0, 0, 0);
+                const diffTime = due - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // Gecikmiş (diffDays < 0) veya 3 gün ve daha az kalmış olanlar
+                if (diffDays <= 3) {
+                    count++;
+                    const isOverdue = diffDays < 0;
+                    const isToday = diffDays === 0;
+
+                    let badgeStatus = '';
+                    if (isOverdue) {
+                        badgeStatus = `<span class="bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${Math.abs(diffDays)} Gün Gecikti!</span>`;
+                    } else if (isToday) {
+                        badgeStatus = `<span class="bg-red-500 text-white font-bold px-2 py-0.5 rounded-full text-[10px] animate-pulse">Bugün Son Gün!</span>`;
+                    } else {
+                        badgeStatus = `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${diffDays} Gün Kaldı</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-rose-100/40">
+                            <td class="p-2 font-semibold text-gray-700">${p.sourceLabel}</td>
+                            <td class="p-2 font-bold text-gray-900">${p.name}</td>
+                            <td class="p-2 text-gray-600">${p.desc}</td>
+                            <td class="p-2 font-bold text-blue-700">₺${p.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="p-2 font-semibold text-gray-800">${toTRDate(p.dueDate)}</td>
+                            <td class="p-2">${badgeStatus}</td>
+                            <td class="p-2 text-center">
+                                <button onclick="quickPayPayment('${p.source}', '${p.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-[11px] font-bold shadow-2xs transition">
+                                    <i class="fa-solid fa-check mr-1"></i> Şimdi Öde
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (count > 0) {
+                badge.innerText = count;
+                alertBox.classList.remove('hidden');
+            } else {
+                alertBox.classList.add('hidden');
+            }
+        }
+
+        // Hızlı ödeme butonu (Uyarı kutusu için)
+        function quickPayPayment(source, id) {
+            const todayISO = new Date().toISOString().split('T')[0];
+            togglePaymentPaidStatus(source, id, true, todayISO);
         }
 
         function renderPayments() {
@@ -1581,13 +1706,15 @@
             const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
 
             const allList = getAllPaymentsList();
+            renderOverduePaymentsAlert(allList);
+
             const isPending = currentPaymentFilter === 'pending';
 
             const filtered = allList.filter(item => {
                 if (isPending ? item.isPaid : !item.isPaid) return false;
                 if (selectedType !== 'all' && item.source !== selectedType) return false;
 
-                const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
+                const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
                 const { year, month } = extractYearMonth(targetDate);
                 
                 if (year && month) {
@@ -1599,10 +1726,37 @@
             filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 
             let totalAmt = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
             filtered.forEach(item => {
                 totalAmt += item.amount;
                 const isReferee = item.source === 'referee';
+
+                // Vade durumu rozeti
+                let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
+                if (item.dueDate) {
+                    const due = new Date(item.dueDate);
+                    due.setHours(0, 0, 0, 0);
+                    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+
+                    if (!item.isPaid) {
+                        if (diffDays < 0) {
+                            dueHtml = `<span class="text-rose-700 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-circle-exclamation mr-1"></i>${toTRDate(item.dueDate)} (${Math.abs(diffDays)}g gecikti)</span>`;
+                        } else if (diffDays === 0) {
+                            dueHtml = `<span class="text-white font-bold bg-red-600 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-bell mr-1"></i>Bugün Son Gün!</span>`;
+                        } else if (diffDays <= 3) {
+                            dueHtml = `<span class="text-amber-800 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-clock mr-1"></i>${toTRDate(item.dueDate)} (${diffDays}g kaldı)</span>`;
+                        } else {
+                            dueHtml = `<span class="text-gray-700 font-semibold text-[11px]">${toTRDate(item.dueDate)}</span>`;
+                        }
+                    } else {
+                        dueHtml = `<span class="text-gray-500 text-[11px] line-through">${toTRDate(item.dueDate)}</span>`;
+                    }
+                }
+
+                // Ödeme Tarihini Düzenlenebilir Input Olarak Gösterme
+                const paymentDateISO = item.paymentDate ? toISODate(item.paymentDate) : '';
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition">
@@ -1612,10 +1766,13 @@
                                     onchange="togglePaymentPaidStatus('${item.source}', '${item.id}', this.checked)"
                                     class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500"
                                     title="${item.isPaid ? 'Ödenmedi olarak geri al' : 'Ödendi olarak işaretle'}">
-                                ${item.paymentDate ? `
-                                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
-                                        <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${item.paymentDate}
-                                    </span>
+                                ${item.isPaid ? `
+                                    <div class="inline-flex items-center space-x-1">
+                                        <input type="date" value="${paymentDateISO}" 
+                                            onchange="updateCustomPaymentDate('${item.source}', '${item.id}', this.value)"
+                                            class="border border-emerald-300 rounded px-1.5 py-0.5 text-[11px] font-bold text-emerald-800 bg-emerald-50/60 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                                            title="Ödeme tarihini değiştirmek için tıklayın">
+                                    </div>
                                 ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                             </div>
                         </td>
@@ -1627,6 +1784,7 @@
                         <td class="p-3 font-bold text-gray-800">${item.name}</td>
                         <td class="p-3 font-mono text-[11px] font-bold text-gray-700">${item.iban}</td>
                         <td class="p-3 text-gray-600 font-medium">${item.desc}</td>
+                        <td class="p-3">${dueHtml}</td>
                         <td class="p-3 font-bold text-blue-600">₺${item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
@@ -1647,24 +1805,48 @@
             document.getElementById('pay-total-amount').innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
             }
         }
 
-        function togglePaymentPaidStatus(source, id, isChecked) {
-            const todayStr = new Date().toLocaleDateString('tr-TR');
+        // Ödeme Tarihini Input'tan Manuel Değiştirme
+        function updateCustomPaymentDate(source, id, newISODate) {
+            if (!newISODate) return;
+            const trDate = toTRDate(newISODate);
+
+            if (source === 'referee') {
+                const refItem = data.refereePayments.find(r => String(r.id) === String(id));
+                if (refItem) refItem.paymentDate = trDate;
+            } else if (source === 'manual') {
+                const manItem = data.manualPayments.find(m => String(m.id) === String(id));
+                if (manItem) manItem.paymentDate = trDate;
+            }
+            saveData();
+            renderPayments();
+            renderReferees();
+        }
+
+        function togglePaymentPaidStatus(source, id, isChecked, customDateISO = null) {
+            let assignedDate = '';
+            if (isChecked) {
+                if (customDateISO) {
+                    assignedDate = toTRDate(customDateISO);
+                } else {
+                    assignedDate = new Date().toLocaleDateString('tr-TR');
+                }
+            }
 
             if (source === 'referee') {
                 const refItem = data.refereePayments.find(r => String(r.id) === String(id));
                 if (refItem) {
                     refItem.isPaid = isChecked;
-                    refItem.paymentDate = isChecked ? todayStr : '';
+                    refItem.paymentDate = assignedDate;
                 }
             } else if (source === 'manual') {
                 const manItem = data.manualPayments.find(m => String(m.id) === String(id));
                 if (manItem) {
                     manItem.isPaid = isChecked;
-                    manItem.paymentDate = isChecked ? todayStr : '';
+                    manItem.paymentDate = assignedDate;
                 }
             }
             saveData();
@@ -1683,6 +1865,7 @@
                     document.getElementById('manual-pay-name').value = m.name || '';
                     document.getElementById('manual-pay-iban').value = m.iban || '';
                     document.getElementById('manual-pay-amount').value = m.amount || '';
+                    document.getElementById('manual-pay-due-date').value = m.dueDate ? toISODate(m.dueDate) : '';
                     document.getElementById('manual-pay-desc').value = m.desc || '';
                 }
             } else {
@@ -1690,6 +1873,7 @@
                 document.getElementById('manual-pay-name').value = '';
                 document.getElementById('manual-pay-iban').value = '';
                 document.getElementById('manual-pay-amount').value = '';
+                document.getElementById('manual-pay-due-date').value = '';
                 document.getElementById('manual-pay-desc').value = '';
             }
             
@@ -1705,6 +1889,7 @@
             const name = document.getElementById('manual-pay-name').value.trim();
             const iban = document.getElementById('manual-pay-iban').value.trim();
             const amount = parseFloat(document.getElementById('manual-pay-amount').value) || 0;
+            const dueDate = document.getElementById('manual-pay-due-date').value; // YYYY-MM-DD
             const desc = document.getElementById('manual-pay-desc').value.trim();
 
             if (!name || amount <= 0) {
@@ -1718,17 +1903,23 @@
                     m.name = name;
                     m.iban = iban;
                     m.amount = amount;
+                    m.dueDate = dueDate;
                     m.desc = desc;
                 }
             } else {
                 data.manualPayments.unshift({
                     id: Date.now(),
-                    name, iban, amount, desc,
+                    name, iban, amount, dueDate, desc,
                     isPaid: false,
                     date: new Date().toLocaleDateString('tr-TR'),
                     paymentDate: ''
                 });
             }
+
+            closeModal('manual-payment-modal');
+            saveData();
+            renderPayments();
+        }
 
             closeModal('manual-payment-modal');
             saveData();
