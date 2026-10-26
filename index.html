@@ -225,9 +225,9 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- DOLULUK ORANI GRAFİK KARTI (GELİŞMİŞ VE DIŞARI YÖNELİK KILAVUZ ÇİZGİLİ / ROZETLİ) -->
+                        <!-- DOLULUK ORANI GRAFİK KARTI (DİNAMİK BAŞLIK & GARANTİLİ DIŞ ETİKETLER) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                            <h3 class="text-base font-bold text-gray-800 mb-2" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
+                            <h3 class="text-base font-bold text-gray-800 mb-2 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
                             <div class="w-full h-[280px] relative flex items-center justify-center">
                                 <canvas id="occupancyChart"></canvas>
                             </div>
@@ -244,7 +244,7 @@
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4 border-b pb-3">
                             <div>
-                                <h3 class="text-base font-bold text-gray-800">Doluluk ve Tüm Alan Karşılaştırma Analizi (m² & Yüzdesel)</h3>
+                                <h3 class="text-base font-bold text-gray-800" id="dash-comparison-chart-title">Doluluk ve Tüm Alan Karşılaştırma Analizi (m² & Yüzdesel)</h3>
                                 <p class="text-xs text-gray-500">Seçili yerleşke ile genel teknopark toplam alanlarının tek pencerede karşılaştırması.</p>
                             </div>
                             <div class="flex items-center space-x-4 text-xs font-semibold">
@@ -926,18 +926,18 @@
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 class="text-xl font-bold mb-4">Yeni Ofis Ekle</h3>
             <input type="hidden" id="office-campus-id">
-            <div class="space-y-3">
+            <div class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Ofis Adı / No</label>
+                    <label class="block font-semibold text-gray-600 mb-1">Ofis Adı / No</label>
                     <input type="text" id="new-office-name" placeholder="Örn: Ofis 101" class="w-full border p-2 rounded-lg">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Kat Numarası</label>
+                        <label class="block font-semibold text-gray-600 mb-1">Kat Numarası</label>
                         <input type="text" id="new-office-floor" placeholder="Örn: 1. Kat / Zemin" class="w-full border p-2 rounded-lg">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Toplam Büyüklük (m²)</label>
+                        <label class="block font-semibold text-gray-600 mb-1">Toplam Büyüklük (m²)</label>
                         <input type="number" id="new-office-area" placeholder="Örn: 75" class="w-full border p-2 rounded-lg">
                     </div>
                 </div>
@@ -1063,6 +1063,7 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
+        // DataLabels eklentisini kaydediyoruz (Genel grafikler için)
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -2174,8 +2175,8 @@
 
             const validOfficeIds = [];
             targetCampuses.forEach(c => {
-                c.offices.forEach(o => {
-                    totalArea += parseFloat(o.area);
+                (c.offices || []).forEach(o => {
+                    totalArea += parseFloat(o.area || 0);
                     validOfficeIds.push(String(o.id));
                 });
             });
@@ -2183,15 +2184,15 @@
             data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(String(r.officeId))).forEach(r => {
                 const area = parseFloat(r.allocatedArea || 0);
                 rentedArea += area;
-                rentRevenueExcl += (area * r.unitPrice);
-                commonRevenueExcl += (area * (r.commonCostPerM2 || 0));
+                rentRevenueExcl += (area * (parseFloat(r.unitPrice) || 0));
+                commonRevenueExcl += (area * (parseFloat(r.commonCostPerM2) || 0));
                 otherRevenueExcl += parseFloat(r.otherCost || 0);
             });
 
             const totalRevenueExcl = rentRevenueExcl + commonRevenueExcl + otherRevenueExcl;
 
             return {
-                totalArea, rentedArea, availableArea: totalArea - rentedArea,
+                totalArea, rentedArea, availableArea: Math.max(0, totalArea - rentedArea),
                 rentRevenueExcl, rentRevenueIncl: rentRevenueExcl * (1 + VAT_RATE),
                 commonRevenueExcl, commonRevenueIncl: commonRevenueExcl * (1 + VAT_RATE),
                 otherRevenueExcl, otherRevenueIncl: otherRevenueExcl * (1 + VAT_RATE),
@@ -2243,10 +2244,31 @@
         function deleteUserNote(index) { userNotes.splice(index, 1); saveData(); }
         function clearAllUserNotes() { if(confirm("Tüm bildirim notlarını temizlemek istediğinize emin misiniz?")) { userNotes = []; saveData(); } }
 
+        // ==================== DASHBOARD & GELİŞMİŞ GRAFİK BAŞLIK SENKRONİZASYONU ====================
         function renderDashboard() {
-            const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
+            const campusFilterEl = document.getElementById('dash-campus-filter');
+            const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
 
+            // Seçilen Yerleşkenin Gerçek İsmini Bul
+            let currentCampusName = "Tüm Yerleşkeler";
+            if (selectedCampus !== 'all') {
+                const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
+                if (foundCampus) currentCampusName = foundCampus.name;
+            }
+
+            // 1. Kart Başlıklarını ve Rozetleri Güncelle
+            const occTitleEl = document.getElementById('dash-occupancy-chart-title');
+            if (occTitleEl) {
+                occTitleEl.innerText = `${currentCampusName} Doluluk Oranı`;
+            }
+
+            const badgeLabelEl = document.getElementById('dash-filter-label-badge');
+            if (badgeLabelEl) {
+                badgeLabelEl.innerText = `${currentCampusName} Doluluk:`;
+            }
+
+            // 2. Metrik Kartları
             document.getElementById('dash-total-area').innerText = stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('dash-rented-area').innerText = stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             document.getElementById('dash-available-area').innerText = stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2319,8 +2341,8 @@
                 let suggestions = [];
 
                 data.campuses.forEach(c => {
-                    const availOffices = c.offices
-                        .map(o => ({ name: o.name, avail: o.area - getOfficeRentedArea(o.id) }))
+                    const availOffices = (c.offices || [])
+                        .map(o => ({ name: o.name, avail: parseFloat(o.area || 0) - getOfficeRentedArea(o.id) }))
                         .filter(o => o.avail > 0);
 
                     availOffices.forEach(o => {
@@ -2343,28 +2365,6 @@
                                     title: `${c.name} (${availOffices[i].name} + ${availOffices[j].name})`,
                                     totalAvail: total,
                                     badge: '2\'li Ofis Paketi'
-                                });
-                            }
-                        }
-                    }
-
-                    if (availOffices.length >= 3) {
-                        const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
-                        if (totalCampusAvail >= targetM2) {
-                            const sorted = [...availOffices].sort((a, b) => b.avail - a.avail);
-                            let runningTotal = 0;
-                            let picked = [];
-                            for (let o of sorted) {
-                                picked.push(o.name);
-                                runningTotal += o.avail;
-                                if (runningTotal >= targetM2) break;
-                            }
-                            if (picked.length > 2) {
-                                suggestions.push({
-                                    type: 'combo',
-                                    title: `${c.name} (${picked.join(" + ")})`,
-                                    totalAvail: runningTotal,
-                                    badge: `${picked.length}'li Ofis Paketi`
                                 });
                             }
                         }
@@ -2401,7 +2401,7 @@
                 } else {
                     suggestionCards.innerHTML = `
                         <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
-                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için tekli veya kombine uygun ofis seçeneği bulunamadı.
+                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için uygun ofis bulunamadı.
                         </div>
                     `;
                     suggestionBox.classList.remove('hidden');
@@ -2411,10 +2411,10 @@
             }
 
             data.campuses.forEach(c => {
-                const totalCampusArea = c.offices.reduce((acc, o) => acc + parseFloat(o.area), 0);
+                const totalCampusArea = (c.offices || []).reduce((acc, o) => acc + parseFloat(o.area || 0), 0);
                 
-                let filteredOffices = c.offices.filter(o => {
-                    const availArea = o.area - getOfficeRentedArea(o.id);
+                let filteredOffices = (c.offices || []).filter(o => {
+                    const availArea = parseFloat(o.area || 0) - getOfficeRentedArea(o.id);
                     if (!isNaN(minM2Input) && availArea < minM2Input) return false;
                     if (!isNaN(maxM2Input) && availArea > maxM2Input) return false;
                     return true;
@@ -2422,12 +2422,12 @@
 
                 let officesHtml = filteredOffices.map(o => {
                     const rentedArea = getOfficeRentedArea(o.id);
-                    const availArea = o.area - rentedArea;
+                    const availArea = parseFloat(o.area || 0) - rentedArea;
                     const floorInfo = o.floor ? ` | ${o.floor}` : '';
                     
                     let statusBadge = '';
                     if (rentedArea === 0) {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-green-100 text-green-700">Tamamı Boş (${o.area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</span>`;
+                        statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-green-100 text-green-700">Tamamı Boş (${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</span>`;
                     } else if (availArea > 0) {
                         statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-amber-100 text-amber-700">Kısmi Kiralı (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</span>`;
                     } else {
@@ -2440,7 +2440,7 @@
                         <div class="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 transition rounded-lg border border-gray-200">
                             <div>
                                 <span class="font-semibold text-gray-800 text-sm">${o.name}</span>
-                                <span class="text-xs text-gray-500 ml-2">(Toplam: ${o.area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²${floorInfo})</span>
+                                <span class="text-xs text-gray-500 ml-2">(Toplam: ${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²${floorInfo})</span>
                             </div>
                             <div class="flex items-center space-x-3">
                                 ${statusBadge}
@@ -2454,7 +2454,7 @@
                     `;
                 }).join('');
 
-                const campusOfficeIds = c.offices.map(o => String(o.id));
+                const campusOfficeIds = (c.offices || []).map(o => String(o.id));
                 const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
                 container.innerHTML += `
@@ -2465,7 +2465,7 @@
                                 <div>
                                     <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                         <span>${c.name}</span>
-                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${c.offices.length} Ofis</span>
+                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${(c.offices || []).length} Ofis</span>
                                     </h2>
                                     <p class="text-xs text-gray-500 mt-0.5">Toplam Yerleşke Alanı: <strong>${totalCampusArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</strong></p>
                                 </div>
@@ -2512,7 +2512,7 @@
                     count++;
                     let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
                     data.campuses.forEach(c => {
-                        const off = c.offices.find(o => String(o.id) === String(r.officeId));
+                        const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
                         if(off) { officeName = off.name; campusName = c.name; }
                     });
 
@@ -2537,7 +2537,6 @@
             } else { alertContainer.classList.add('hidden'); }
         }
 
-        // KİRALAMA LİSTESİ: A-Z SIRALAMA VE FİRMA ARAMASI DESTEKLİ
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
@@ -2552,11 +2551,10 @@
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
             let filteredRentals = data.rentals.filter(r => {
-                let officeName = "Bilinmiyor", campusName = "Bilinmiyor", campusId = null;
-
+                let campusId = null;
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
-                    if(off) { officeName = off.name; campusName = c.name; campusId = c.id; }
+                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
+                    if(off) campusId = c.id;
                 });
 
                 if (selectedCampus !== 'all' && String(campusId) !== String(selectedCampus)) return false;
@@ -2572,13 +2570,13 @@
                 let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
 
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
+                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
                     if(off) { officeName = off.name; campusName = c.name; }
                 });
 
                 const area = parseFloat(r.allocatedArea || 0);
-                const totalRent = area * r.unitPrice;
-                const totalCommonCost = area * (r.commonCostPerM2 || 0);
+                const totalRent = area * (parseFloat(r.unitPrice) || 0);
+                const totalCommonCost = area * (parseFloat(r.commonCostPerM2) || 0);
                 const totalExclVat = totalRent + totalCommonCost + parseFloat(r.otherCost || 0);
                 const totalInclVat = totalExclVat * (1 + VAT_RATE);
                 const isActive = r.status === 'active';
@@ -2796,7 +2794,7 @@
                 document.getElementById('save-rental-btn').innerText = "Güncelle";
 
                 let currentCampusId = null;
-                data.campuses.forEach(c => { if(c.offices.some(o => String(o.id) === String(r.officeId))) currentCampusId = c.id; });
+                data.campuses.forEach(c => { if((c.offices || []).some(o => String(o.id) === String(r.officeId))) currentCampusId = c.id; });
 
                 if (currentCampusId) {
                     campusSelect.value = String(currentCampusId);
@@ -2870,7 +2868,7 @@
             officeSelect.disabled = false;
             officeSelect.innerHTML = '<option value="">Ofis Seçiniz...</option>';
 
-            campus.offices.forEach(o => {
+            (campus.offices || []).forEach(o => {
                 const availArea = getOfficeAvailableArea(o.id, editRentalId);
                 if(availArea > 0 || String(o.id) === String(selectedOfficeId)) {
                     officeSelect.innerHTML += `<option value="${o.id}">${o.name} (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</option>`;
@@ -2936,7 +2934,10 @@
 
             if(!name || !area) return;
             const campus = data.campuses.find(c => String(c.id) === String(campusId));
-            if(campus) campus.offices.push({ id: Date.now(), name, area, floor });
+            if(campus) {
+                if(!campus.offices) campus.offices = [];
+                campus.offices.push({ id: Date.now(), name, area, floor });
+            }
 
             document.getElementById('new-office-name').value = '';
             document.getElementById('new-office-floor').value = '';
@@ -3042,7 +3043,7 @@
 
             if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
                 const campus = data.campuses.find(c => String(c.id) === String(campusId));
-                if(campus) {
+                if(campus && campus.offices) {
                     campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
                     data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
                 }
@@ -3059,7 +3060,7 @@
             const campus = data.campuses.find(c => String(c.id) === String(campusId));
             if (!campus) return;
 
-            const officeIds = campus.offices.map(o => String(o.id));
+            const officeIds = (campus.offices || []).map(o => String(o.id));
             const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(String(r.officeId)) && r.status === 'active');
 
             if (activeRentalsInCampus.length > 0) {
@@ -3145,6 +3146,7 @@
                                 data.campuses.push(campus);
                             }
 
+                            if (!campus.offices) campus.offices = [];
                             let office = campus.offices.find(o => o.name.toLowerCase() === officeName.toLowerCase());
                             if (!office) {
                                 office = { id: Date.now() + Math.floor(Math.random() * 1000), name: officeName, area: allocatedArea + 50, floor: "1. Kat" };
@@ -3174,32 +3176,46 @@
 
         // ==================== GRAFİK YÖNETİMİ & ÇOK OKUNAKLI KILAVUZ ÇİZGİLİ DONUT EKLENTİSİ ====================
         function updateCharts() {
-            const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
+            const campusFilterEl = document.getElementById('dash-campus-filter');
+            const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
+
+            // Seçili Yerleşke Adı
+            let currentCampusName = "Tüm Yerleşkeler";
+            if (selectedCampus !== 'all') {
+                const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
+                if (foundCampus) currentCampusName = foundCampus.name;
+            }
 
             // 1. DOLULUK ORANI: DIŞARI ÇIKAN KILAVUZ ÇİZGİLİ / ROZETLİ ÖZEL DOUGHNUT GRAFİĞİ
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
-            // Tamamen izole ve güvenli Canvas Çizim Eklentisi (Dış Etiketler)
+            // Garantili ve her zaman tuval içinde kalan dış kılavuz çizgi eklentisi
             const doughnutCalloutPlugin = {
                 id: 'doughnutCallout',
                 afterDraw: function(chart) {
-                    const { ctx, chartArea } = chart;
+                    const { ctx, width, height } = chart;
                     const meta = chart.getDatasetMeta(0);
                     if (!meta || !meta.data || meta.data.length === 0) return;
 
                     const total = stats.totalArea;
+                    if (total <= 0) return;
 
                     meta.data.forEach((element, index) => {
                         const val = chart.data.datasets[0].data[index];
                         if (val === undefined || val === null || val <= 0) return;
 
-                        const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
+                        const percentage = ((val / total) * 100).toFixed(1);
                         const labelText = `${val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
 
-                        // Dilim merkez açısı ve yay dış noktası
-                        const angle = (element.startAngle + element.endAngle) / 2;
+                        // Açı ve merkez hesabı
+                        let angle = (element.startAngle + element.endAngle) / 2;
+                        // Eğer tek dilim varsa (örneğin %100 dolu veya boş)
+                        if (element.startAngle === 0 && Math.abs(element.endAngle - Math.PI * 2) < 0.05) {
+                            angle = index === 0 ? -Math.PI / 4 : Math.PI / 4;
+                        }
+
                         const outerRadius = element.outerRadius;
                         const centerPoint = element.getCenterPoint();
 
@@ -3207,23 +3223,27 @@
                         const startX = centerPoint.x + Math.cos(angle) * outerRadius;
                         const startY = centerPoint.y + Math.sin(angle) * outerRadius;
 
-                        // Kılavuz dirsek noktası (yaydan 16px dışarıda)
-                        const elbowDistance = outerRadius + 16;
+                        // Kılavuz dirsek noktası
+                        const elbowDistance = outerRadius + 15;
                         const elbowX = centerPoint.x + Math.cos(angle) * elbowDistance;
                         const elbowY = centerPoint.y + Math.sin(angle) * elbowDistance;
 
                         // Yatay yönlendirme (Sağ/Sol)
                         const isRight = Math.cos(angle) >= 0;
-                        const horizontalLength = 22;
-                        const endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
-                        const endY = elbowY;
+                        const horizontalLength = 20;
+                        let endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
+                        let endY = elbowY;
+
+                        // Canvas sınırlarına çarpmayı önleme (Clamping)
+                        endX = Math.max(70, Math.min(width - 70, endX));
+                        endY = Math.max(25, Math.min(height - 45, endY));
 
                         const colorPrimary = index === 0 ? '#059669' : '#d97706';
                         const colorText = index === 0 ? '#065f46' : '#92400e';
 
                         ctx.save();
 
-                        // 1. Kılavuz Çizgiyi Çiz
+                        // 1. Kılavuz Çizgi Çizimi
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(elbowX, elbowY);
@@ -3232,7 +3252,7 @@
                         ctx.lineWidth = 1.5;
                         ctx.stroke();
 
-                        // 2. Dilim Çeperindeki Bağlantı Noktası
+                        // 2. Dilim Çeperindeki Nokta
                         ctx.beginPath();
                         ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
                         ctx.fillStyle = colorPrimary;
@@ -3255,7 +3275,7 @@
 
                         // Beyaz arka plan gölgesi
                         ctx.fillStyle = '#ffffff';
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
                         ctx.shadowBlur = 4;
                         ctx.fillRect(boxX, boxY, boxW, boxH);
 
@@ -3291,12 +3311,11 @@
                     maintainAspectRatio: false,
                     cutout: '60%',
                     layout: {
-                        // Okların ve rozetlerin canvas dışına taşmaması için dengeli iç boşluk
                         padding: {
-                            top: 25,
-                            bottom: 25,
-                            left: 35,
-                            right: 35
+                            top: 20,
+                            bottom: 20,
+                            left: 30,
+                            right: 30
                         }
                     },
                     plugins: {
@@ -3304,11 +3323,10 @@
                             position: 'bottom',
                             labels: {
                                 boxWidth: 12,
-                                padding: 15,
+                                padding: 12,
                                 font: { size: 11, weight: 'bold' }
                             }
                         },
-                        // Standart iç datalabels kapatıldı (yerini dış kılavuz çizgiler aldı)
                         datalabels: {
                             display: false
                         }
@@ -3326,10 +3344,10 @@
 
             targetCampuses.forEach(c => {
                 let campusRevExcl = 0;
-                c.offices.forEach(o => {
+                (c.offices || []).forEach(o => {
                     data.rentals.filter(r => String(r.officeId) === String(o.id) && r.status === 'active').forEach(r => {
                         const area = parseFloat(r.allocatedArea || 0);
-                        campusRevExcl += (area * r.unitPrice) + (area * (r.commonCostPerM2 || 0)) + parseFloat(r.otherCost || 0);
+                        campusRevExcl += (area * (parseFloat(r.unitPrice) || 0)) + (area * (parseFloat(r.commonCostPerM2) || 0)) + parseFloat(r.otherCost || 0);
                     });
                 });
                 campusLabels.push(c.name);
@@ -3355,21 +3373,15 @@
                 }
             });
 
-            // 3. KARŞILAŞTIRMA GRAFİĞİ
+            // 3. KARŞILAŞTIRMA GRAFİĞİ (DİNAMİK YERLEŞKE ETİKETLİ)
             const totalStats = getStats('all');
             const ctx3 = document.getElementById('comparisonChart').getContext('2d');
             if (comparisonChartInstance) comparisonChartInstance.destroy();
 
-            let filterLabel = "Tüm Yerleşkeler";
-            if (selectedCampus !== 'all') {
-                const found = data.campuses.find(c => String(c.id) === String(selectedCampus));
-                if (found) filterLabel = found.name;
-            }
-
             comparisonChartInstance = new Chart(ctx3, {
                 type: 'bar',
                 data: {
-                    labels: [filterLabel, 'Genel Teknopark Toplamı'],
+                    labels: [currentCampusName, 'Genel Teknopark Toplamı'],
                     datasets: [
                         { label: 'Dolu Alan (m²)', data: [stats.rentedArea, totalStats.rentedArea], backgroundColor: '#10b981', borderRadius: 4 },
                         { label: 'Boş Alan (m²)', data: [stats.availableArea, totalStats.availableArea], backgroundColor: '#f59e0b', borderRadius: 4 },
@@ -3449,6 +3461,7 @@
                         const floorKey = keys.find(k => k.trim().toLowerCase().includes('kat'));
 
                         if (nameKey && areaKey && row[nameKey] && !isNaN(parseFloat(row[areaKey]))) {
+                            if (!campus.offices) campus.offices = [];
                             campus.offices.push({
                                 id: Date.now() + Math.floor(Math.random() * 1000),
                                 name: String(row[nameKey]).trim(),
@@ -3478,7 +3491,7 @@
             let filteredRentals = data.rentals.filter(r => {
                 let campusId = null;
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
+                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
                     if(off) campusId = c.id;
                 });
                 const campusMatch = (selectedCampus === 'all' || String(campusId) === String(selectedCampus));
@@ -3492,13 +3505,13 @@
             return filteredRentals.map(r => {
                 let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
                 data.campuses.forEach(c => {
-                    const off = c.offices.find(o => String(o.id) === String(r.officeId));
+                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
                     if(off) { officeName = off.name; campusName = c.name; }
                 });
 
                 const area = parseFloat(r.allocatedArea || 0);
-                const totalRent = area * r.unitPrice;
-                const totalCommonCost = area * (r.commonCostPerM2 || 0);
+                const totalRent = area * (parseFloat(r.unitPrice) || 0);
+                const totalCommonCost = area * (parseFloat(r.commonCostPerM2) || 0);
                 const totalExclVat = totalRent + totalCommonCost + parseFloat(r.otherCost || 0);
                 const totalInclVat = totalExclVat * (1 + VAT_RATE);
 
