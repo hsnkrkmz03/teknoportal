@@ -681,10 +681,11 @@
 
     <!-- MODALLAR -->
 
-    <!-- MANUEL ÖDEME EKLE MODALI -->
+    <!-- MANUEL ÖDEME EKLE / DÜZENLE MODALI -->
     <div id="manual-payment-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 class="text-lg font-bold mb-4 text-gray-800">Yeni Fatura / Gider Ödemesi Ekle</h3>
+            <h3 class="text-lg font-bold mb-4 text-gray-800" id="manual-payment-modal-title">Yeni Fatura / Gider Ödemesi Ekle</h3>
+            <input type="hidden" id="editing-manual-payment-id">
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold text-gray-600 mb-1">Firma / Alıcı Adı</label>
@@ -1222,13 +1223,11 @@
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
                 if (targetData) {
-                    // AKILLI BİRLEŞTİRME (Smart Merge): Buluttan gelen veri ile yerel veriyi güvenle birleştir
+                    // AKILLI BİRLEŞTİRME (Smart Merge)
                     const localReferees = data.refereePayments || [];
                     const cloudReferees = targetData.refereePayments || [];
                     const refMap = new Map();
-                    // Buluttakileri ekle
                     cloudReferees.forEach(item => { if (item && item.id) refMap.set(String(item.id), item); });
-                    // Yerelde olan yenileri üzerine yaz / koru
                     localReferees.forEach(item => { if (item && item.id) refMap.set(String(item.id), item); });
                     targetData.refereePayments = Array.from(refMap.values());
 
@@ -1272,20 +1271,15 @@
         }
 
         async function saveData() {
-            // 1. Önce tarayıcı hafızasına kesin ve kalıcı olarak yaz
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
-            // 2. Arayüzü anında güncelle
             renderAll();
 
-            // 3. Buluta güvenli POST isteği ile gönder (URL karakter limiti engeline takılmaz)
             if (APPS_SCRIPT_URL) {
                 try {
                     const payload = JSON.stringify({ data: data, users: users, userNotes: userNotes });
-                    
-                    // POST yöntemi ile body üzerinden aktarım
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -1619,9 +1613,15 @@
                         <td class="p-3 text-gray-600 font-medium">${item.desc}</td>
                         <td class="p-3 font-bold text-blue-600">₺${item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td class="p-3 text-center">
-                            ${!isReferee ? `
-                                <button onclick="deleteManualPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold">Sil</button>
-                            ` : `<span class="text-gray-400 text-[11px] italic">Hakem Modülü</span>`}
+                            <div class="flex items-center justify-center space-x-1.5">
+                                ${isReferee ? `
+                                    <button onclick="openRefereeModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition" title="Hakem Detayını Düzenle">Düzenle</button>
+                                    <button onclick="deleteRefereePayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition" title="Hakem Ödemesini Sil">Sil</button>
+                                ` : `
+                                    <button onclick="openManualPaymentModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition" title="Faturayı Düzenle">Düzenle</button>
+                                    <button onclick="deleteManualPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition" title="Faturayı Sil">Sil</button>
+                                `}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -1656,11 +1656,26 @@
             renderReferees();
         }
 
-        function openManualPaymentModal() {
-            document.getElementById('manual-pay-name').value = '';
-            document.getElementById('manual-pay-iban').value = '';
-            document.getElementById('manual-pay-amount').value = '';
-            document.getElementById('manual-pay-desc').value = '';
+        function openManualPaymentModal(editId = null) {
+            document.getElementById('editing-manual-payment-id').value = editId || '';
+            const modalTitle = document.getElementById('manual-payment-modal-title');
+
+            if (editId) {
+                const m = data.manualPayments.find(item => String(item.id) === String(editId));
+                if (m) {
+                    modalTitle.innerText = "Fatura / Gider Ödemesini Düzenle";
+                    document.getElementById('manual-pay-name').value = m.name || '';
+                    document.getElementById('manual-pay-iban').value = m.iban || '';
+                    document.getElementById('manual-pay-amount').value = m.amount || '';
+                    document.getElementById('manual-pay-desc').value = m.desc || '';
+                }
+            } else {
+                modalTitle.innerText = "Yeni Fatura / Gider Ödemesi Ekle";
+                document.getElementById('manual-pay-name').value = '';
+                document.getElementById('manual-pay-iban').value = '';
+                document.getElementById('manual-pay-amount').value = '';
+                document.getElementById('manual-pay-desc').value = '';
+            }
             
             const ibanInput = document.getElementById('manual-pay-iban');
             if (ibanInput) {
@@ -1670,6 +1685,7 @@
         }
 
         function saveManualPayment() {
+            const editId = document.getElementById('editing-manual-payment-id').value;
             const name = document.getElementById('manual-pay-name').value.trim();
             const iban = document.getElementById('manual-pay-iban').value.trim();
             const amount = parseFloat(document.getElementById('manual-pay-amount').value) || 0;
@@ -1680,13 +1696,23 @@
                 return;
             }
 
-            data.manualPayments.unshift({
-                id: Date.now(),
-                name, iban, amount, desc,
-                isPaid: false,
-                date: new Date().toLocaleDateString('tr-TR'),
-                paymentDate: ''
-            });
+            if (editId) {
+                const m = data.manualPayments.find(item => String(item.id) === String(editId));
+                if (m) {
+                    m.name = name;
+                    m.iban = iban;
+                    m.amount = amount;
+                    m.desc = desc;
+                }
+            } else {
+                data.manualPayments.unshift({
+                    id: Date.now(),
+                    name, iban, amount, desc,
+                    isPaid: false,
+                    date: new Date().toLocaleDateString('tr-TR'),
+                    paymentDate: ''
+                });
+            }
 
             closeModal('manual-payment-modal');
             saveData();
