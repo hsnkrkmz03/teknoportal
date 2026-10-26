@@ -26,13 +26,19 @@
         .sidebar-collapsed .sidebar-text, 
         .sidebar-collapsed .sidebar-user-info { display: none !important; }
         .sidebar-collapsed .sidebar-item { justify-content: center !important; padding-left: 0 !important; padding-right: 0 !important; }
+        
+        /* Modern ince kaydırma çubuğu */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
     <!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased overflow-hidden">
 
-<!-- GİRİŞ EKRANI -->
+    <!-- GİRİŞ EKRANI -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center bg-slate-900 px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-8">
             <div class="text-center mb-6">
@@ -231,7 +237,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <!-- DOLULUK ORANI KARTI (ORTASI YÜZDELİ & ALT ROZETLİ) -->
+                        <!-- DOLULUK ORANI KARTI (ORTASI YÜZDELİ & ALT ROZETLİ) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-base font-bold text-gray-800 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
@@ -269,7 +275,35 @@
                             </div>
                         </div>
 
-            <!-- 2. YERLEŞKE & OFİS SEKMESİ (GELİŞMİŞ FİLTRE VE ÇAPRAZ ÖNERİ MOTORU) -->
+                        <!-- GELİR DAĞILIMI KARTI -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 class="text-base font-bold text-gray-800 mb-4">Yerleşke Bazlı Gelir Dağılımı (KDV Dahil)</h3>
+                            <div><canvas id="revenueChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- KARŞILAŞTIRMA GRAFİĞİ -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4 border-b pb-3">
+                            <div>
+                                <h3 class="text-base font-bold text-gray-800" id="dash-comparison-chart-title">Doluluk ve Tüm Alan Karşılaştırma Analizi (m² & Yüzdesel)</h3>
+                                <p class="text-xs text-gray-500">Seçili yerleşke ile genel teknopark toplam alanlarının tek pencerede karşılaştırması.</p>
+                            </div>
+                            <div class="flex items-center space-x-4 text-xs font-semibold">
+                                <div class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">
+                                    <span id="dash-filter-label-badge">Tüm Yerleşkeler Doluluk:</span> <span id="dash-filter-occ-rate" class="font-bold">%0.00</span>
+                                </div>
+                                <div class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg">
+                                    Genel Teknopark Doluluk: <span id="dash-total-occ-rate" class="font-bold">%0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-72"><canvas id="comparisonChart"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. YERLEŞKE & OFİS SEKMESİ -->
             <section id="tab-campuses" class="hidden">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
@@ -2316,7 +2350,6 @@
         }
 
         function onManualM2Input() {
-            // Manuel m² girildiğinde personel hesap kutusunu sıfırla ki çakışmasın
             document.getElementById('filter-person-count').value = '';
             document.getElementById('person-m2-calc-hint').innerText = "0 Personel = 0.00 m² İhtiyaç";
             const suggestionBox = document.getElementById('smart-suggestion-box');
@@ -2331,6 +2364,7 @@
 
         function renderCampuses() {
             const container = document.getElementById('campus-list');
+            if (!container) return;
             container.innerHTML = '';
 
             const minM2Val = document.getElementById('filter-min-m2').value.trim();
@@ -2355,13 +2389,11 @@
                 const targetM2 = personCount * 8;
                 let suggestions = [];
 
-                // A) Tek Yerleşke İçi Tekli ve Çoklu Kombinasyonlar
                 data.campuses.forEach(c => {
                     const availOffices = (c.offices || [])
                         .map(o => ({ name: o.name, campusName: c.name, avail: parseFloat(o.area || 0) - getOfficeRentedArea(o.id) }))
                         .filter(o => o.avail > 0);
 
-                    // Tek ofis yeterli mi?
                     availOffices.forEach(o => {
                         if (o.avail >= targetM2) {
                             suggestions.push({
@@ -2373,7 +2405,6 @@
                         }
                     });
 
-                    // 2'li kombinasyon
                     for (let i = 0; i < availOffices.length; i++) {
                         for (let j = i + 1; j < availOffices.length; j++) {
                             const total = availOffices[i].avail + availOffices[j].avail;
@@ -2388,7 +2419,6 @@
                         }
                     }
 
-                    // 3 ve daha fazla ofis kombinasyonu
                     if (availOffices.length >= 3) {
                         const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
                         if (totalCampusAvail >= targetM2) {
@@ -2412,7 +2442,6 @@
                     }
                 });
 
-                // B) Çapraz Yerleşke Kombinasyonları (Eğer tek yerleşkeler yetersiz kalırsa veya alternatif olarak)
                 const allAvailableGlobalOffices = [];
                 data.campuses.forEach(c => {
                     (c.offices || []).forEach(o => {
@@ -2440,7 +2469,6 @@
                     }
                 }
 
-                // Hedefe en yakın olanları öne çıkar (En az israf)
                 suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
 
                 const uniqueSuggestions = [];
@@ -2475,7 +2503,7 @@
                 } else {
                     suggestionCards.innerHTML = `
                         <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
-                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için tüm yerleşkeler genelinde dahi yeterli boş ofis kapasitesi bulunamadı.
+                            Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için yeterli boş ofis bulunamadı.
                         </div>
                     `;
                     suggestionBox.classList.remove('hidden');
@@ -2529,12 +2557,10 @@
                     `;
                 }).join('');
 
-                const campusOfficeIds = (c.offices || []).map(o => String(o.id));
-                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
-
-                // Eğer filtreleme uygulanmışsa ve bu yerleşkede kriterlere uyan ofis varsa gövdeyi otomatik açık göster
                 const isFiltered = !isNaN(minM2Input) || !isNaN(maxM2Input);
                 const shouldOpenBody = isFiltered && filteredOffices.length > 0;
+                const campusOfficeIds = (c.offices || []).map(o => String(o.id));
+                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
                 container.innerHTML += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
@@ -3253,7 +3279,7 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // ==================== GRAFİK YÖNETİMİ & KESİN GEOMETRİK DOUGHNUT EKLENTİSİ ====================
+        // ==================== GRAFİK YÖNETİMİ & KESİN DÜZELTİLMİŞ DOUGHNUT ====================
         function updateCharts() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
@@ -3265,7 +3291,7 @@
                 if (foundCampus) currentCampusName = foundCampus.name;
             }
 
-// 1. DOLULUK ORANI: MERKEZİ YÜZDELİ VE ALT ROZETLİ TEMİZ DOUGHNUT
+            // 1. DOLULUK ORANI: MERKEZİ YÜZDELİ VE ALT ROZETLİ TEMİZ DOUGHNUT
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
@@ -3303,7 +3329,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '72%', // Merkeze geniş ferah alan bırakır
+                    cutout: '72%',
                     plugins: {
                         legend: { display: false },
                         datalabels: { display: false },
@@ -3319,6 +3345,7 @@
                     }
                 }
             });
+
             // 2. GELİR DAĞILIMI
             const campusLabels = [];
             const campusRevenues = [];
@@ -3357,7 +3384,7 @@
                 }
             });
 
-            // 3. KARŞILAŞTIRMA GRAFİĞİ (DİNAMİK YERLEŞKE ETİKETLİ)
+            // 3. KARŞILAŞTIRMA GRAFİĞİ
             const totalStats = getStats('all');
             const ctx3 = document.getElementById('comparisonChart').getContext('2d');
             if (comparisonChartInstance) comparisonChartInstance.destroy();
