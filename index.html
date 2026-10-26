@@ -3258,7 +3258,7 @@
             }
 
             // 1. DOLULUK ORANI: ASLA DIŞARI TAŞMAYAN VE ÇAKIŞMAYAN ÖZEL DOUGHNUT GRAFİĞİ
-            const ctx1 = document.getElementById('occupancyChart').getContext('2d');
+const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
             const doughnutCalloutPlugin = {
@@ -3271,76 +3271,93 @@
                     const total = stats.totalArea;
                     if (total <= 0) return;
 
-                    const centerX = width / 2;
-                    const centerY = height / 2;
-                    const outerRadius = meta.data[0].outerRadius || Math.min(width, height) * 0.32;
+                    meta.data.forEach((element, index) => {
+                        const val = chart.data.datasets[0].data[index];
+                        if (val === undefined || val === null || val <= 0) return;
 
-                    const items = [
-                        { label: 'Kiralanan Alan', val: stats.rentedArea, color: '#059669', textColor: '#065f46', side: 'left' },
-                        { label: 'Boş Alan', val: stats.availableArea, color: '#d97706', textColor: '#92400e', side: 'right' }
-                    ];
+                        const percentage = ((val / total) * 100).toFixed(1);
+                        const labelText = `${val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
 
-                    items.forEach((item) => {
-                        if (item.val <= 0) return;
+                        // Dilimin gerçek merkez açısı (Doğrudan dilimin tam ortasından çıkar)
+                        let angle = (element.startAngle + element.endAngle) / 2;
+                        
+                        // Tek dilim varsa (%100 dolu veya boş)
+                        if (element.startAngle === 0 && Math.abs(element.endAngle - Math.PI * 2) < 0.05) {
+                            angle = index === 0 ? -Math.PI / 2 : Math.PI / 2;
+                        }
 
-                        const percentage = ((item.val / total) * 100).toFixed(1);
-                        const labelText = `${item.val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
+                        const outerRadius = element.outerRadius;
+                        const centerPoint = element.getCenterPoint();
 
-                        const isLeft = item.side === 'left';
-                        const fixedAngle = isLeft ? (-Math.PI * 0.75) : (-Math.PI * 0.25);
+                        // Çemberin dış kenarındaki çıkış noktası
+                        const startX = centerPoint.x + Math.cos(angle) * outerRadius;
+                        const startY = centerPoint.y + Math.sin(angle) * outerRadius;
 
-                        const startX = centerX + Math.cos(fixedAngle) * outerRadius;
-                        const startY = centerY + Math.sin(fixedAngle) * outerRadius;
+                        // Kılavuz dirsek noktası
+                        const elbowDistance = outerRadius + 18;
+                        const elbowX = centerPoint.x + Math.cos(angle) * elbowDistance;
+                        const elbowY = centerPoint.y + Math.sin(angle) * elbowDistance;
 
-                        const elbowX = centerX + Math.cos(fixedAngle) * (outerRadius + 18);
-                        const elbowY = centerY + Math.sin(fixedAngle) * (outerRadius + 18);
+                        // Açının cosinüs değerine göre doğal sağ/sol tespiti
+                        const isRight = Math.cos(angle) >= 0;
+                        const horizontalLength = 22;
+                        let endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
+                        let endY = elbowY;
 
-                        const endX = isLeft ? Math.max(10, elbowX - 25) : Math.min(width - 10, elbowX + 25);
-                        const endY = elbowY;
+                        // Canvas sınırlarına taşmayı önleme
+                        endX = Math.max(70, Math.min(width - 70, endX));
+                        endY = Math.max(25, Math.min(height - 45, endY));
+
+                        // index 0: Kiralanan (Yeşil), index 1: Boş (Amber)
+                        const colorPrimary = index === 0 ? '#059669' : '#d97706';
+                        const colorText = index === 0 ? '#065f46' : '#92400e';
 
                         ctx.save();
 
-                        // Kılavuz Çizgi
+                        // 1. Kılavuz Çizgi Çizimi
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(elbowX, elbowY);
                         ctx.lineTo(endX, endY);
-                        ctx.strokeStyle = item.color;
+                        ctx.strokeStyle = colorPrimary;
                         ctx.lineWidth = 1.6;
                         ctx.stroke();
 
-                        // Dilim Üzerindeki Nokta
+                        // 2. Dilim Kenarındaki Bağlantı Noktası
                         ctx.beginPath();
                         ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
-                        ctx.fillStyle = item.color;
+                        ctx.fillStyle = colorPrimary;
                         ctx.fill();
 
-                        // Rozet / Bilgi Kutusu
+                        // 3. Rozet / Bilgi Kutusu
                         ctx.font = 'bold 10px sans-serif';
                         ctx.textBaseline = 'middle';
-                        ctx.textAlign = isLeft ? 'right' : 'left';
+                        ctx.textAlign = isRight ? 'left' : 'right';
 
-                        const textX = isLeft ? endX - 6 : endX + 6;
+                        const textX = isRight ? endX + 6 : endX - 6;
                         const textY = endY;
 
                         const textWidth = ctx.measureText(labelText).width;
                         const padX = 5, padY = 3;
-                        const boxX = isLeft ? textX - textWidth - padX : textX - padX;
+                        const boxX = isRight ? textX - padX : textX - textWidth - padX;
                         const boxY = textY - 7 - padY;
                         const boxW = textWidth + (padX * 2);
                         const boxH = 14 + (padY * 2);
 
+                        // Arka Plan
                         ctx.fillStyle = '#ffffff';
                         ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
                         ctx.shadowBlur = 4;
                         ctx.fillRect(boxX, boxY, boxW, boxH);
 
+                        // Kenarlık
                         ctx.shadowColor = 'transparent';
-                        ctx.strokeStyle = item.color;
+                        ctx.strokeStyle = colorPrimary;
                         ctx.lineWidth = 1;
                         ctx.strokeRect(boxX, boxY, boxW, boxH);
 
-                        ctx.fillStyle = item.textColor;
+                        // Metin
+                        ctx.fillStyle = colorText;
                         ctx.fillText(labelText, textX, textY);
 
                         ctx.restore();
