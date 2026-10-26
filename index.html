@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teknopark Ofis Kiralama & Yönetim Paneli</title>
+    <title>Teknopark Yönetim Paneli</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -225,14 +225,14 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- DOLULUK ORANI GRAFİK KARTI (GELİŞMİŞ İLİŞKİ YOLLU OKLU ETİKETLER) -->
+                        <!-- DOLULUK ORANI GRAFİK KARTI (GELİŞMİŞ VE DIŞARI YÖNELİK KILAVUZ ÇİZGİLİ / ROZETLİ) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                             <h3 class="text-base font-bold text-gray-800 mb-2" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
-                            <div class="w-full max-w-[340px] mx-auto relative py-2">
+                            <div class="w-full h-[280px] relative flex items-center justify-center">
                                 <canvas id="occupancyChart"></canvas>
                             </div>
                             <div class="text-[11px] text-center text-gray-400 italic mt-2">
-                                Grafiğin dışına yönlendirilen göstergeler kiralanan ve boş alanları belirtir.
+                                Dağılım etiketleri ve metrekare değerleri grafik üzerinde yönlendirilmiştir.
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -1063,7 +1063,6 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
-        // DataLabels eklentisini kaydediyoruz (Genel grafikler için)
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -2495,6 +2494,50 @@
             });
         }
 
+        function renderExpiringAlerts() {
+            const alertContainer = document.getElementById('expiring-rentals-alert');
+            const tbody = document.getElementById('expiring-table-body');
+            tbody.innerHTML = '';
+            const today = new Date();
+            let count = 0;
+
+            const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.permissions.canEdit);
+            const canEnd = currentUser && (currentUser.role === 'admin' || currentUser.permissions.rentalEndContract);
+
+            data.rentals.filter(r => r.status === 'active' && r.endDate).forEach(r => {
+                const endDate = new Date(r.endDate);
+                const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+                if (diffDays <= 30) {
+                    count++;
+                    let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
+                    data.campuses.forEach(c => {
+                        const off = c.offices.find(o => String(o.id) === String(r.officeId));
+                        if(off) { officeName = off.name; campusName = c.name; }
+                    });
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-amber-100/30">
+                            <td class="p-2 font-bold text-gray-800">${r.company}</td>
+                            <td class="p-2 text-gray-600">${campusName} - ${officeName}</td>
+                            <td class="p-2 font-semibold text-gray-700">${r.endDate}</td>
+                            <td class="p-2 font-bold text-amber-800">${diffDays <= 0 ? 'Süresi Doldu!' : diffDays + ' Gün Kaldı'}</td>
+                            <td class="p-2 text-center">
+                                ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Düzenle</button>` : ''}
+                                ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="bg-red-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-red-700">Bitir</button>` : ''}
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (count > 0) {
+                document.getElementById('expiring-count-badge').innerText = count;
+                alertContainer.classList.remove('hidden');
+            } else { alertContainer.classList.add('hidden'); }
+        }
+
+        // KİRALAMA LİSTESİ: A-Z SIRALAMA VE FİRMA ARAMASI DESTEKLİ
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
@@ -3129,20 +3172,20 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // ==================== GRAFİK YÖNETİMİ & DIŞARI OKLU ÖZEL ETİKET EKLENTİSİ ====================
+        // ==================== GRAFİK YÖNETİMİ & ÇOK OKUNAKLI KILAVUZ ÇİZGİLİ DONUT EKLENTİSİ ====================
         function updateCharts() {
             const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
             const stats = getStats(selectedCampus);
 
-            // 1. DOLULUK ORANI: DIŞARI ÇIKAN OKLU / KILAVUZ ÇİZGİLİ ÖZEL DOUGHNUT GRAFİĞİ
+            // 1. DOLULUK ORANI: DIŞARI ÇIKAN KILAVUZ ÇİZGİLİ / ROZETLİ ÖZEL DOUGHNUT GRAFİĞİ
             const ctx1 = document.getElementById('occupancyChart').getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
-            // Özel Ok & Dış Etiket Çizim Eklentisi (Custom Plugin)
+            // Tamamen izole ve güvenli Canvas Çizim Eklentisi (Dış Etiketler)
             const doughnutCalloutPlugin = {
                 id: 'doughnutCallout',
                 afterDraw: function(chart) {
-                    const { ctx } = chart;
+                    const { ctx, chartArea } = chart;
                     const meta = chart.getDatasetMeta(0);
                     if (!meta || !meta.data || meta.data.length === 0) return;
 
@@ -3150,49 +3193,52 @@
 
                     meta.data.forEach((element, index) => {
                         const val = chart.data.datasets[0].data[index];
-                        if (!val || val <= 0) return;
+                        if (val === undefined || val === null || val <= 0) return;
 
                         const percentage = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
                         const labelText = `${val.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m² (%${percentage})`;
 
-                        // Dilim açısı ve koordinatları
+                        // Dilim merkez açısı ve yay dış noktası
                         const angle = (element.startAngle + element.endAngle) / 2;
                         const outerRadius = element.outerRadius;
                         const centerPoint = element.getCenterPoint();
 
-                        // Yayın dış çeperindeki çıkış noktası
+                        // Yayın dış çeperindeki başlangıç noktası
                         const startX = centerPoint.x + Math.cos(angle) * outerRadius;
                         const startY = centerPoint.y + Math.sin(angle) * outerRadius;
 
-                        // Dışarıya uzanan dirsek noktası
-                        const elbowDistance = outerRadius + 18;
+                        // Kılavuz dirsek noktası (yaydan 16px dışarıda)
+                        const elbowDistance = outerRadius + 16;
                         const elbowX = centerPoint.x + Math.cos(angle) * elbowDistance;
                         const elbowY = centerPoint.y + Math.sin(angle) * elbowDistance;
 
-                        // Yatay yön (Sağa mı sola mı uzanacak?)
+                        // Yatay yönlendirme (Sağ/Sol)
                         const isRight = Math.cos(angle) >= 0;
                         const horizontalLength = 22;
                         const endX = elbowX + (isRight ? horizontalLength : -horizontalLength);
                         const endY = elbowY;
 
+                        const colorPrimary = index === 0 ? '#059669' : '#d97706';
+                        const colorText = index === 0 ? '#065f46' : '#92400e';
+
                         ctx.save();
 
-                        // 1. Kılavuz Çizgi ve Oku Çiz
+                        // 1. Kılavuz Çizgiyi Çiz
                         ctx.beginPath();
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(elbowX, elbowY);
                         ctx.lineTo(endX, endY);
-                        ctx.strokeStyle = index === 0 ? '#059669' : '#d97706'; // Kiralanan: Yeşil, Boş: Amber
+                        ctx.strokeStyle = colorPrimary;
                         ctx.lineWidth = 1.5;
                         ctx.stroke();
 
-                        // 2. Çıkış noktasına minik bir bağlantı noktası koy
+                        // 2. Dilim Çeperindeki Bağlantı Noktası
                         ctx.beginPath();
                         ctx.arc(startX, startY, 2.5, 0, 2 * Math.PI);
-                        ctx.fillStyle = index === 0 ? '#059669' : '#d97706';
+                        ctx.fillStyle = colorPrimary;
                         ctx.fill();
 
-                        // 3. Rozet / Etiket Metnini Yazdır
+                        // 3. Rozet / Bilgi Kutusu Çizimi
                         ctx.font = 'bold 10px sans-serif';
                         ctx.textBaseline = 'middle';
                         ctx.textAlign = isRight ? 'left' : 'right';
@@ -3200,20 +3246,27 @@
                         const textX = endX + (isRight ? 6 : -6);
                         const textY = endY;
 
-                        // Metin arka plan kutucuğu (okunabilirlik için)
                         const textWidth = ctx.measureText(labelText).width;
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                        const bgPadX = 4, bgPadY = 3;
-                        const rectX = isRight ? textX - bgPadX : textX - textWidth - bgPadX;
-                        ctx.fillRect(rectX, textY - 7 - bgPadY, textWidth + (bgPadX * 2), 14 + (bgPadY * 2));
+                        const padX = 5, padY = 3;
+                        const boxX = isRight ? textX - padX : textX - textWidth - padX;
+                        const boxY = textY - 7 - padY;
+                        const boxW = textWidth + (padX * 2);
+                        const boxH = 14 + (padY * 2);
 
-                        // İnce çerçeve
-                        ctx.strokeStyle = 'rgba(209, 213, 219, 0.8)';
-                        ctx.lineWidth = 0.8;
-                        ctx.strokeRect(rectX, textY - 7 - bgPadY, textWidth + (bgPadX * 2), 14 + (bgPadY * 2));
+                        // Beyaz arka plan gölgesi
+                        ctx.fillStyle = '#ffffff';
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+                        ctx.shadowBlur = 4;
+                        ctx.fillRect(boxX, boxY, boxW, boxH);
 
-                        // Yazıyı yaz
-                        ctx.fillStyle = index === 0 ? '#065f46' : '#92400e';
+                        // İnce kenar çizgisi
+                        ctx.shadowColor = 'transparent';
+                        ctx.strokeStyle = colorPrimary;
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+                        // Etiket Metni
+                        ctx.fillStyle = colorText;
                         ctx.fillText(labelText, textX, textY);
 
                         ctx.restore();
@@ -3230,25 +3283,32 @@
                         backgroundColor: ['#10b981', '#f59e0b'],
                         borderWidth: 2,
                         borderColor: '#ffffff',
-                        hoverOffset: 4
+                        hoverOffset: 3
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
                     layout: {
-                        // Okların ve etiketlerin tuval dışına taşmaması için ferah padding
-                        padding: 48
+                        // Okların ve rozetlerin canvas dışına taşmaması için dengeli iç boşluk
+                        padding: {
+                            top: 25,
+                            bottom: 25,
+                            left: 35,
+                            right: 35
+                        }
                     },
                     plugins: {
                         legend: { 
                             position: 'bottom',
                             labels: {
                                 boxWidth: 12,
+                                padding: 15,
                                 font: { size: 11, weight: 'bold' }
                             }
                         },
-                        // Standart iç DataLabels'ı kapatıyoruz (artık oklar gösteriyor)
+                        // Standart iç datalabels kapatıldı (yerini dış kılavuz çizgiler aldı)
                         datalabels: {
                             display: false
                         }
