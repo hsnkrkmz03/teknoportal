@@ -1196,10 +1196,10 @@
             if (box) box.classList.add('hidden');
         }
 
-        window.addEventListener('click', function(e) {
-            const searchBox = document.getElementById('rental-company-search-box');
-            if (searchBox && !searchBox.classList.contains('hidden')) {
-                searchBox.classList.add('hidden');
+        // Kullanıcı diğer tarayıcıdan / sekmeden bu sekmeye geri tıkladığında verileri otomatik yeniler
+        window.addEventListener('focus', function() {
+            if (currentUser) {
+                fetchCentralData();
             }
         });
 
@@ -1254,21 +1254,12 @@
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
                 if (targetData) {
-                    const localReferees = data.refereePayments || [];
-                    const cloudReferees = targetData.refereePayments || [];
-                    const refMap = new Map();
-                    cloudReferees.forEach(item => { if (item && item.id) refMap.set(String(item.id), item); });
-                    localReferees.forEach(item => { if (item && item.id) refMap.set(String(item.id), item); });
-                    targetData.refereePayments = Array.from(refMap.values());
+                    // Buluttaki veriyi doğrudan ana kaynak olarak kabul ediyoruz (Eski yerel veri bulutu ezmemeli)
+                    data.campuses = targetData.campuses || data.campuses || [];
+                    data.rentals = targetData.rentals || data.rentals || [];
+                    data.refereePayments = targetData.refereePayments || [];
+                    data.manualPayments = targetData.manualPayments || [];
 
-                    const localManual = data.manualPayments || [];
-                    const cloudManual = targetData.manualPayments || [];
-                    const manMap = new Map();
-                    cloudManual.forEach(item => { if (item && item.id) manMap.set(String(item.id), item); });
-                    localManual.forEach(item => { if (item && item.id) manMap.set(String(item.id), item); });
-                    targetData.manualPayments = Array.from(manMap.values());
-
-                    data = targetData;
                     users = parsedPayload.users || users;
                     userNotes = parsedPayload.userNotes || userNotes;
 
