@@ -1921,11 +1921,6 @@
             renderPayments();
         }
 
-            closeModal('manual-payment-modal');
-            saveData();
-            renderPayments();
-        }
-
         function deleteManualPayment(id) {
             if (confirm("Bu fatura/gider ödemesini silmek istediğinize emin misiniz?")) {
                 data.manualPayments = data.manualPayments.filter(m => String(m.id) !== String(id));
