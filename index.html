@@ -3086,7 +3086,7 @@
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-        function processRentalExcelUpload() {
+function processRentalExcelUpload() {
             const fileInput = document.getElementById('rental-excel-file-input');
             const file = fileInput.files[0];
             if (!file) { alert("Lütfen yüklenecek bir Excel dosyası seçin."); return; }
@@ -3100,6 +3100,7 @@
                     }
                 }
                 const str = String(val).trim();
+                if (str === "" || str.toLowerCase() === "nan" || str.toLowerCase() === "null") return null;
                 const parts = str.split(/[./-]/);
                 if (parts.length === 3) {
                     if (parts[0].length === 4) return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
@@ -3141,7 +3142,10 @@
                             const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
                             const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
                             const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
-                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherCost]) : 0;
+                            
+                            // DÜZELTİLEN SATIR: row[otherCost] yerine row[otherKey] yazıldı
+                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
+                            
                             const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
                             const endDate = endKey ? parseExcelDate(row[endKey]) : null;
 
@@ -3177,7 +3181,6 @@
             };
             reader.readAsArrayBuffer(file);
         }
-
         function updateCharts() {
             const selectedCampus = document.getElementById('dash-campus-filter').value || 'all';
             const stats = getStats(selectedCampus);
