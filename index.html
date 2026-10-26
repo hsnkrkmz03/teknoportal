@@ -1629,7 +1629,25 @@ function getAllPaymentsList() {
                 return true;
             });
 
-            filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+            // AKILLI SIRALAMA:
+            // 1. Vadesi (dueDate) olanlar en başa gelir ve en yakından en uzağa sıralanır.
+            // 2. Vadesi olmayanlar (veya hakemler) bunların arkasına geçer ve eklenme sırasına (en yeni eklenen üstte) göre dizilir.
+            filtered.sort((a, b) => {
+                const hasDueA = !a.isPaid && Boolean(a.dueDate);
+                const hasDueB = !b.isPaid && Boolean(b.dueDate);
+
+                // İkisinin de vadesi varsa: En yakın tarih en üstte
+                if (hasDueA && hasDueB) {
+                    return a.dueDate.localeCompare(b.dueDate);
+                }
+                // Sadece a'nın vadesi varsa: a öne geçer
+                if (hasDueA && !hasDueB) return -1;
+                // Sadece b'nin vadesi varsa: b öne geçer
+                if (!hasDueA && hasDueB) return 1;
+
+                // İkisinin de vadesi yoksa: Eklendiği sıraya göre (en yeni ID en üstte)
+                return Number(b.id || 0) - Number(a.id || 0);
+            });
 
             let totalAmt = 0;
             const today = new Date();
