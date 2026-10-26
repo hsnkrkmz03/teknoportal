@@ -85,17 +85,19 @@
             </div>
 
             <!-- Kullanıcı Bilgisi Alanı -->
-<!-- Üst Alan: Logo ve Kullanıcı Bilgisi -->
-            <div class="shrink-0">
+<div class="shrink-0">
                 <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                     <div class="text-base font-bold flex items-center space-x-2 overflow-hidden">
                         <i class="fa-solid fa-microchip text-blue-400 text-lg"></i>
                         <span class="sidebar-text truncate">Teknopark Panel</span>
                     </div>
-                    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+                    <!-- Menü Daraltma / Genişletme Butonu -->
+                    <button type="button" onclick="toggleSidebar()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition" title="Menüyü Daralt/Genişlet">
                         <i class="fa-solid fa-bars text-base"></i>
                     </button>
                 </div>
+
+                <!-- Kullanıcı Bilgisi Alanı -->
                 <div class="px-4 py-2.5 border-b border-slate-800/60 sidebar-user-info bg-slate-950/30">
                     <div class="text-xs text-gray-400 flex items-center justify-between">
                         <span class="truncate mr-2">Giriş: <strong id="current-user-display" class="text-white">Admin</strong></span>
@@ -104,64 +106,67 @@
                 </div>
             </div>
 
-            <!-- Orta Alan: Sekme Butonları (Kendi içinde kayabilir) -->
+            <!-- 2. BÖLÜM: ORTA MENÜ BUTONLARI (Kendi İçinde Kayabilir) -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-chart-pie text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Dashboard & Analiz</span>
                 </button>
-                <button onclick="switchTab('campuses')" id="nav-campuses" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="switchTab('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-city text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Yerleşke & Ofisler</span>
                 </button>
-                <button onclick="switchTab('rentals')" id="nav-rentals" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="switchTab('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-file-contract text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Kiralama Takibi</span>
                 </button>
-                <button onclick="switchTab('referees')" id="nav-referees" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="switchTab('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Hakem Ödemeleri</span>
                 </button>
-                <button onclick="switchTab('payments')" id="nav-payments" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-money-bill-transfer text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Ödemeler Takibi</span>
                 </button>
-                <button onclick="switchTab('users')" id="nav-users" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition text-xs font-semibold">
+                <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition text-xs font-semibold">
                     <i class="fa-solid fa-users-gear text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Kullanıcı Yönetimi</span>
                 </button>
             </nav>
 
-            <!-- Alt Alan: Sabit Butonlar (Yedek, Profil, Çıkış - Asla Kaybolmaz) -->
+            <!-- 3. BÖLÜM: EN ALT SABİT ALAN (Yedekleme, Profil ve Çıkış) -->
             <div class="p-3 border-t border-slate-800 space-y-1.5 shrink-0 bg-slate-950/40">
                 <div id="backup-buttons-container" class="space-y-1.5">
-                    <button onclick="fetchCentralData()" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
+                    <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
                         <i class="fa-solid fa-cloud-arrow-down text-xs min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Buluttan Veri Çek</span>
                     </button>
-                    <button onclick="exportSystemJSON()" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
+                    <button onclick="exportSystemJSON()" title="Verileri Yedekle (JSON)" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
                         <i class="fa-solid fa-download text-xs min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Verileri Yedekle</span>
                     </button>
-                    <button onclick="openRestoreModal()" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
+                    <button onclick="openRestoreModal()" title="Yedek Geri Yükle" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-lg text-xs font-semibold transition">
                         <i class="fa-solid fa-upload text-xs min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Yedek Geri Yükle</span>
                     </button>
                 </div>
-                <button onclick="openProfileModal()" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
+
+                <button onclick="openProfileModal()" title="Hesap / Profil Ayarları" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-gray-200 rounded-lg text-xs font-semibold transition">
                     <i class="fa-solid fa-user-gear text-xs min-w-[16px]"></i>
                     <span class="sidebar-text truncate">Profil Ayarları</span>
                 </button>
-                <button onclick="logout()" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
+                <button onclick="logout()" title="Çıkış Yap" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition text-xs font-semibold">
                     <i class="fa-solid fa-right-from-bracket text-xs min-w-[16px]"></i>
                     <span class="sidebar-text truncate">Çıkış Yap</span>
                 </button>
             </div>
-        </aside>
 
-        <!-- SAĞ İÇERİK: h-screen ve overflow-y-auto ile bağımsız kaydırılır -->
+        </aside>
+        <!-- ASIDE BURADA TAM OLARAK KAPANIYOR -->
+
+        <!-- SAĞ İÇERİK ALANI (MAIN) - ASIDE BİTTİKTEN SONRA BAŞLAR -->
         <main class="flex-1 h-screen overflow-y-auto p-8 bg-gray-100">
-            <!-- Mevcut section içerikleriniz burada kalır -->
+            <!-- 1. DASHBOARD SEKMESİ VE DİĞER TÜM BÖLÜMLERİNİZ BURADA DEVAM EDER -->
 
             <!-- YEDEKLEME VE DİĞER HESAP BUTONLARI -->
             <div class="p-3 border-t border-slate-800 space-y-2">
