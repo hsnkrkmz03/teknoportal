@@ -1202,7 +1202,13 @@
                 fetchCentralData();
             }
         });
-
+        // Her 30 saniyede bir arka planda sessizce buluttan veri çekme döngüsü (Polling)
+        setInterval(function() {
+            const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
+            if (currentUser && !isAnyModalOpen) {
+                fetchCentralData();
+            }
+        }, 30000);
         window.onload = async function() {
             populateRefereeYearFilter();
             populatePaymentsYearFilter();
