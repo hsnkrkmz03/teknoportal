@@ -107,30 +107,30 @@
 
             <!-- ORTA ALAN: Navigasyon Butonları -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-chart-pie text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Dashboard & Analiz</span>
                 </button>
-                <button onclick="switchTab('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="('campuses')" id="nav-campuses" title="Yerleşke & Ofisler" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-city text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Yerleşke & Ofisler</span>
                 </button>
-                <button onclick="switchTab('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="('rentals')" id="nav-rentals" title="Kiralama Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-file-contract text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Kiralama Takibi</span>
                 </button>
                 <!-- HAKEM ÖDEMELERİ SEKMESİ -->
-                <button onclick="switchTab('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Hakem Ödemeleri</span>
                 </button>
                 <!-- ÖDEMELER TAKİBİ SEKMESİ -->
-                <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                <button onclick="('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-money-bill-transfer text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Ödemeler Takibi</span>
                 </button>
                 
-                <button onclick="switchTab('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition text-xs font-semibold">
+                <button onclick="('users')" id="nav-users" title="Kullanıcı Yönetimi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-amber-400 hover:bg-slate-800 hover:text-amber-300 transition text-xs font-semibold">
                     <i class="fa-solid fa-users-gear text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Kullanıcı Yönetimi</span>
                 </button>
@@ -1232,13 +1232,13 @@
                         populateCampusFilters();
                         renderAll();
 
-                        if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
-                        else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
-                        else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
-                        else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
-                        else if (currentUser.role === 'admin') switchTab('payments');
-                        else if (currentUser.role === 'admin') switchTab('users');
-                        else switchTab('dashboard');
+                        if (currentUser.permissions && currentUser.permissions.dashboard) ('dashboard');
+                        else if (currentUser.permissions && currentUser.permissions.campuses) ('campuses');
+                        else if (currentUser.permissions && currentUser.permissions.rentals) ('rentals');
+                        else if (currentUser.permissions && currentUser.permissions.referees) ('referees');
+                        else if (currentUser.role === 'admin') ('payments');
+                        else if (currentUser.role === 'admin') ('users');
+                        else ('dashboard');
                     }
                 } catch(e) { console.error("Oturum yükleme hatası:", e); }
             }
@@ -1431,13 +1431,13 @@
                 populateCampusFilters();
                 renderAll();
 
-                if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
-                else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
-                else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
-                else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
-                else if (currentUser.role === 'admin') switchTab('payments');
-                else if (currentUser.role === 'admin') switchTab('users');
-                else switchTab('dashboard');
+                if (currentUser.permissions && currentUser.permissions.dashboard) ('dashboard');
+                else if (currentUser.permissions && currentUser.permissions.campuses) ('campuses');
+                else if (currentUser.permissions && currentUser.permissions.rentals) ('rentals');
+                else if (currentUser.permissions && currentUser.permissions.referees) ('referees');
+                else if (currentUser.role === 'admin') ('payments');
+                else if (currentUser.role === 'admin') ('users');
+                else ('dashboard');
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
@@ -1523,7 +1523,7 @@
             document.getElementById('login-screen').classList.remove('hidden');
         }
 
-        function switchTab(tab) {
+function switchTab(tab) {
             ['dashboard', 'campuses', 'rentals', 'referees', 'payments', 'users'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
@@ -1544,7 +1544,12 @@
                 activeNav.classList.remove('text-gray-400');
             }
 
-            if(tab === 'dashboard') updateCharts();
+            // Sekme görünür olduktan hemen sonra grafikleri çiz
+            if(tab === 'dashboard') {
+                setTimeout(() => {
+                    updateCharts();
+                }, 50);
+            }
             if(tab === 'campuses') renderCampuses();
             if(tab === 'rentals') renderRentals();
             if(tab === 'referees') renderReferees();
@@ -2542,7 +2547,164 @@
 
             updateCharts();
         }
+// ==================== DASHBOARD GRAFİKLERİNİ ÇİZEN FONKSİYON ====================
+        function updateCharts() {
+            const canvasOcc = document.getElementById('occupancyChart');
+            const canvasRev = document.getElementById('revenueChart');
+            const canvasComp = document.getElementById('comparisonChart');
 
+            // Eğer canvas öğeleri sayfada yoksa çizimi iptal et
+            if (!canvasOcc || !canvasRev || !canvasComp) return;
+
+            // Eğer dashboard sekmesi kapalı/gizliyse çizimi bekle
+            const dashTab = document.getElementById('tab-dashboard');
+            if (dashTab && dashTab.classList.contains('hidden')) return;
+
+            const campusFilterEl = document.getElementById('dash-campus-filter');
+            const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
+            const stats = getStats(selectedCampus);
+
+            let currentCampusName = "Tüm Yerleşkeler";
+            if (selectedCampus !== 'all') {
+                const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
+                if (foundCampus) currentCampusName = foundCampus.name;
+            }
+
+            // 1. DOLULUK ORANI HALKA GRAFİĞİ (DOUGHNUT)
+            const ctx1 = canvasOcc.getContext('2d');
+            if (occupancyChartInstance) occupancyChartInstance.destroy();
+
+            const total = stats.totalArea;
+            const rentedPct = total > 0 ? ((stats.rentedArea / total) * 100).toFixed(1) : "0.0";
+            const availPct = total > 0 ? ((stats.availableArea / total) * 100).toFixed(1) : "0.0";
+
+            // Merkezdeki Büyük Yüzde
+            const centerPctEl = document.getElementById('donut-center-percentage');
+            if (centerPctEl) centerPctEl.innerText = `%${stats.occupancyRate}`;
+
+            // Alt Rozetler
+            const rentedM2El = document.getElementById('badge-rented-m2');
+            const rentedPctEl = document.getElementById('badge-rented-pct');
+            const availM2El = document.getElementById('badge-available-m2');
+            const availPctEl = document.getElementById('badge-available-pct');
+
+            if (rentedM2El) rentedM2El.innerText = `${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+            if (rentedPctEl) rentedPctEl.innerText = `%${rentedPct} Pay`;
+            if (availM2El) availM2El.innerText = `${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
+            if (availPctEl) availPctEl.innerText = `%${availPct} Pay`;
+
+            occupancyChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kiralanan Alan', 'Boş Alan'],
+                    datasets: [{
+                        data: [stats.rentedArea, stats.availableArea],
+                        backgroundColor: ['#10b981', '#f59e0b'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.raw || 0;
+                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
+                                    return ` ${context.label}: ${val.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m² (%${pct})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. GELİR DAĞILIMI BAR GRAFİĞİ
+            const campusLabels = [];
+            const campusRevenues = [];
+            const targetCampuses = selectedCampus === 'all' 
+                ? data.campuses 
+                : data.campuses.filter(c => String(c.id) === String(selectedCampus));
+
+            targetCampuses.forEach(c => {
+                let campusRevExcl = 0;
+                (c.offices || []).forEach(o => {
+                    data.rentals.filter(r => String(r.officeId) === String(o.id) && r.status === 'active').forEach(r => {
+                        const area = parseFloat(r.allocatedArea || 0);
+                        campusRevExcl += (area * (parseFloat(r.unitPrice) || 0)) + (area * (parseFloat(r.commonCostPerM2) || 0)) + parseFloat(r.otherCost || 0);
+                    });
+                });
+                campusLabels.push(c.name);
+                campusRevenues.push(campusRevExcl * (1 + VAT_RATE));
+            });
+
+            const ctx2 = canvasRev.getContext('2d');
+            if (revenueChartInstance) revenueChartInstance.destroy();
+            revenueChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: campusLabels,
+                    datasets: [{ label: 'Aylık Gelir (KDV Dahil)', data: campusRevenues, backgroundColor: '#6366f1', borderRadius: 6 }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#4f46e5',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: function(value) { return value.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺'; }
+                        }
+                    }
+                }
+            });
+
+            // 3. DOLULUK VE ALAN KARŞILAŞTIRMA GRAFİĞİ
+            const totalStats = getStats('all');
+            const ctx3 = canvasComp.getContext('2d');
+            if (comparisonChartInstance) comparisonChartInstance.destroy();
+
+            comparisonChartInstance = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: [currentCampusName, 'Genel Teknopark Toplamı'],
+                    datasets: [
+                        { label: 'Dolu Alan (m²)', data: [stats.rentedArea, totalStats.rentedArea], backgroundColor: '#10b981', borderRadius: 4 },
+                        { label: 'Boş Alan (m²)', data: [stats.availableArea, totalStats.availableArea], backgroundColor: '#f59e0b', borderRadius: 4 },
+                        { label: 'Toplam Kapasite (m²)', data: [stats.totalArea, totalStats.totalArea], backgroundColor: '#6366f1', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { stacked: false }, y: { beginAtZero: true, title: { display: true, text: 'Alan (m²)' } } },
+                    plugins: {
+                        legend: { position: 'top' },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#374151',
+                            font: { weight: 'bold', size: 9 },
+                            formatter: function(value, context) {
+                                const totalForBar = context.dataIndex === 0 ? stats.totalArea : totalStats.totalArea;
+                                const formattedVal = value.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+                                if (context.datasetIndex === 2) return `${formattedVal} m²`;
+                                const percentage = totalForBar > 0 ? ((value / totalForBar) * 100).toFixed(2) : (0).toFixed(2);
+                                return value > 0 ? `${formattedVal} m² (%${percentage})` : '';
+                            }
+                        }
+                    }
+                }
+            });
+        }
         // ==================== AKILLI OFİS ÖNERİ & GELİŞMİŞ FİLTRELEME MOTORU ====================
         function onPersonCountInput() {
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
