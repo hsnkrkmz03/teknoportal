@@ -80,7 +80,7 @@
     <!-- ANA PANEL (TAM EKRAN BOYUTUNA SABİTLENDİ) -->
     <div id="app" class="hidden h-screen w-screen flex overflow-hidden">
         
-        <!-- Sol Menü (Sidebar) - Ekran Boyunda Sabit, Kendi İçinde Bağımsız -->
+        <!-- Sol Menü (Sidebar) -->
         <aside id="main-sidebar" class="w-64 h-screen bg-slate-900 text-white flex flex-col justify-between shrink-0 relative transition-all duration-300 z-20 shadow-xl">
             
             <!-- ÜST ALAN: Logo ve Başlık -->
@@ -105,7 +105,7 @@
                 </div>
             </div>
 
-            <!-- ORTA ALAN: Navigasyon Butonları (Kendi İçinde Bağımsız Kayar) -->
+            <!-- ORTA ALAN: Navigasyon Butonları -->
             <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" title="Dashboard & Analiz" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-chart-pie text-base min-w-[20px]"></i>
@@ -124,7 +124,7 @@
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Hakem Ödemeleri</span>
                 </button>
-                <!-- ÖDEMELER TAKİBİ SEKMESİ (SADECE ADMİNE GÖRÜNÜR) -->
+                <!-- ÖDEMELER TAKİBİ SEKMESİ -->
                 <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-money-bill-transfer text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Ödemeler Takibi</span>
@@ -136,7 +136,7 @@
                 </button>
             </nav>
 
-            <!-- ALT ALAN: Sabit Alt Butonlar (Yedekleme, Profil ve Çıkış - Daima Ekranda) -->
+            <!-- ALT ALAN: Sabit Alt Butonlar -->
             <div class="p-3 border-t border-slate-800 space-y-1.5 shrink-0 bg-slate-950/40">
                 <div id="backup-buttons-container" class="space-y-1.5">
                     <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
@@ -164,7 +164,7 @@
             </div>
         </aside>
 
-        <!-- SAĞ İÇERİK ALANI (BAĞIMSIZ KAYDIRMA) -->
+        <!-- SAĞ İÇERİK ALANI -->
         <main class="flex-1 h-screen overflow-y-auto p-8 bg-gray-100">
             
             <!-- 1. DASHBOARD SEKMESİ -->
@@ -239,24 +239,20 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- DOLULUK ORANI KARTI (ORTASI YÜZDELİ & ALT ROZETLİ) -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
                             <div class="flex items-center justify-between mb-2">
                                 <h3 class="text-base font-bold text-gray-800 truncate" id="dash-occupancy-chart-title">Tüm Yerleşkeler Doluluk Oranı</h3>
                                 <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">Canlı Oran</span>
                             </div>
 
-                            <!-- Ortasında Yüzde Yazan Halka Alanı -->
                             <div class="w-full h-[210px] relative flex items-center justify-center my-1">
                                 <canvas id="occupancyChart"></canvas>
-                                <!-- Halka Merkezindeki Büyük Yüzde -->
                                 <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
                                     <span class="text-2xl font-black text-gray-800 tracking-tight" id="donut-center-percentage">%0.0</span>
                                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Doluluk</span>
                                 </div>
                             </div>
 
-                            <!-- Alt Rozet Kartları -->
                             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 mt-2">
                                 <div class="bg-emerald-50/70 border border-emerald-100 rounded-lg p-2.5 flex items-center space-x-2.5">
                                     <div class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></div>
@@ -277,14 +273,12 @@
                             </div>
                         </div>
 
-                        <!-- GELİR DAĞILIMI KARTI -->
                         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <h3 class="text-base font-bold text-gray-800 mb-4">Yerleşke Bazlı Gelir Dağılımı (KDV Dahil)</h3>
                             <div><canvas id="revenueChart"></canvas></div>
                         </div>
                     </div>
 
-                    <!-- KARŞILAŞTIRMA GRAFİĞİ -->
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-4 border-b pb-3">
                             <div>
@@ -415,11 +409,11 @@
                     <div class="flex flex-wrap justify-end items-center gap-2">
                         <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
                             <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-filter mr-1 text-blue-600"></i> Yerleşke:</label>
-                            <select id="rentals-campus-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="()"></select>
+                            <select id="rentals-campus-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderRentals()"></select>
                         </div>
                         <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
                             <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-toggle-on mr-1 text-blue-600"></i> Durum:</label>
-                            <select id="rentals-status-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="()">
+                            <select id="rentals-status-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderRentals()">
                                 <option value="all">Tüm Sözleşmeler (Aktif + Pasif)</option>
                                 <option value="active" selected>Yalnızca Aktif Sözleşmeler</option>
                                 <option value="completed">Yalnızca Pasif / Biten Sözleşmeler</option>
@@ -442,7 +436,7 @@
                                     </div>
                                     <div id="rental-company-search-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-30 min-w-[210px]" onclick="event.stopPropagation()">
                                         <div class="relative">
-                                            <input type="text" id="rental-company-search-input" placeholder="Firma adı ile ara..." oninput="()" class="w-full pl-7 pr-6 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal text-gray-800">
+                                            <input type="text" id="rental-company-search-input" placeholder="Firma adı ile ara..." oninput="renderRentals()" class="w-full pl-7 pr-6 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal text-gray-800">
                                             <i class="fa-solid fa-magnifying-glass absolute left-2 top-2 text-gray-400 text-xs"></i>
                                             <button type="button" onclick="clearRentalCompanySearch()" class="absolute right-2 top-1.5 text-gray-400 hover:text-red-500 text-xs">
                                                 <i class="fa-solid fa-xmark"></i>
@@ -568,7 +562,7 @@
                                 </button>
                             </div>
 
-                            <button onclick="()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
+                            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
                                 <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
                             </button>
                             <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
@@ -1275,7 +1269,6 @@
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
                     (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
-                    // Yerleşkeler ve İçindeki Ofislerin Silinme Koruması
                     data.campuses = (targetData.campuses || [])
                         .filter(c => !recentlyDeletedIds.has('cam_' + String(c.id)))
                         .map(c => ({
@@ -1283,11 +1276,9 @@
                             offices: (c.offices || []).filter(o => !recentlyDeletedIds.has('off_' + String(o.id)))
                         }));
 
-                    // Sözleşmelerin Silinme Koruması
                     data.rentals = (targetData.rentals || [])
                         .filter(rent => !recentlyDeletedIds.has('rent_' + String(rent.id)));
 
-                    // Hakem Ödemeleri Koruması
                     data.refereePayments = (targetData.refereePayments || [])
                         .filter(r => !recentlyDeletedIds.has('ref_' + String(r.id)))
                         .map(r => {
@@ -1298,7 +1289,6 @@
                             return r;
                         });
 
-                    // Fatura / Gider Ödemeleri Koruması
                     data.manualPayments = (targetData.manualPayments || [])
                         .filter(m => !recentlyDeletedIds.has('man_' + String(m.id)))
                         .map(m => {
@@ -1595,7 +1585,6 @@
             renderPayments();
         }
 
-        // Tarih formatlarını (YYYY-MM-DD veya GG.AA.YYYY) YYYY-MM-DD'ye normalize eder
         function toISODate(dateStr) {
             if (!dateStr) return '';
             const clean = String(dateStr).trim();
@@ -1611,14 +1600,16 @@
 
         function toTRDate(isoStr) {
             if (!isoStr) return '';
-            const parts = String(isoStr).trim().split('-');
-            if (parts.length === 3 && parts[0].length === 4) {
-                return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            const parts = String(isoStr).trim().split(/[-./]/);
+            if (parts.length === 3) {
+                if (parts[0].length === 4) {
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+                return `${parts[0]}/${parts[1]}/${parts[2]}`;
             }
             return isoStr;
         }
 
-        // Standart Parasal Değer Biçimlendirici (₺ simgesi sonda, standart font)
         function formatCurrency(amount) {
             const formatted = (parseFloat(amount) || 0).toLocaleString('tr-TR', {
                 minimumFractionDigits: 2,
@@ -1692,7 +1683,6 @@
                 return true;
             });
 
-            // AKILLI SIRALAMA
             filtered.sort((a, b) => {
                 const hasDueA = !a.isPaid && Boolean(a.dueDate);
                 const hasDueB = !b.isPaid && Boolean(b.dueDate);
@@ -1909,7 +1899,7 @@
             }
         }
 
-function exportPaymentsToExcel() {
+        function exportPaymentsToExcel() {
             try {
                 const selYear = document.getElementById('payments-year-filter').value;
                 const selMonth = document.getElementById('payments-month-filter').value;
@@ -1934,7 +1924,6 @@ function exportPaymentsToExcel() {
                     return;
                 }
 
-                // DİKKAT: toFixed(2) metin yapar. Doğrudan Number/parseFloat gönderiyoruz:
                 const exportList = filtered.map(item => ({
                     "Durum": item.isPaid ? 'Ödendi' : 'Ödenecek',
                     "Ödeme Tarihi": item.paymentDate || '-',
@@ -1948,12 +1937,11 @@ function exportPaymentsToExcel() {
                 if (typeof XLSX !== 'undefined') {
                     const ws = XLSX.utils.json_to_sheet(exportList);
 
-                    // Excel Hücrelerine Binlik Ayraç ve 2 Basamak Ondalık Formatı Uygula
                     const range = XLSX.utils.decode_range(ws['!ref']);
                     for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                        const cellRef = XLSX.utils.encode_cell({ r: R, c: 6 }); // 6. sütun: Tutar (₺)
+                        const cellRef = XLSX.utils.encode_cell({ r: R, c: 6 });
                         if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
-                            ws[cellRef].z = '#,##0.00'; // Excel binlik ayraçlı formatı
+                            ws[cellRef].z = '#,##0.00';
                         }
                     }
 
@@ -2264,7 +2252,7 @@ function exportPaymentsToExcel() {
             }
         }
 
-function exportRefereesToExcel() {
+        function exportRefereesToExcel() {
             try {
                 if (!data || !data.refereePayments || data.refereePayments.length === 0) {
                     alert("Sistemde henüz kayıtlı hakem ödemesi bulunmuyor.");
@@ -2321,7 +2309,6 @@ function exportRefereesToExcel() {
                 if (typeof XLSX !== 'undefined') {
                     const ws = XLSX.utils.json_to_sheet(exportList);
 
-                    // Parasal sütunlara (6, 7 ve 8. sütunlar) format uygulama
                     const range = XLSX.utils.decode_range(ws['!ref']);
                     for (let R = range.s.r + 1; R <= range.e.r; ++R) {
                         [6, 7, 8].forEach(C => {
@@ -2361,16 +2348,20 @@ function exportRefereesToExcel() {
         function populateCampusFilters() {
             const dashSelect = document.getElementById('dash-campus-filter');
             const rentalsSelect = document.getElementById('rentals-campus-filter');
-            const currentDashVal = dashSelect.value || 'all';
-            const currentRentalsVal = rentalsSelect.value || 'all';
+            const currentDashVal = dashSelect ? dashSelect.value : 'all';
+            const currentRentalsVal = rentalsSelect ? rentalsSelect.value : 'all';
 
             let options = '<option value="all">Tüm Yerleşkeler</option>';
             data.campuses.forEach(c => { options += `<option value="${c.id}">${c.name}</option>`; });
 
-            dashSelect.innerHTML = options;
-            rentalsSelect.innerHTML = options;
-            dashSelect.value = currentDashVal;
-            rentalsSelect.value = currentRentalsVal;
+            if (dashSelect) {
+                dashSelect.innerHTML = options;
+                dashSelect.value = currentDashVal || 'all';
+            }
+            if (rentalsSelect) {
+                rentalsSelect.innerHTML = options;
+                rentalsSelect.value = currentRentalsVal || 'all';
+            }
         }
 
         function clearCampusFilters() {
@@ -2834,8 +2825,8 @@ function exportRefereesToExcel() {
             const tbody = document.getElementById('rental-table-body');
             tbody.innerHTML = '';
 
-            const selectedCampus = document.getElementById('rentals-campus-filter').value || 'all';
-            const selectedStatus = document.getElementById('rentals-status-filter').value || 'all';
+            const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
+            const selectedStatus = document.getElementById('rentals-status-filter') ? document.getElementById('rentals-status-filter').value : 'all';
             const searchInput = document.getElementById('rental-company-search-input');
             const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
@@ -3475,220 +3466,9 @@ function exportRefereesToExcel() {
             reader.readAsArrayBuffer(file);
         }
 
-        // ==================== GRAFİK YÖNETİMİ & KESİN DÜZELTİLMİŞ DOUGHNUT ====================
-        function updateCharts() {
-            const campusFilterEl = document.getElementById('dash-campus-filter');
-            const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
-            const stats = getStats(selectedCampus);
-
-            let currentCampusName = "Tüm Yerleşkeler";
-            if (selectedCampus !== 'all') {
-                const foundCampus = data.campuses.find(c => String(c.id) === String(selectedCampus));
-                if (foundCampus) currentCampusName = foundCampus.name;
-            }
-
-            const ctx1 = document.getElementById('occupancyChart').getContext('2d');
-            if (occupancyChartInstance) occupancyChartInstance.destroy();
-
-            const total = stats.totalArea;
-            const rentedPct = total > 0 ? ((stats.rentedArea / total) * 100).toFixed(1) : "0.0";
-            const availPct = total > 0 ? ((stats.availableArea / total) * 100).toFixed(1) : "0.0";
-
-            const centerPctEl = document.getElementById('donut-center-percentage');
-            if (centerPctEl) centerPctEl.innerText = `%${stats.occupancyRate}`;
-
-            const rentedM2El = document.getElementById('badge-rented-m2');
-            const rentedPctEl = document.getElementById('badge-rented-pct');
-            const availM2El = document.getElementById('badge-available-m2');
-            const availPctEl = document.getElementById('badge-available-pct');
-
-            if (rentedM2El) rentedM2El.innerText = `${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-            if (rentedPctEl) rentedPctEl.innerText = `%${rentedPct} Pay`;
-            if (availM2El) availM2El.innerText = `${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-            if (availPctEl) availPctEl.innerText = `%${availPct} Pay`;
-
-            occupancyChartInstance = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Kiralanan Alan', 'Boş Alan'],
-                    datasets: [{
-                        data: [stats.rentedArea, stats.availableArea],
-                        backgroundColor: ['#10b981', '#f59e0b'],
-                        borderWidth: 3,
-                        borderColor: '#ffffff',
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '72%',
-                    plugins: {
-                        legend: { display: false },
-                        datalabels: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const val = context.raw || 0;
-                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
-                                    return ` ${context.label}: ${val.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m² (%${pct})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // 2. GELİR DAĞILIMI
-            const campusLabels = [];
-            const campusRevenues = [];
-            const targetCampuses = selectedCampus === 'all' 
-                ? data.campuses 
-                : data.campuses.filter(c => String(c.id) === String(selectedCampus));
-
-            targetCampuses.forEach(c => {
-                let campusRevExcl = 0;
-                (c.offices || []).forEach(o => {
-                    data.rentals.filter(r => String(r.officeId) === String(o.id) && r.status === 'active').forEach(r => {
-                        const area = parseFloat(r.allocatedArea || 0);
-                        campusRevExcl += (area * (parseFloat(r.unitPrice) || 0)) + (area * (parseFloat(r.commonCostPerM2) || 0)) + parseFloat(r.otherCost || 0);
-                    });
-                });
-                campusLabels.push(c.name);
-                campusRevenues.push(campusRevExcl * (1 + VAT_RATE));
-            });
-
-            const ctx2 = document.getElementById('revenueChart').getContext('2d');
-            if (revenueChartInstance) revenueChartInstance.destroy();
-            revenueChartInstance = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: campusLabels,
-                    datasets: [{ label: 'Aylık Gelir (KDV Dahil)', data: campusRevenues, backgroundColor: '#6366f1', borderRadius: 6 }]
-                },
-                options: {
-                    responsive: true, scales: { y: { beginAtZero: true } },
-                    plugins: {
-                        datalabels: {
-                            anchor: 'end', align: 'top', color: '#4f46e5', font: { weight: 'bold', size: 10 },
-                            formatter: function(value) { return value.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺'; }
-                        }
-                    }
-                }
-            });
-
-            // 3. KARŞILAŞTIRMA GRAFİĞİ
-            const totalStats = getStats('all');
-            const ctx3 = document.getElementById('comparisonChart').getContext('2d');
-            if (comparisonChartInstance) comparisonChartInstance.destroy();
-
-            comparisonChartInstance = new Chart(ctx3, {
-                type: 'bar',
-                data: {
-                    labels: [currentCampusName, 'Genel Teknopark Toplamı'],
-                    datasets: [
-                        { label: 'Dolu Alan (m²)', data: [stats.rentedArea, totalStats.rentedArea], backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Boş Alan (m²)', data: [stats.availableArea, totalStats.availableArea], backgroundColor: '#f59e0b', borderRadius: 4 },
-                        { label: 'Toplam Kapasite (m²)', data: [stats.totalArea, totalStats.totalArea], backgroundColor: '#6366f1', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { stacked: false }, y: { beginAtZero: true, title: { display: true, text: 'Alan (m²)' } } },
-                    plugins: {
-                        legend: { position: 'top' },
-                        datalabels: {
-                            anchor: 'end', align: 'top', color: '#374151', font: { weight: 'bold', size: 9 },
-                            formatter: function(value, context) {
-                                const totalForBar = context.dataIndex === 0 ? stats.totalArea : totalStats.totalArea;
-                                const formattedVal = value.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
-                                if (context.datasetIndex === 2) return `${formattedVal}m²`;
-                                const percentage = totalForBar > 0 ? ((value / totalForBar) * 100).toFixed(2) : (0).toFixed(2);
-                                return value > 0 ? `${formattedVal}m² (%${percentage})` : '';
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function exportDashboardVisualPDF() {
-            const captureArea = document.getElementById('dashboard-capture-area');
-            html2canvas(captureArea, { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 190;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                pdf.setFontSize(16);
-                pdf.text("Teknopark Dashboard ve Analiz Raporu", 10, 12);
-                pdf.setFontSize(9);
-                pdf.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 10, 17);
-                pdf.addImage(imgData, 'PNG', 10, 22, imgWidth, imgHeight);
-                pdf.save(`Teknopark_Dashboard_Gorsel_${new Date().toISOString().split('T')[0]}.pdf`);
-            });
-        }
-
-        function openExcelUploadModal() {
-            const select = document.getElementById('excel-upload-campus-select');
-            select.innerHTML = '';
-            data.campuses.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
-            document.getElementById('excel-file-input').value = '';
-            document.getElementById('excel-upload-modal').classList.remove('hidden');
-        }
-
-        function processExcelUpload() {
-            const campusId = document.getElementById('excel-upload-campus-select').value;
-            const fileInput = document.getElementById('excel-file-input');
-            const file = fileInput.files[0];
-
-            if (!campusId || !file) { alert("Lütfen yerleşke ve dosya seçin."); return; }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const dataBuffer = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(dataBuffer, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonRows = XLSX.utils.sheet_to_json(worksheet);
-
-                    const campus = data.campuses.find(c => String(c.id) === String(campusId));
-                    if (!campus || jsonRows.length === 0) return;
-
-                    let addedCount = 0;
-                    jsonRows.forEach(row => {
-                        const keys = Object.keys(row);
-                        const nameKey = keys.find(k => k.trim().toLowerCase().includes('ofis') || k.trim().toLowerCase().includes('ad'));
-                        const areaKey = keys.find(k => k.trim().toLowerCase().includes('büyüklük') || k.trim().toLowerCase().includes('m2') || k.trim().toLowerCase().includes('alan'));
-                        const floorKey = keys.find(k => k.trim().toLowerCase().includes('kat'));
-
-                        if (nameKey && areaKey && row[nameKey] && !isNaN(parseFloat(row[areaKey]))) {
-                            if (!campus.offices) campus.offices = [];
-                            campus.offices.push({
-                                id: Date.now() + Math.floor(Math.random() * 1000),
-                                name: String(row[nameKey]).trim(),
-                                area: parseFloat(row[areaKey]),
-                                floor: floorKey && row[floorKey] ? String(row[floorKey]).trim() : '1. Kat'
-                            });
-                            addedCount++;
-                        }
-                    });
-
-                    if (addedCount > 0) {
-                        alert(`Başarıyla ${addedCount} adet ofis tanımlandı.`);
-                        closeModal('excel-upload-modal');
-                        saveData();
-                    } else { alert("Excel sütunları eşleştirilemedi."); }
-                } catch (err) { alert("Hata: " + err.message); }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-function getExportData() {
-            const selectedCampus = document.getElementById('rentals-campus-filter').value || 'all';
-            const selectedStatus = document.getElementById('rentals-status-filter').value || 'all';
+        function getExportData() {
+            const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
+            const selectedStatus = document.getElementById('rentals-status-filter') ? document.getElementById('rentals-status-filter').value : 'all';
             const searchInput = document.getElementById('rental-company-search-input');
             const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
@@ -3728,7 +3508,7 @@ function getExportData() {
                     "Başlangıç Tarihi": r.startDate ? toTRDate(r.startDate) : '-', 
                     "Bitiş Tarihi": r.endDate ? toTRDate(r.endDate) : '-',
                     "Kira Tutarı (₺)": Number(totalRent.toFixed(2)), 
-                    "Ortak Gider (₺)": Number(totalCommonCost.toFixed(2)),
+                    "Ortak Gider (₺)": Number(totalCommonCost.toFixed(2)), 
                     "Katılım Payı (₺)": Number(parseFloat(r.otherCost || 0).toFixed(2)),
                     "Toplam (KDV Hariç ₺)": Number(totalExclVat.toFixed(2)), 
                     "Toplam (KDV Dahil ₺)": Number(totalInclVat.toFixed(2))
@@ -3741,7 +3521,6 @@ function getExportData() {
             if (exportData.length === 0) { alert("İndirilecek veri bulunamadı."); return; }
             const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-            // Alan ve Parasal sütunlara (4, 7, 8, 9, 10, 11. sütunlar) binlik ayraçlı format uygulama
             const range = XLSX.utils.decode_range(worksheet['!ref']);
             for (let R = range.s.r + 1; R <= range.e.r; ++R) {
                 [4, 7, 8, 9, 10, 11].forEach(C => {
