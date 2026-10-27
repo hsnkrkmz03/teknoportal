@@ -1162,7 +1162,22 @@
 
         let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
         let currentUser = null;
+let isSyncing = false; // Veri yazılırken araya veri çekme girmesini engelleyen kilit
 
+        // Kullanıcı sekme değiştirdiğinde
+        window.addEventListener('focus', function() {
+            if (currentUser && !isSyncing) {
+                fetchCentralData();
+            }
+        });
+
+        // Her 30 saniyede bir arka planda sessizce veri çekme
+        setInterval(function() {
+            const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
+            if (currentUser && !isAnyModalOpen && !isSyncing) {
+                fetchCentralData();
+            }
+        }, 30000);
         let occupancyChartInstance = null;
         let revenueChartInstance = null;
         let comparisonChartInstance = null;
@@ -1298,6 +1313,8 @@
         }
 
         async function saveData() {
+            isSyncing = true; // KİLİT AKTİF: Kayıt sürerken arka plan veri çekmesi engellenir
+
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
@@ -1315,7 +1332,14 @@
                     });
                 } catch(err) {
                     console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
+                } finally {
+                    // Google Apps Script'in veriyi veritabanına yazmasını garantiye almak için 2.5 sn mola
+                    setTimeout(() => {
+                        isSyncing = false; // KİLİT KALKTI
+                    }, 2500);
                 }
+            } else {
+                isSyncing = false;
             }
         }
 
