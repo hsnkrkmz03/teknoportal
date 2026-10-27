@@ -415,11 +415,11 @@
                     <div class="flex flex-wrap justify-end items-center gap-2">
                         <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
                             <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-filter mr-1 text-blue-600"></i> Yerleşke:</label>
-                            <select id="rentals-campus-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderRentals()"></select>
+                            <select id="rentals-campus-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="()"></select>
                         </div>
                         <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
                             <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-toggle-on mr-1 text-blue-600"></i> Durum:</label>
-                            <select id="rentals-status-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderRentals()">
+                            <select id="rentals-status-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="()">
                                 <option value="all">Tüm Sözleşmeler (Aktif + Pasif)</option>
                                 <option value="active" selected>Yalnızca Aktif Sözleşmeler</option>
                                 <option value="completed">Yalnızca Pasif / Biten Sözleşmeler</option>
@@ -442,7 +442,7 @@
                                     </div>
                                     <div id="rental-company-search-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-30 min-w-[210px]" onclick="event.stopPropagation()">
                                         <div class="relative">
-                                            <input type="text" id="rental-company-search-input" placeholder="Firma adı ile ara..." oninput="renderRentals()" class="w-full pl-7 pr-6 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal text-gray-800">
+                                            <input type="text" id="rental-company-search-input" placeholder="Firma adı ile ara..." oninput="()" class="w-full pl-7 pr-6 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 font-normal text-gray-800">
                                             <i class="fa-solid fa-magnifying-glass absolute left-2 top-2 text-gray-400 text-xs"></i>
                                             <button type="button" onclick="clearRentalCompanySearch()" class="absolute right-2 top-1.5 text-gray-400 hover:text-red-500 text-xs">
                                                 <i class="fa-solid fa-xmark"></i>
@@ -2880,8 +2880,8 @@ function exportRefereesToExcel() {
                         <td class="p-4 font-semibold text-gray-800">${r.company}</td>
                         <td class="p-4">${campusName} - <strong>${officeName}</strong></td>
                         <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
-                        <td class="p-4 text-xs font-medium text-gray-600">${r.startDate || '-'}</td>
-                        <td class="p-4 text-xs font-medium text-gray-600">${r.endDate || '-'}</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${r.startDate ? toTRDate(r.startDate) : '-'}</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${r.endDate ? toTRDate(r.endDate) : '-'}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(r.otherCost)}</td>
@@ -3725,8 +3725,8 @@ function getExportData() {
                     "Yerleşke": campusName, 
                     "Ofis": officeName,
                     "Alan (m²)": Number(area.toFixed(2)), 
-                    "Başlangıç Tarihi": r.startDate || '-', 
-                    "Bitiş Tarihi": r.endDate || '-',
+                    "Başlangıç Tarihi": r.startDate ? toTRDate(r.startDate) : '-', 
+                    "Bitiş Tarihi": r.endDate ? toTRDate(r.endDate) : '-',
                     "Kira Tutarı (₺)": Number(totalRent.toFixed(2)), 
                     "Ortak Gider (₺)": Number(totalCommonCost.toFixed(2)),
                     "Katılım Payı (₺)": Number(parseFloat(r.otherCost || 0).toFixed(2)),
