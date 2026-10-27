@@ -1253,39 +1253,26 @@ let isSyncing = false;
             }
         };
 
-        async function fetchCentralData() {
-            if (!APPS_SCRIPT_URL) return;
-
-            const statusEl = document.getElementById('cloud-sync-status');
-            if (statusEl) {
-                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
-                statusEl.className = "mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm";
-            }
-
-            try {
-                const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
-                const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow' });
-                const textData = await res.text();
-                
-                if (!textData || textData.trim() === "") throw new Error("Boş yanıt döndü.");
-
-                let parsedPayload = JSON.parse(textData);
-                if (typeof parsedPayload === 'string') parsedPayload = JSON.parse(parsedPayload);
-
-                let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
-
 if (targetData) {
-                    // Yereldeki ödenme durumlarını geçici bir haritada tut (ezilmeyi önlemek için)
                     const localPaidStatus = new Map();
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
                     (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
-                    data.campuses = targetData.campuses || data.campuses || [];
-                    data.rentals = targetData.rentals || data.rentals || [];
-                    
-                    // Buluttan gelen hakem ödemeleri (Silinenleri ve ezilmeleri filtrele)
+                    // Yerleşkeler ve İçindeki Ofislerin Silinme Koruması
+                    data.campuses = (targetData.campuses || [])
+                        .filter(c => !recentlyDeletedIds.has('cam_' + String(c.id)))
+                        .map(c => ({
+                            ...c,
+                            offices: (c.offices || []).filter(o => !recentlyDeletedIds.has('off_' + String(o.id)))
+                        }));
+
+                    // Sözleşmelerin Silinme Koruması
+                    data.rentals = (targetData.rentals || [])
+                        .filter(rent => !recentlyDeletedIds.has('rent_' + String(rent.id)));
+
+                    // Hakem Ödemeleri Koruması
                     data.refereePayments = (targetData.refereePayments || [])
-                        .filter(r => !recentlyDeletedIds.has('ref_' + String(r.id))) // Yeni silinmişse buluttan gelse bile alma!
+                        .filter(r => !recentlyDeletedIds.has('ref_' + String(r.id)))
                         .map(r => {
                             const local = localPaidStatus.get('ref_' + r.id);
                             if (isSyncing && local) {
@@ -1294,9 +1281,9 @@ if (targetData) {
                             return r;
                         });
 
-                    // Buluttan gelen fatura/gider ödemeleri (Silinenleri ve ezilmeleri filtrele)
+                    // Fatura / Gider Ödemeleri Koruması
                     data.manualPayments = (targetData.manualPayments || [])
-                        .filter(m => !recentlyDeletedIds.has('man_' + String(m.id))) // Yeni silinmişse buluttan gelse bile alma!
+                        .filter(m => !recentlyDeletedIds.has('man_' + String(m.id)))
                         .map(m => {
                             const local = localPaidStatus.get('man_' + m.id);
                             if (isSyncing && local) {
@@ -1305,7 +1292,10 @@ if (targetData) {
                             return m;
                         });
 
-                    users = parsedPayload.users || users;
+                    // Kullanıcıların Silinme Koruması
+                    users = (parsedPayload.users || users)
+                        .filter(u => !recentlyDeletedIds.has('user_' + String(u.id)));
+
                     userNotes = parsedPayload.userNotes || userNotes;
 
                     localStorage.setItem('teknoparkData', JSON.stringify(data));
@@ -1317,6 +1307,7 @@ if (targetData) {
                         statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
                     }
                     if (currentUser) renderAll();
+                }
                 
                 } else { throw new Error("Geçerli veri yapısı bulunamadı."); }
             } catch (e) {
@@ -2881,14 +2872,17 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             }
         }
 
-        function deleteContractDirectly(rentalId) {
+        // 3. KİRA SÖZLEŞMESİ SİLME
+        async function deleteContractDirectly(rentalId) {
             if(!currentUser || currentUser.role !== 'admin') return;
             const r = data.rentals.find(item => String(item.id) === String(rentalId));
             if(!r) return;
 
             if(confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi SİLMEK istediğinize emin misiniz?`)) {
+                recentlyDeletedIds.add('rent_' + String(rentalId)); // Koruma kümesine ekle
                 data.rentals = data.rentals.filter(item => String(item.id) !== String(rentalId));
-                saveData();
+                renderRentals();
+                await saveData();
             }
         }
 
@@ -3027,10 +3021,13 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             saveData();
         }
 
-        function deleteUser(id) {
+        // 4. KULLANICI SİLME
+        async function deleteUser(id) {
             if(confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
+                recentlyDeletedIds.add('user_' + String(id)); // Koruma kümesine ekle
                 users = users.filter(u => String(u.id) !== String(id));
-                saveData();
+                renderUsers();
+                await saveData();
             }
         }
 
@@ -3297,7 +3294,8 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             closeModal('end-rental-modal'); saveData();
         }
 
-        function deleteOffice(campusId, officeId) {
+// 1. OFİS SİLME
+        async function deleteOffice(campusId, officeId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
 
@@ -3311,16 +3309,19 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             }
 
             if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
+                recentlyDeletedIds.add('off_' + String(officeId)); // Koruma kümesine ekle
                 const campus = data.campuses.find(c => String(c.id) === String(campusId));
                 if(campus && campus.offices) {
                     campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
                     data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
                 }
-                saveData();
+                renderCampuses();
+                await saveData();
             }
         }
 
-        function deleteCampus(campusId) {
+        // 2. YERLEŞKE SİLME
+        async function deleteCampus(campusId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
 
@@ -3339,8 +3340,10 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             }
 
             if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
+                recentlyDeletedIds.add('cam_' + String(campusId)); // Koruma kümesine ekle
                 data.campuses = data.campuses.filter(c => String(c.id) !== String(campusId));
-                saveData();
+                renderCampuses();
+                await saveData();
             }
         }
 
