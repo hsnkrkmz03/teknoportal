@@ -1162,8 +1162,8 @@
 
         let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
         let currentUser = null;
-let isSyncing = false; // Veri yazılırken araya veri çekme girmesini engelleyen kilit
-
+let isSyncing = false;
+        const recentlyDeletedIds = new Set(); // Silinen kayıtların senkronizasyon sırasında geri gelmesini engeller
         // Kullanıcı sekme değiştirdiğinde
         window.addEventListener('focus', function() {
             if (currentUser && !isSyncing) {
@@ -1283,24 +1283,27 @@ if (targetData) {
                     data.campuses = targetData.campuses || data.campuses || [];
                     data.rentals = targetData.rentals || data.rentals || [];
                     
-                    // Buluttan gelen hakem ödemeleri
-                    data.refereePayments = (targetData.refereePayments || []).map(r => {
-                        const local = localPaidStatus.get('ref_' + r.id);
-                        // Eğer senkronizasyon kilidi aktifse veya yerelde yeni ödendi yapıldıysa yerel durumu koru
-                        if (isSyncing && local) {
-                            return { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate };
-                        }
-                        return r;
-                    });
+                    // Buluttan gelen hakem ödemeleri (Silinenleri ve ezilmeleri filtrele)
+                    data.refereePayments = (targetData.refereePayments || [])
+                        .filter(r => !recentlyDeletedIds.has('ref_' + String(r.id))) // Yeni silinmişse buluttan gelse bile alma!
+                        .map(r => {
+                            const local = localPaidStatus.get('ref_' + r.id);
+                            if (isSyncing && local) {
+                                return { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate };
+                            }
+                            return r;
+                        });
 
-                    // Buluttan gelen fatura/gider ödemeleri
-                    data.manualPayments = (targetData.manualPayments || []).map(m => {
-                        const local = localPaidStatus.get('man_' + m.id);
-                        if (isSyncing && local) {
-                            return { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate };
-                        }
-                        return m;
-                    });
+                    // Buluttan gelen fatura/gider ödemeleri (Silinenleri ve ezilmeleri filtrele)
+                    data.manualPayments = (targetData.manualPayments || [])
+                        .filter(m => !recentlyDeletedIds.has('man_' + String(m.id))) // Yeni silinmişse buluttan gelse bile alma!
+                        .map(m => {
+                            const local = localPaidStatus.get('man_' + m.id);
+                            if (isSyncing && local) {
+                                return { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate };
+                            }
+                            return m;
+                        });
 
                     users = parsedPayload.users || users;
                     userNotes = parsedPayload.userNotes || userNotes;
@@ -1894,11 +1897,12 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             renderPayments();
         }
 
-        function deleteManualPayment(id) {
+        async function deleteManualPayment(id) {
             if (confirm("Bu fatura/gider ödemesini silmek istediğinize emin misiniz?")) {
+                recentlyDeletedIds.add('man_' + String(id)); // Silinen ID'yi koruma kümesine ekle
                 data.manualPayments = data.manualPayments.filter(m => String(m.id) !== String(id));
-                saveData();
-                renderPayments();
+                renderPayments(); // UI'ı hemen temizle
+                await saveData();  // Buluta güvenle yaz
             }
         }
 
@@ -2160,12 +2164,13 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             renderPayments();
         }
 
-        function deleteRefereePayment(id) {
+        async function deleteRefereePayment(id) {
             if (confirm("Bu hakem ödemesini silmek istediğinize emin misiniz?")) {
+                recentlyDeletedIds.add('ref_' + String(id)); // Silinen ID'yi koruma kümesine ekle
                 data.refereePayments = data.refereePayments.filter(r => String(r.id) !== String(id));
-                saveData();
                 renderReferees();
-                renderPayments();
+                renderPayments(); // UI'ı hemen temizle
+                await saveData();  // Buluta güvenle yaz
             }
         }
 
