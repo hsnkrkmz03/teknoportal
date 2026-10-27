@@ -1274,12 +1274,33 @@ let isSyncing = false; // Veri yazılırken araya veri çekme girmesini engelley
 
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
-                if (targetData) {
-                    // Buluttaki veriyi doğrudan ana kaynak olarak kabul ediyoruz (Eski yerel veri bulutu ezmemeli)
+if (targetData) {
+                    // Yereldeki ödenme durumlarını geçici bir haritada tut (ezilmeyi önlemek için)
+                    const localPaidStatus = new Map();
+                    (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
+                    (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
+
                     data.campuses = targetData.campuses || data.campuses || [];
                     data.rentals = targetData.rentals || data.rentals || [];
-                    data.refereePayments = targetData.refereePayments || [];
-                    data.manualPayments = targetData.manualPayments || [];
+                    
+                    // Buluttan gelen hakem ödemeleri
+                    data.refereePayments = (targetData.refereePayments || []).map(r => {
+                        const local = localPaidStatus.get('ref_' + r.id);
+                        // Eğer senkronizasyon kilidi aktifse veya yerelde yeni ödendi yapıldıysa yerel durumu koru
+                        if (isSyncing && local) {
+                            return { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate };
+                        }
+                        return r;
+                    });
+
+                    // Buluttan gelen fatura/gider ödemeleri
+                    data.manualPayments = (targetData.manualPayments || []).map(m => {
+                        const local = localPaidStatus.get('man_' + m.id);
+                        if (isSyncing && local) {
+                            return { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate };
+                        }
+                        return m;
+                    });
 
                     users = parsedPayload.users || users;
                     userNotes = parsedPayload.userNotes || userNotes;
@@ -1293,6 +1314,7 @@ let isSyncing = false; // Veri yazılırken araya veri çekme girmesini engelley
                         statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
                     }
                     if (currentUser) renderAll();
+                
                 } else { throw new Error("Geçerli veri yapısı bulunamadı."); }
             } catch (e) {
                 console.warn("Merkezi veri çekme/birleştirme yerel modda devam ediyor:", e);
@@ -1773,7 +1795,7 @@ function getAllPaymentsList() {
             renderReferees();
         }
 
-        function togglePaymentPaidStatus(source, id, isChecked, customDateISO = null) {
+async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = null) {
             let assignedDate = '';
             if (isChecked) {
                 if (customDateISO) {
@@ -1796,9 +1818,13 @@ function getAllPaymentsList() {
                     manItem.paymentDate = assignedDate;
                 }
             }
-            saveData();
+
+            // Önce UI'ı hemen güncelle (kullanıcı gecikme hissetmesin)
             renderPayments();
             renderReferees();
+
+            // Ardından veriyi güvenle kaydet
+            await saveData();
         }
 
         function openManualPaymentModal(editId = null) {
