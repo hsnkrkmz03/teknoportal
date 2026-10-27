@@ -451,14 +451,14 @@
                                     </div>
                                 </th>
                                 <th class="p-4">Yerleşke / Ofis</th>
-                                <th class="p-4">Alan (m²)</th>
+                                <th class="p-4 text-right">Alan (m²)</th>
                                 <th class="p-4">Başlangıç</th>
                                 <th class="p-4">Bitiş</th>
-                                <td class="p-4">${formatCurrencyCell(totalRent, 'text-gray-700')}</td>
-                                <td class="p-4">${formatCurrencyCell(totalCommonCost, 'text-gray-700')}</td>
-                                <td class="p-4">${formatCurrencyCell(r.otherCost, 'text-gray-700')}</td>
-                                <td class="p-4">${formatCurrencyCell(totalExclVat, 'text-gray-900 font-black')}</td>
-                                <td class="p-4 bg-emerald-50/50">${formatCurrencyCell(totalInclVat, 'text-emerald-700 font-black')}</td>
+                                <th class="p-4 text-right">Kira Tutarı</th>
+                                <th class="p-4 text-right">Ort. Gider</th>
+                                <th class="p-4 text-right">Katılım</th>
+                                <th class="p-4 text-right">KDV Hariç</th>
+                                <th class="p-4 text-right">KDV Dahil</th>
                                 <th class="p-4 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -540,7 +540,7 @@
                                 <th class="p-3">IBAN</th>
                                 <th class="p-3">Firma</th>
                                 <th class="p-3">Proje</th>
-                                <td class="p-3 min-w-[110px]">${formatCurrencyCell(r.gross, 'text-blue-600 font-bold')}</td>
+                                <th class="p-3 text-right">Net Tutar</th>
                                 <th class="p-3">Belge Tarihi</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
@@ -639,7 +639,7 @@
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
                                 <th class="p-3">Son Ödeme (Vade)</th>
-                                <td class="p-3 min-w-[120px]">${formatCurrencyCell(item.amount, 'text-blue-600 font-bold')}</td>
+                                <th class="p-3 text-right">Ödenecek Tutar</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -1617,6 +1617,8 @@
             }
             return isoStr;
         }
+
+        // İki Uçlu Parasal Hücre Formatlayıcı (₺ solda sabit, tutar sağa yaslı)
         function formatCurrencyCell(amount, colorClass = "text-gray-800") {
             const formatted = (parseFloat(amount) || 0).toLocaleString('tr-TR', {
                 minimumFractionDigits: 2,
@@ -1629,6 +1631,7 @@
                 </div>
             `;
         }
+
         function getAllPaymentsList() {
             let list = [];
 
@@ -1766,7 +1769,7 @@
                         <td class="p-3 font-mono text-[11px] font-bold text-gray-700">${item.iban}</td>
                         <td class="p-3 text-gray-600 font-medium">${item.desc}</td>
                         <td class="p-3">${dueHtml}</td>
-                        <td class="p-3 font-bold text-blue-600">₺${item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="p-3 min-w-[130px]">${formatCurrencyCell(item.amount, 'text-blue-600 font-bold')}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isReferee ? `
@@ -2234,7 +2237,7 @@
                         <td class="p-3 text-gray-700 font-mono text-[11px] font-bold tracking-tight">${ibanDisplay}</td>
                         <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
                         <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
-                        <td class="p-3 font-bold text-blue-600">₺${parseFloat(r.gross || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                        <td class="p-3 min-w-[120px]">${formatCurrencyCell(r.gross, 'text-blue-600 font-bold')}</td>
                         <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
                         <td class="p-3 text-center">
                             ${canEdit ? `
@@ -2858,14 +2861,14 @@
                         <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
                         <td class="p-4 font-semibold text-gray-800">${r.company}</td>
                         <td class="p-4">${campusName} - <strong>${officeName}</strong></td>
-                        <td class="p-4 font-semibold">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
+                        <td class="p-4 text-right font-mono font-semibold">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
                         <td class="p-4 text-xs font-medium text-gray-600">${r.startDate || '-'}</td>
                         <td class="p-4 text-xs font-medium text-gray-600">${r.endDate || '-'}</td>
-                        <td class="p-4">₺${totalRent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="p-4">₺${totalCommonCost.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="p-4">₺${parseFloat(r.otherCost || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="p-4 font-bold text-gray-700">₺${totalExclVat.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td class="p-4 font-bold text-emerald-600 bg-emerald-50/50">₺${totalInclVat.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="p-4 min-w-[120px]">${formatCurrencyCell(totalRent, 'text-gray-700')}</td>
+                        <td class="p-4 min-w-[120px]">${formatCurrencyCell(totalCommonCost, 'text-gray-700')}</td>
+                        <td class="p-4 min-w-[110px]">${formatCurrencyCell(r.otherCost, 'text-gray-700')}</td>
+                        <td class="p-4 min-w-[130px]">${formatCurrencyCell(totalExclVat, 'text-gray-900 font-black')}</td>
+                        <td class="p-4 min-w-[130px] bg-emerald-50/50">${formatCurrencyCell(totalInclVat, 'text-emerald-700 font-black')}</td>
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isActive ? `
