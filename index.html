@@ -454,11 +454,11 @@
                                 <th class="p-4">Alan (m²)</th>
                                 <th class="p-4">Başlangıç</th>
                                 <th class="p-4">Bitiş</th>
-                                <th class="p-4">Kira Tutarı</th>
-                                <th class="p-4">Ort. Gider</th>
-                                <th class="p-4">Katılım</th>
-                                <th class="p-4">KDV Hariç</th>
-                                <th class="p-4">KDV Dahil</th>
+                                <td class="p-4">${formatCurrencyCell(totalRent, 'text-gray-700')}</td>
+                                <td class="p-4">${formatCurrencyCell(totalCommonCost, 'text-gray-700')}</td>
+                                <td class="p-4">${formatCurrencyCell(r.otherCost, 'text-gray-700')}</td>
+                                <td class="p-4">${formatCurrencyCell(totalExclVat, 'text-gray-900 font-black')}</td>
+                                <td class="p-4 bg-emerald-50/50">${formatCurrencyCell(totalInclVat, 'text-emerald-700 font-black')}</td>
                                 <th class="p-4 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -540,7 +540,7 @@
                                 <th class="p-3">IBAN</th>
                                 <th class="p-3">Firma</th>
                                 <th class="p-3">Proje</th>
-                                <th class="p-3">Net Tutar</th>
+                                <td class="p-3 min-w-[110px]">${formatCurrencyCell(r.gross, 'text-blue-600 font-bold')}</td>
                                 <th class="p-3">Belge Tarihi</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
@@ -639,7 +639,7 @@
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
                                 <th class="p-3">Son Ödeme (Vade)</th>
-                                <th class="p-3">Ödenecek Tutar</th>
+                                <td class="p-3 min-w-[120px]">${formatCurrencyCell(item.amount, 'text-blue-600 font-bold')}</td>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -1617,7 +1617,18 @@
             }
             return isoStr;
         }
-
+        function formatCurrencyCell(amount, colorClass = "text-gray-800") {
+            const formatted = (parseFloat(amount) || 0).toLocaleString('tr-TR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            return `
+                <div class="flex items-center justify-between space-x-1.5 w-full font-mono text-xs">
+                    <span class="text-gray-400 font-normal shrink-0 select-none">₺</span>
+                    <span class="font-bold tabular-nums text-right ${colorClass}">${formatted}</span>
+                </div>
+            `;
+        }
         function getAllPaymentsList() {
             let list = [];
 
