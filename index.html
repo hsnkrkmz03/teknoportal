@@ -1358,9 +1358,9 @@ if (targetData) {
                 } catch(err) {
                     console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
                 } finally {
-                    // Google Apps Script'in veriyi veritabanına yazmasını garantiye almak için 2.5 sn mola
                     setTimeout(() => {
-                        isSyncing = false; // KİLİT KALKTI
+                        isSyncing = false;
+                        recentlyDeletedIds.clear(); // Bulut yazımı kesinleştiği için hafızayı boşalt
                     }, 2500);
                 }
             } else {
