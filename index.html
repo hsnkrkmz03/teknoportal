@@ -1183,7 +1183,7 @@
 
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
-            sidebar.classList.toggle('sidebar-collapsed');
+            if (sidebar) sidebar.classList.toggle('sidebar-collapsed');
         }
 
         function toggleRentalCompanySearch(e) {
@@ -1232,24 +1232,31 @@
                         populateCampusFilters();
                         renderAll();
 
-                        if (currentUser.permissions.dashboard) switchTab('dashboard');
-                        else if (currentUser.permissions.campuses) switchTab('campuses');
-                        else if (currentUser.permissions.rentals) switchTab('rentals');
-                        else if (currentUser.permissions.referees) switchTab('referees');
+                        if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
+                        else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
+                        else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
+                        else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
                         else if (currentUser.role === 'admin') switchTab('payments');
                         else if (currentUser.role === 'admin') switchTab('users');
+                        else switchTab('dashboard');
                     }
                 } catch(e) { console.error("Oturum yükleme hatası:", e); }
             }
         };
 
         async function fetchCentralData() {
-            if (!APPS_SCRIPT_URL) return;
-
             const statusEl = document.getElementById('cloud-sync-status');
             if (statusEl) {
                 statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
                 statusEl.className = "mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm";
+            }
+
+            if (!APPS_SCRIPT_URL) {
+                if(statusEl) {
+                    statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1.5"></i><span>Yerel Veri Modu Aktif (Verileriniz Güvende)</span>`;
+                    statusEl.className = "mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs font-semibold text-amber-900 shadow-sm";
+                }
+                return;
             }
 
             try {
@@ -1424,12 +1431,13 @@
                 populateCampusFilters();
                 renderAll();
 
-                if (currentUser.permissions.dashboard) switchTab('dashboard');
-                else if (currentUser.permissions.campuses) switchTab('campuses');
-                else if (currentUser.permissions.rentals) switchTab('rentals');
-                else if (currentUser.permissions.referees) switchTab('referees');
+                if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
+                else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
+                else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
+                else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
                 else if (currentUser.role === 'admin') switchTab('payments');
                 else if (currentUser.role === 'admin') switchTab('users');
+                else switchTab('dashboard');
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
             }
@@ -1537,6 +1545,8 @@
             }
 
             if(tab === 'dashboard') updateCharts();
+            if(tab === 'campuses') renderCampuses();
+            if(tab === 'rentals') renderRentals();
             if(tab === 'referees') renderReferees();
             if(tab === 'payments') renderPayments();
             if(tab === 'users') renderUsers();
@@ -1552,12 +1562,14 @@
                 yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
             }
             const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-            document.getElementById('payments-month-filter').value = currentMonth;
+            const monthSelect = document.getElementById('payments-month-filter');
+            if (monthSelect) monthSelect.value = currentMonth;
         }
 
         function extractYearMonth(dateStr) {
             if (!dateStr) return { year: "", month: "" };
-            const parts = String(dateStr).trim().split(/[./-]/);
+            const clean = String(dateStr).trim().replace(/[/]/g, '-').replace(/[.]/g, '-');
+            const parts = clean.split('-');
             if (parts.length === 3) {
                 if (parts[2].length === 4) {
                     return { year: parts[2], month: String(parts[1]).padStart(2, '0') };
@@ -1589,7 +1601,8 @@
             if (!dateStr) return '';
             const clean = String(dateStr).trim();
             if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
-            const parts = clean.split(/[./-]/);
+            const cleanNorm = clean.replace(/[/]/g, '-').replace(/[.]/g, '-');
+            const parts = cleanNorm.split('-');
             if (parts.length === 3) {
                 if (parts[2].length === 4) {
                     return `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
@@ -1598,16 +1611,19 @@
             return '';
         }
 
+        // Güvenli ve Hata Vermeyen GG/AA/YYYY Tarih Çevirici
         function toTRDate(isoStr) {
-            if (!isoStr) return '';
-            const parts = String(isoStr).trim().split(/[-./]/);
+            if (!isoStr) return '-';
+            const clean = String(isoStr).trim();
+            const cleanNorm = clean.replace(/[/]/g, '-').replace(/[.]/g, '-');
+            const parts = cleanNorm.split('-');
             if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                if (parts[0].length === 4) { // YYYY-MM-DD -> DD/MM/YYYY
+                    return `${String(parts[2]).padStart(2, '0')}/${String(parts[1]).padStart(2, '0')}/${parts[0]}`;
                 }
-                return `${parts[0]}/${parts[1]}/${parts[2]}`;
+                return `${String(parts[0]).padStart(2, '0')}/${String(parts[1]).padStart(2, '0')}/${parts[2]}`;
             }
-            return isoStr;
+            return clean;
         }
 
         function formatCurrency(amount) {
@@ -1973,13 +1989,15 @@
         // ==================== HAKEM ÖDEMELERİ MODÜLÜ ====================
         function populateRefereeYearFilter() {
             const yearSelect = document.getElementById('referee-year-filter');
+            if (!yearSelect) return;
             const currentYear = new Date().getFullYear();
             yearSelect.innerHTML = '';
             for (let y = currentYear - 2; y <= currentYear + 2; y++) {
                 yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
             }
             const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-            document.getElementById('referee-month-filter').value = currentMonth;
+            const monthSelect = document.getElementById('referee-month-filter');
+            if (monthSelect) monthSelect.value = currentMonth;
         }
 
         function setRefereeStatusFilter(status) {
@@ -2178,10 +2196,11 @@
 
         function renderReferees() {
             const tbody = document.getElementById('referee-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            const selYear = document.getElementById('referee-year-filter').value;
-            const selMonth = document.getElementById('referee-month-filter').value;
+            const selYear = document.getElementById('referee-year-filter') ? document.getElementById('referee-year-filter').value : String(new Date().getFullYear());
+            const selMonth = document.getElementById('referee-month-filter') ? document.getElementById('referee-month-filter').value : String(new Date().getMonth() + 1).padStart(2, '0');
 
             let totalGross = 0, totalNet = 0, totalTax = 0;
             const isUserAdmin = currentUser && currentUser.role === 'admin';
@@ -2441,7 +2460,7 @@
             const badge = document.getElementById('notes-count-badge');
 
             if (!currentUser || currentUser.role !== 'admin' || userNotes.length === 0) {
-                notifBox.classList.add('hidden');
+                if (notifBox) notifBox.classList.add('hidden');
                 return;
             }
 
@@ -2488,22 +2507,38 @@
                 badgeLabelEl.innerText = `${currentCampusName} Doluluk:`;
             }
 
-            document.getElementById('dash-total-area').innerText = stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-rented-area').innerText = stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-available-area').innerText = stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const elTotalArea = document.getElementById('dash-total-area');
+            const elRentedArea = document.getElementById('dash-rented-area');
+            const elAvailArea = document.getElementById('dash-available-area');
+            if (elTotalArea) elTotalArea.innerText = stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elRentedArea) elRentedArea.innerText = stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elAvailArea) elAvailArea.innerText = stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             
-            document.getElementById('dash-rent-revenue').innerText = stats.rentRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-rent-revenue-incl').innerText = stats.rentRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-common-revenue').innerText = stats.commonRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-common-revenue-incl').innerText = stats.commonRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-other-revenue').innerText = stats.otherRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-other-revenue-incl').innerText = stats.otherRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-total-revenue-excl').innerText = stats.totalRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('dash-total-revenue-incl').innerText = stats.totalRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const elRentRev = document.getElementById('dash-rent-revenue');
+            const elRentRevIncl = document.getElementById('dash-rent-revenue-incl');
+            if (elRentRev) elRentRev.innerText = stats.rentRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elRentRevIncl) elRentRevIncl.innerText = stats.rentRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const elCommRev = document.getElementById('dash-common-revenue');
+            const elCommRevIncl = document.getElementById('dash-common-revenue-incl');
+            if (elCommRev) elCommRev.innerText = stats.commonRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elCommRevIncl) elCommRevIncl.innerText = stats.commonRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const elOtherRev = document.getElementById('dash-other-revenue');
+            const elOtherRevIncl = document.getElementById('dash-other-revenue-incl');
+            if (elOtherRev) elOtherRev.innerText = stats.otherRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elOtherRevIncl) elOtherRevIncl.innerText = stats.otherRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const elTotalRevExcl = document.getElementById('dash-total-revenue-excl');
+            const elTotalRevIncl = document.getElementById('dash-total-revenue-incl');
+            if (elTotalRevExcl) elTotalRevExcl.innerText = stats.totalRevenueExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (elTotalRevIncl) elTotalRevIncl.innerText = stats.totalRevenueIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             const totalStats = getStats('all');
-            document.getElementById('dash-filter-occ-rate').innerText = `%${stats.occupancyRate}`;
-            document.getElementById('dash-total-occ-rate').innerText = `%${totalStats.occupancyRate}`;
+            const elFiltOcc = document.getElementById('dash-filter-occ-rate');
+            const elTotOcc = document.getElementById('dash-total-occ-rate');
+            if (elFiltOcc) elFiltOcc.innerText = `%${stats.occupancyRate}`;
+            if (elTotOcc) elTotOcc.innerText = `%${totalStats.occupancyRate}`;
 
             updateCharts();
         }
@@ -2781,12 +2816,13 @@
         function renderExpiringAlerts() {
             const alertContainer = document.getElementById('expiring-rentals-alert');
             const tbody = document.getElementById('expiring-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
             const today = new Date();
             let count = 0;
 
-            const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.permissions.canEdit);
-            const canEnd = currentUser && (currentUser.role === 'admin' || currentUser.permissions.rentalEndContract);
+            const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
+            const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
 
             data.rentals.filter(r => r.status === 'active' && r.endDate).forEach(r => {
                 const endDate = new Date(r.endDate);
@@ -2804,7 +2840,7 @@
                         <tr class="hover:bg-amber-100/30">
                             <td class="p-2 font-bold text-gray-800">${r.company}</td>
                             <td class="p-2 text-gray-600">${campusName} - ${officeName}</td>
-                            <td class="p-2 font-semibold text-gray-700">${r.endDate}</td>
+                            <td class="p-2 font-semibold text-gray-700">${toTRDate(r.endDate)}</td>
                             <td class="p-2 font-bold text-amber-800">${diffDays <= 0 ? 'Süresi Doldu!' : diffDays + ' Gün Kaldı'}</td>
                             <td class="p-2 text-center">
                                 ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-semibold hover:bg-blue-700 mr-1">Düzenle</button>` : ''}
@@ -2823,6 +2859,7 @@
 
         function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
@@ -2830,8 +2867,8 @@
             const searchInput = document.getElementById('rental-company-search-input');
             const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-            const canEdit = currentUser && (currentUser.role === 'admin' || currentUser.permissions.canEdit);
-            const canEnd = currentUser && (currentUser.role === 'admin' || currentUser.permissions.rentalEndContract);
+            const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
+            const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
             let filteredRentals = data.rentals.filter(r => {
@@ -2871,8 +2908,8 @@
                         <td class="p-4 font-semibold text-gray-800">${r.company}</td>
                         <td class="p-4">${campusName} - <strong>${officeName}</strong></td>
                         <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
-                        <td class="p-4 text-xs font-medium text-gray-600">${r.startDate ? toTRDate(r.startDate) : '-'}</td>
-                        <td class="p-4 text-xs font-medium text-gray-600">${r.endDate ? toTRDate(r.endDate) : '-'}</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(r.otherCost)}</td>
@@ -2911,6 +2948,7 @@
 
         function renderUsers() {
             const tbody = document.getElementById('user-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
             users.forEach(u => {
@@ -3387,7 +3425,8 @@
                 }
                 const str = String(val).trim();
                 if (str === "" || str.toLowerCase() === "nan" || str.toLowerCase() === "null") return null;
-                const parts = str.split(/[./-]/);
+                const cleanStr = str.replace(/[/]/g, '-').replace(/[.]/g, '-');
+                const parts = cleanStr.split('-');
                 if (parts.length === 3) {
                     if (parts[0].length === 4) return `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
                     if (parts[2].length === 4) return `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
@@ -3505,8 +3544,8 @@
                     "Yerleşke": campusName, 
                     "Ofis": officeName,
                     "Alan (m²)": Number(area.toFixed(2)), 
-                    "Başlangıç Tarihi": r.startDate ? toTRDate(r.startDate) : '-', 
-                    "Bitiş Tarihi": r.endDate ? toTRDate(r.endDate) : '-',
+                    "Başlangıç Tarihi": toTRDate(r.startDate), 
+                    "Bitiş Tarihi": toTRDate(r.endDate), 
                     "Kira Tutarı (₺)": Number(totalRent.toFixed(2)), 
                     "Ortak Gider (₺)": Number(totalCommonCost.toFixed(2)), 
                     "Katılım Payı (₺)": Number(parseFloat(r.otherCost || 0).toFixed(2)),
