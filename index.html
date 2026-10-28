@@ -1553,7 +1553,7 @@
             if(tab === 'campuses') renderCampuses();
             if(tab === 'rentals') renderRentals();
             if(tab === 'referees') renderReferees();
-            if(tab === 'payments') ();
+            if(tab === 'payments') renderPayments();
             if(tab === 'users') renderUsers();
         }
 
@@ -1739,6 +1739,9 @@
             return { year: "", month: "" };
         }
 
+        // Seçili ödeme kayıtlarının benzersiz anahtarları (örn: 'manual_1234', 'referee_5678')
+        const selectedPaymentKeys = new Set();
+
         function setPaymentStatusFilter(status) {
             selectedPaymentKeys.clear(); // Filtre değişince seçimleri sıfırla
             currentPaymentFilter = status;
@@ -1754,7 +1757,7 @@
                 btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
                 document.getElementById('pay-total-amount-label').innerText = "Ödenen Toplam Tutar";
             }
-            ();
+            renderPayments();
         }
 
         function toISODate(dateStr) {
@@ -1831,7 +1834,7 @@
             return list;
         }
 
-function renderPayments() {
+        function renderPayments() {
             const tbody = document.getElementById('payments-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -1900,14 +1903,12 @@ function renderPayments() {
 
                 const paymentDateISO = item.paymentDate ? toISODate(item.paymentDate) : '';
 
-// Tırnak çakışmasını önleyen kaçış tanımları (üst satırında bulunmalıdır)
                 const safeName = (item.name || '').replace(/'/g, "\\'");
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
                 tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
-                        <!-- 1. Seçim Kutusu -->
                         <td class="p-3 text-center">
                             <input type="checkbox" ${isSelected ? 'checked' : ''} 
                                 data-key="${uniqueKey}"
@@ -1915,36 +1916,30 @@ function renderPayments() {
                                 class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
                                 title="Bu ödemeyi toplama dahil etmek için seç">
                         </td>
-                        <!-- 2. Tür -->
                         <td class="p-3">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReferee ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">
                                 ${item.sourceLabel}
                             </span>
                         </td>
-                        <!-- 3. Firma / Hakem Adı -->
                         <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.name}</span>
                                 <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>
                             </div>
                         </td>
-                        <!-- 4. IBAN Bilgisi -->
                         <td class="p-3 font-semibold text-gray-700 text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')" title="Kopyalamak için tıklayın (boşluksuz)">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.iban}</span>
                                 ${item.iban !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
-                        <!-- 5. Açıklama -->
                         <td class="p-3 text-gray-600 font-medium cursor-pointer group" onclick="copyToClipboard('${safeDesc}', 'Açıklama')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.desc}</span>
                                 ${item.desc !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
-                        <!-- 6. Son Ödeme (Vade) -->
                         <td class="p-3">${dueHtml}</td>
-                        <!-- 7. Durum & Ödeme Tarihi (YENİ KONUM) -->
                         <td class="p-3 text-center">
                             <div class="inline-flex items-center space-x-2 justify-center">
                                 <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
@@ -1961,9 +1956,7 @@ function renderPayments() {
                                 ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                             </div>
                         </td>
-                        <!-- 8. Ödenecek Tutar -->
                         <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
-                        <!-- 9. İşlem Butonları -->
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isReferee ? `
@@ -1977,12 +1970,12 @@ function renderPayments() {
                         </td>
                     </tr>
                 `;
+            });
 
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
             }
 
-            // Kartlardaki toplamları güncelle
             updatePaymentSelectionSummary();
         }
 
@@ -3796,12 +3789,12 @@ function renderPayments() {
             });
             doc.save(`Teknopark_Kiralama_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
-    // Panoya Kopyalama ve Toast Gösterme
+
+        // Panoya Kopyalama ve Toast Gösterme
         let toastTimeout = null;
         function copyToClipboard(text, label = "Bilgi") {
             if (!text || text === '-' || text.trim() === '') return;
             
-            // Eğer IBAN kopyalanıyorsa boşlukları temizleyerek kopyala (bankacılıkta kolaylık)
             const cleanText = label.includes("IBAN") ? text.replace(/\s+/g, '') : text.trim();
 
             navigator.clipboard.writeText(cleanText).then(() => {
@@ -3819,7 +3812,6 @@ function renderPayments() {
             msgEl.innerText = message;
             toast.classList.remove('hidden');
 
-            // CSS geçiş tetikleme
             setTimeout(() => {
                 toast.classList.remove('translate-y-2', 'opacity-0');
                 toast.classList.add('translate-y-0', 'opacity-100');
@@ -3832,8 +3824,6 @@ function renderPayments() {
                 setTimeout(() => toast.classList.add('hidden'), 300);
             }, 1800);
         }
-        // Seçili ödeme kayıtlarının benzersiz anahtarları (örn: 'manual_1234', 'referee_5678')
-        const selectedPaymentKeys = new Set();
 
         function togglePaymentSelection(uniqueKey, isChecked) {
             if (isChecked) {
@@ -3867,7 +3857,6 @@ function renderPayments() {
             const isPending = currentPaymentFilter === 'pending';
 
             if (selectedPaymentKeys.size > 0) {
-                // Sadece seçili olanları hesapla
                 let selTotal = 0;
                 let validCount = 0;
 
@@ -3884,7 +3873,6 @@ function renderPayments() {
                 if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
             } else {
-                // Hiç seçim yoksa tablodaki filtrelenen genel toplamı göster
                 const selYearEl = document.getElementById('payments-year-filter');
                 const selMonthEl = document.getElementById('payments-month-filter');
                 const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
@@ -3908,7 +3896,6 @@ function renderPayments() {
                 if (selectAllCb) selectAllCb.checked = false;
             }
         }
-        
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
