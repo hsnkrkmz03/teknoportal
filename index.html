@@ -616,8 +616,11 @@
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1150px]">
-                        <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
+                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
+                                <th class="p-3 text-center w-10">
+                                    <input type="checkbox" id="pay-select-all" onchange="toggleSelectAllPayments(this.checked)" class="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" title="Tümünü Seç / Kaldır">
+                                </th>
                                 <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
                                 <th class="p-3">
                                     <div class="flex items-center space-x-1">
@@ -1737,6 +1740,7 @@
         }
 
         function setPaymentStatusFilter(status) {
+            selectedPaymentKeys.clear(); // Filtre değişince seçimleri sıfırla
             currentPaymentFilter = status;
             const btnPending = document.getElementById('btn-pay-filter-pending');
             const btnPaid = document.getElementById('btn-pay-filter-paid');
@@ -1827,7 +1831,7 @@
             return list;
         }
 
-        function renderPayments() {
+function renderPayments() {
             const tbody = document.getElementById('payments-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -1858,22 +1862,20 @@
                 const hasDueA = !a.isPaid && Boolean(a.dueDate);
                 const hasDueB = !b.isPaid && Boolean(b.dueDate);
 
-                if (hasDueA && hasDueB) {
-                    return a.dueDate.localeCompare(b.dueDate);
-                }
+                if (hasDueA && hasDueB) return a.dueDate.localeCompare(b.dueDate);
                 if (hasDueA && !hasDueB) return -1;
                 if (!hasDueA && hasDueB) return 1;
 
                 return Number(b.id || 0) - Number(a.id || 0);
             });
 
-            let totalAmt = 0;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             filtered.forEach(item => {
-                totalAmt += item.amount;
                 const isReferee = item.source === 'referee';
+                const uniqueKey = `${item.source}_${item.id}`;
+                const isSelected = selectedPaymentKeys.has(uniqueKey);
 
                 let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
                 if (!isReferee && item.dueDate) {
@@ -1898,8 +1900,20 @@
 
                 const paymentDateISO = item.paymentDate ? toISODate(item.paymentDate) : '';
 
+                // XSS korumalı güvenli metinler
+                const safeName = (item.name || '').replace(/'/g, "\\'");
+                const safeIban = (item.iban || '').replace(/'/g, "\\'");
+                const safeDesc = (item.desc || '').replace(/'/g, "\\'");
+
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
+                    <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
+                        <td class="p-3 text-center">
+                            <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                                data-key="${uniqueKey}"
+                                onchange="togglePaymentSelection('${uniqueKey}', this.checked)"
+                                class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
+                                title="Bu ödemeyi toplama dahil etmek için seç">
+                        </td>
                         <td class="p-3 text-center">
                             <div class="inline-flex items-center space-x-2">
                                 <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
@@ -1921,9 +1935,24 @@
                                 ${item.sourceLabel}
                             </span>
                         </td>
-                        <td class="p-3 font-bold text-gray-800">${item.name}</td>
-                        <td class="p-3 font-semibold text-gray-700 text-[11px]">${item.iban}</td>
-                        <td class="p-3 text-gray-600 font-medium">${item.desc}</td>
+                        <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
+                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
+                                <span>${item.name}</span>
+                                <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>
+                            </div>
+                        </td>
+                        <td class="p-3 font-semibold text-gray-700 text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')" title="Kopyalamak için tıklayın (boşluksuz)">
+                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
+                                <span>${item.iban}</span>
+                                ${item.iban !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
+                            </div>
+                        </td>
+                        <td class="p-3 text-gray-600 font-medium cursor-pointer group" onclick="copyToClipboard('${safeDesc}', 'Açıklama')" title="Kopyalamak için tıklayın">
+                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
+                                <span>${item.desc}</span>
+                                ${item.desc !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
+                            </div>
+                        </td>
                         <td class="p-3">${dueHtml}</td>
                         <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
                         <td class="p-3 text-center">
@@ -1941,12 +1970,12 @@
                 `;
             });
 
-            document.getElementById('pay-total-count').innerText = filtered.length;
-            document.getElementById('pay-total-amount').innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
             }
+
+            // Kartlardaki toplamları güncelle
+            updatePaymentSelectionSummary();
         }
 
         async function updateCustomPaymentDate(source, id, newISODate) {
@@ -3759,6 +3788,124 @@
             });
             doc.save(`Teknopark_Kiralama_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
+    // Panoya Kopyalama ve Toast Gösterme
+        let toastTimeout = null;
+        function copyToClipboard(text, label = "Bilgi") {
+            if (!text || text === '-' || text.trim() === '') return;
+            
+            // Eğer IBAN kopyalanıyorsa boşlukları temizleyerek kopyala (bankacılıkta kolaylık)
+            const cleanText = label.includes("IBAN") ? text.replace(/\s+/g, '') : text.trim();
+
+            navigator.clipboard.writeText(cleanText).then(() => {
+                showToast(`✓ ${label} panoya kopyalandı!`);
+            }).catch(err => {
+                console.error("Kopyalama hatası:", err);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('copy-toast');
+            const msgEl = document.getElementById('copy-toast-msg');
+            if (!toast || !msgEl) return;
+
+            msgEl.innerText = message;
+            toast.classList.remove('hidden');
+
+            // CSS geçiş tetikleme
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            }, 10);
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 1800);
+        }
+        // Seçili ödeme kayıtlarının benzersiz anahtarları (örn: 'manual_1234', 'referee_5678')
+        const selectedPaymentKeys = new Set();
+
+        function togglePaymentSelection(uniqueKey, isChecked) {
+            if (isChecked) {
+                selectedPaymentKeys.add(uniqueKey);
+            } else {
+                selectedPaymentKeys.delete(uniqueKey);
+            }
+            updatePaymentSelectionSummary();
+        }
+
+        function toggleSelectAllPayments(isChecked) {
+            const checkboxes = document.querySelectorAll('.pay-select-row');
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                const key = cb.getAttribute('data-key');
+                if (key) {
+                    if (isChecked) selectedPaymentKeys.add(key);
+                    else selectedPaymentKeys.delete(key);
+                }
+            });
+            updatePaymentSelectionSummary();
+        }
+
+        function updatePaymentSelectionSummary() {
+            const countEl = document.getElementById('pay-total-count');
+            const amountEl = document.getElementById('pay-total-amount');
+            const amountLabelEl = document.getElementById('pay-total-amount-label');
+            const selectAllCb = document.getElementById('pay-select-all');
+
+            const allList = getAllPaymentsList();
+            const isPending = currentPaymentFilter === 'pending';
+
+            if (selectedPaymentKeys.size > 0) {
+                // Sadece seçili olanları hesapla
+                let selTotal = 0;
+                let validCount = 0;
+
+                selectedPaymentKeys.forEach(key => {
+                    const [source, id] = key.split('_');
+                    const found = allList.find(item => item.source === source && String(item.id) === String(id));
+                    if (found) {
+                        selTotal += found.amount;
+                        validCount++;
+                    }
+                });
+
+                if (countEl) countEl.innerHTML = `<span class="text-blue-600 font-black">${validCount}</span> <span class="text-xs font-normal text-gray-500">(Seçilen)</span>`;
+                if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
+            } else {
+                // Hiç seçim yoksa tablodaki filtrelenen genel toplamı göster
+                const selYearEl = document.getElementById('payments-year-filter');
+                const selMonthEl = document.getElementById('payments-month-filter');
+                const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
+                const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+                const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
+
+                const filtered = allList.filter(item => {
+                    if (isPending ? item.isPaid : !item.isPaid) return false;
+                    if (selectedType !== 'all' && item.source !== selectedType) return false;
+                    const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
+                    const { year, month } = extractYearMonth(targetDate);
+                    if (year && month) return year === selYear && month === selMonth;
+                    return true;
+                });
+
+                const totalAmt = filtered.reduce((acc, it) => acc + it.amount, 0);
+
+                if (countEl) countEl.innerText = filtered.length;
+                if (amountEl) amountEl.innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (amountLabelEl) amountLabelEl.innerText = isPending ? "Ödenecek Toplam Tutar" : "Ödenen Toplam Tutar";
+                if (selectAllCb) selectAllCb.checked = false;
+            }
+        }
+        
     </script>
+    <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
+    <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+        <span id="copy-toast-msg">Panoya kopyalandı!</span>
+    </div>
 </body>
 </html>
