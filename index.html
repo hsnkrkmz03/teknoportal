@@ -35,8 +35,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
-    <!-- Kütüphane yüklenememe ihtimaline karşı yedekli XLSX CDN -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased overflow-hidden">
 
@@ -254,7 +252,7 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 mt-2">
-                                <div class="bg-emerald-50/70 border border-emerald-100 rounded-lg p-2.5 flex items-center space-x-2.5">
+                                <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex items-center space-x-2.5">
                                     <div class="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></div>
                                     <div class="overflow-hidden">
                                         <div class="text-[10px] font-bold text-emerald-800 uppercase">Kiralanan Alan</div>
@@ -262,7 +260,7 @@
                                         <div class="text-[10px] font-semibold text-emerald-600" id="badge-rented-pct">%0.0</div>
                                     </div>
                                 </div>
-                                <div class="bg-amber-50/70 border border-amber-100 rounded-lg p-2.5 flex items-center space-x-2.5">
+                                <div class="bg-amber-50 border border-amber-100 rounded-lg p-2.5 flex items-center space-x-2.5">
                                     <div class="w-3 h-3 rounded-full bg-amber-500 shrink-0"></div>
                                     <div class="overflow-hidden">
                                         <div class="text-[10px] font-bold text-amber-800 uppercase">Boş Alan</div>
@@ -1739,11 +1737,10 @@
             return { year: "", month: "" };
         }
 
-        // Seçili ödeme kayıtlarının benzersiz anahtarları (örn: 'manual_1234', 'referee_5678')
         const selectedPaymentKeys = new Set();
 
         function setPaymentStatusFilter(status) {
-            selectedPaymentKeys.clear(); // Filtre değişince seçimleri sıfırla
+            selectedPaymentKeys.clear();
             currentPaymentFilter = status;
             const btnPending = document.getElementById('btn-pay-filter-pending');
             const btnPaid = document.getElementById('btn-pay-filter-paid');
@@ -1907,9 +1904,8 @@
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
-tbody.innerHTML += `
+                tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
-                        <!-- 1. Seçim Kutusu -->
                         <td class="p-3 text-center">
                             <input type="checkbox" ${isSelected ? 'checked' : ''} 
                                 data-key="${uniqueKey}"
@@ -1917,38 +1913,31 @@ tbody.innerHTML += `
                                 class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
                                 title="Bu ödemeyi toplama dahil etmek için seç">
                         </td>
-                        <!-- 2. Tür -->
                         <td class="p-3">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReferee ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">
                                 ${item.sourceLabel}
                             </span>
                         </td>
-                        <!-- 3. Firma / Hakem Adı -->
                         <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.name}</span>
                                 <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>
                             </div>
                         </td>
-                        <!-- 4. IBAN Bilgisi -->
                         <td class="p-3 font-semibold text-gray-700 text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')" title="Kopyalamak için tıklayın (boşluksuz)">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.iban}</span>
                                 ${item.iban !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
-                        <!-- 5. Açıklama -->
                         <td class="p-3 text-gray-600 font-medium cursor-pointer group" onclick="copyToClipboard('${safeDesc}', 'Açıklama')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.desc}</span>
                                 ${item.desc !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
-                        <!-- 6. Son Ödeme (Vade) -->
                         <td class="p-3">${dueHtml}</td>
-                        <!-- 7. Ödenecek Tutar (ÖNE ALINDI) -->
                         <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
-                        <!-- 8. Durum & Ödeme Tarihi (TUTARDAN SONRAYA ALINDI) -->
                         <td class="p-3 text-center">
                             <div class="inline-flex items-center space-x-2 justify-center">
                                 <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
@@ -1965,7 +1954,6 @@ tbody.innerHTML += `
                                 ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                             </div>
                         </td>
-                        <!-- 9. İşlem Butonları -->
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isReferee ? `
@@ -2561,19 +2549,31 @@ tbody.innerHTML += `
         function populateCampusFilters() {
             const dashSelect = document.getElementById('dash-campus-filter');
             const rentalsSelect = document.getElementById('rentals-campus-filter');
+            const excelUploadSelect = document.getElementById('excel-upload-campus-select');
+
             const currentDashVal = dashSelect ? dashSelect.value : 'all';
             const currentRentalsVal = rentalsSelect ? rentalsSelect.value : 'all';
+            const currentExcelVal = excelUploadSelect ? excelUploadSelect.value : '';
 
-            let options = '<option value="all">Tüm Yerleşkeler</option>';
-            data.campuses.forEach(c => { options += `<option value="${c.id}">${c.name}</option>`; });
+            let filterOptions = '<option value="all">Tüm Yerleşkeler</option>';
+            let directOptions = '';
+
+            data.campuses.forEach(c => {
+                filterOptions += `<option value="${c.id}">${c.name}</option>`;
+                directOptions += `<option value="${c.id}">${c.name}</option>`;
+            });
 
             if (dashSelect) {
-                dashSelect.innerHTML = options;
+                dashSelect.innerHTML = filterOptions;
                 dashSelect.value = currentDashVal || 'all';
             }
             if (rentalsSelect) {
-                rentalsSelect.innerHTML = options;
+                rentalsSelect.innerHTML = filterOptions;
                 rentalsSelect.value = currentRentalsVal || 'all';
+            }
+            if (excelUploadSelect) {
+                excelUploadSelect.innerHTML = directOptions || '<option value="">Önce Yerleşke Ekleyiniz</option>';
+                if (currentExcelVal) excelUploadSelect.value = currentExcelVal;
             }
         }
 
@@ -2896,7 +2896,7 @@ tbody.innerHTML += `
                         const isCross = item.type === 'cross';
                         const isCombo = item.type === 'combo';
                         const badgeColor = isCross ? 'bg-purple-600' : (isCombo ? 'bg-indigo-600' : 'bg-emerald-600');
-                        const boxBg = isCross ? 'bg-purple-50/80 border-purple-200' : (isCombo ? 'bg-indigo-50/80 border-indigo-200' : 'bg-emerald-50/80 border-emerald-200');
+                        const boxBg = isCross ? 'bg-purple-50 border-purple-200' : (isCombo ? 'bg-indigo-50 border-indigo-200' : 'bg-emerald-50 border-emerald-200');
 
                         suggestionCards.innerHTML += `
                             <div class="${boxBg} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
@@ -3597,6 +3597,126 @@ tbody.innerHTML += `
                 renderCampuses();
                 await saveData();
             }
+        }
+
+        // ==================== YERLEŞKE & OFİSLER EXCEL İLE TOPLU YÜKLEME DÜZELTİLDİ ====================
+        function openExcelUploadModal() {
+            populateCampusFilters(); // Yerleşke seçeneklerini doldur
+            const fileInput = document.getElementById('excel-file-input');
+            if (fileInput) fileInput.value = '';
+            document.getElementById('excel-upload-modal').classList.remove('hidden');
+        }
+
+        function processExcelUpload() {
+            const campusId = document.getElementById('excel-upload-campus-select').value;
+            const fileInput = document.getElementById('excel-file-input');
+            const file = fileInput ? fileInput.files[0] : null;
+
+            if (!campusId) { alert("Lütfen ofislerin ekleneceği yerleşkeyi seçin."); return; }
+            if (!file) { alert("Lütfen yüklenecek bir Excel dosyası seçin."); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dataContent = e.target.result;
+                    const workbook = XLSX.read(dataContent, { type: 'binary' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                    const campus = data.campuses.find(c => String(c.id) === String(campusId));
+                    if (!campus) { alert("Seçilen yerleşke bulunamadı."); return; }
+                    if (jsonRows.length === 0) { alert("Excel dosyasında veri satırı bulunamadı."); return; }
+
+                    let addedCount = 0;
+                    jsonRows.forEach(row => {
+                        const keys = Object.keys(row);
+                        const nameKey = keys.find(k => {
+                            const lk = k.trim().toLowerCase();
+                            return lk.includes('ofis') || lk.includes('oda') || lk.includes('ad') || lk.includes('no');
+                        });
+                        const areaKey = keys.find(k => {
+                            const lk = k.trim().toLowerCase();
+                            return lk.includes('büyüklük') || lk.includes('m2') || lk.includes('m²') || lk.includes('alan') || lk.includes('kapasite');
+                        });
+                        const floorKey = keys.find(k => k.trim().toLowerCase().includes('kat'));
+
+                        if (nameKey && areaKey && String(row[nameKey]).trim() !== '') {
+                            const rawArea = String(row[areaKey]).replace(',', '.').replace(/[^0-9.]/g, '');
+                            const parsedArea = parseFloat(rawArea);
+
+                            if (!isNaN(parsedArea) && parsedArea > 0) {
+                                if (!campus.offices) campus.offices = [];
+                                campus.offices.push({
+                                    id: Date.now() + Math.floor(Math.random() * 10000),
+                                    name: String(row[nameKey]).trim(),
+                                    area: parsedArea,
+                                    floor: floorKey && String(row[floorKey]).trim() ? String(row[floorKey]).trim() : '1. Kat'
+                                });
+                                addedCount++;
+                            }
+                        }
+                    });
+
+                    if (addedCount > 0) {
+                        alert(`Başarıyla ${addedCount} adet ofis tanımlandı.`);
+                        closeModal('excel-upload-modal');
+                        saveData();
+                    } else {
+                        alert("Excel dosyasındaki sütunlar eşleştirilemedi. Dosyanızda 'Ofis Adı' ve 'Alan (m²)' sütun başlıklarının yer aldığından emin olun.");
+                    }
+                } catch (err) {
+                    console.error("Excel Okuma Hatası:", err);
+                    alert("Excel dosyası okunurken hata oluştu: " + err.message);
+                }
+            };
+
+            if (reader.readAsBinaryString) {
+                reader.readAsBinaryString(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
+        }
+
+        // ==================== DASHBOARD GÖRSEL PDF İNDİRME DÜZELTİLDİ ====================
+        function exportDashboardVisualPDF() {
+            const captureArea = document.getElementById('dashboard-capture-area');
+            if (!captureArea) {
+                alert("Raporlanacak dashboard alanı bulunamadı.");
+                return;
+            }
+
+            // Görüntü yakalama öncesi sayfa kaydırmasını sıfırla ve arka planı sabitle
+            const originalScroll = window.scrollY;
+            window.scrollTo(0, 0);
+
+            html2canvas(captureArea, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#f3f4f6',
+                scrollX: 0,
+                scrollY: 0
+            }).then(canvas => {
+                window.scrollTo(0, originalScroll);
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 190;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.setFontSize(16);
+                pdf.text("Teknopark Dashboard ve Analiz Raporu", 10, 12);
+                pdf.setFontSize(9);
+                pdf.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 10, 17);
+                pdf.addImage(imgData, 'JPEG', 10, 22, imgWidth, imgHeight);
+                pdf.save(`Teknopark_Dashboard_Gorsel_${new Date().toISOString().split('T')[0]}.pdf`);
+            }).catch(err => {
+                window.scrollTo(0, originalScroll);
+                console.error("Dashboard PDF Hatası:", err);
+                alert("Dashboard PDF oluşturulurken bir hata meydana geldi: " + err.message);
+            });
         }
 
         function openRentalExcelUploadModal() {
