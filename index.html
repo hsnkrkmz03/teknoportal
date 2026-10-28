@@ -1900,12 +1900,12 @@ function renderPayments() {
 
                 const paymentDateISO = item.paymentDate ? toISODate(item.paymentDate) : '';
 
-                // XSS korumalı güvenli metinler
+// Tırnak çakışmasını önleyen kaçış tanımları (üst satırında bulunmalıdır)
                 const safeName = (item.name || '').replace(/'/g, "\\'");
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
-tbody.innerHTML += `
+                tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
                         <!-- 1. Seçim Kutusu -->
                         <td class="p-3 text-center">
