@@ -122,6 +122,11 @@
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Hakem Ödemeleri</span>
                 </button>
+                <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ (HAKEM ÖDEMELERİ'NDEN HEMEN SONRA) -->
+                <button onclick="switchTab('consultants')" id="nav-consultants" title="Danışmanlık Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-teal-400 hover:bg-slate-800 hover:text-teal-300 transition text-xs font-semibold">
+                      <i class="fa-solid fa-chalkboard-user text-base min-w-[20px]"></i>
+                    <span class="sidebar-text truncate">Danışmanlık Ödemeleri</span>
+                </button>
                 <!-- ÖDEMELER TAKİBİ SEKMESİ -->
                 <button onclick="switchTab('payments')" id="nav-payments" title="Ödemeler Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-money-bill-transfer text-base min-w-[20px]"></i>
@@ -541,7 +546,87 @@
                     </table>
                 </div>
             </section>
+        <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
+<section id="tab-consultants" class="hidden">
+    <div class="mb-6 space-y-3">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Danışmanlık Ödemeleri Takibi</h1>
+                <p class="text-xs text-gray-500">Ar-Ge projelerine kesilen faturaların akademisyenlere ödeme listesini yönetin ve hesaplayın.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
+                    <button id="btn-con-filter-pending" onclick="setConsultantStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition">
+                        <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
+                    </button>
+                    <button id="btn-con-filter-paid" onclick="setConsultantStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                        <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
+                    </button>
+                </div>
+                <button onclick="exportConsultantsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
+                    <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
+                </button>
+                <button onclick="openConsultantModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Yeni Danışmanlık Ödemesi Ekle
+                </button>
+            </div>
+        </div>
 
+        <div class="flex justify-end">
+            <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
+                <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-teal-600"></i> Dönem:</label>
+                <select id="consultant-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()"></select>
+                <select id="consultant-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()">
+                    <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                    <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
+                    <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                    <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÖZET KARTLARI -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Dahil Toplam</div>
+            <div class="text-lg font-bold text-gray-800"><span id="con-total-incl">0,00</span> ₺</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Hariç (%20)</div>
+            <div class="text-lg font-bold text-indigo-600"><span id="con-total-excl">0,00</span> ₺</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div class="text-gray-500 text-xs font-medium mb-1">Teknopark Kalan (%15)</div>
+            <div class="text-lg font-bold text-amber-600"><span id="con-total-tpark">0,00</span> ₺</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-teal-600">
+            <div class="text-gray-500 text-xs font-medium mb-1" id="con-total-net-label">Danışmana Net Ödenecek Toplam</div>
+            <div class="text-lg font-bold text-teal-600"><span id="con-total-net">0,00</span> ₺</div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1300px]">
+            <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
+                <tr>
+                    <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
+                    <th class="p-3">Tarih</th>
+                    <th class="p-3">Adı Soyadı</th>
+                    <th class="p-3">TC Kimlik No</th>
+                    <th class="p-3">Ödeme Yapılan IBAN</th>
+                    <th class="p-3 text-right">KDV Dahil</th>
+                    <th class="p-3 text-right">KDV Hariç</th>
+                    <th class="p-3 text-right">Teknopark %15</th>
+                    <th class="p-3 text-right text-teal-700">Net Ödenen</th>
+                    <th class="p-3">Açıklama</th>
+                    <th class="p-3 text-center">İşlem</th>
+                </tr>
+            </thead>
+            <tbody id="consultant-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
+        </table>
+    </div>
+</section>     
             <!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
             <section id="tab-payments" class="hidden">
                 <div class="mb-6 space-y-3">
@@ -826,7 +911,69 @@
             </div>
         </div>
     </div>
-    
+    <!-- DANIŞMANLIK ÖDEMESİ EKLE / DÜZENLE MODALI -->
+<div id="consultant-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+        <h3 class="text-xl font-bold mb-4 text-teal-900" id="consultant-modal-title">Yeni Danışmanlık Ödemesi Ekle</h3>
+        <input type="hidden" id="editing-consultant-id">
+        <div class="space-y-4 text-xs">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Danışman Adı Soyadı</label>
+                    <input type="text" id="con-name" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: Prof. Dr. Ahmet Yılmaz">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">T.C. Kimlik No</label>
+                    <input type="text" id="con-tc" class="w-full border p-2 rounded-lg text-xs" placeholder="TC Kimlik No" maxlength="11">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Ödeme Yapılan IBAN</label>
+                    <input type="text" id="con-iban" class="w-full border p-2 rounded-lg text-xs tracking-wider font-bold text-gray-700" placeholder="TRXX XXXX..." maxlength="32">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Tarih (gg.aa.yyyy)</label>
+                    <input type="text" id="con-date" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 28.10.2026">
+                </div>
+            </div>
+
+            <!-- FORMÜL HESAPLAMASI -->
+            <div class="grid grid-cols-4 gap-3 bg-teal-50/60 p-3 rounded-lg border border-teal-100">
+                <div>
+                    <label class="block font-bold text-teal-950 mb-1">KDV Dahil (₺)</label>
+                    <input type="number" id="con-gross" class="w-full border p-2 rounded-lg text-xs font-bold text-teal-700" placeholder="12000" oninput="calculateConsultantAmounts()">
+                </div>
+                <div>
+                    <label class="block font-semibold text-indigo-900 mb-1">%20 KDV Hariç (₺)</label>
+                    <input type="number" id="con-net-excl" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-indigo-700" readonly>
+                </div>
+                <div>
+                    <label class="block font-semibold text-amber-900 mb-1">T.Park %15 (₺)</label>
+                    <input type="number" id="con-tax-tpark" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-amber-700" readonly>
+                </div>
+                <div>
+                    <label class="block font-bold text-emerald-900 mb-1">Net Ödenen (₺)</label>
+                    <input type="number" id="con-net-payable" class="w-full border p-2 rounded-lg text-xs bg-emerald-100 border-emerald-300 font-black text-emerald-800" readonly>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-gray-600 mb-1">Açıklama</label>
+                <input type="text" id="con-desc" class="w-full border p-2 rounded-lg text-xs" placeholder="Proje / Danışmanlık Açıklaması">
+            </div>
+
+            <div class="pt-2 border-t flex items-center space-x-2">
+                <input type="checkbox" id="con-is-paid" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500">
+                <label for="con-is-paid" class="font-bold text-teal-900">Ödeme Yapıldı (Ödendi İşaretle)</label>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-2 mt-6">
+            <button onclick="closeModal('consultant-modal')" class="px-4 py-2 bg-gray-200 rounded-lg text-xs font-semibold">İptal</button>
+            <button onclick="saveConsultantPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700">Kaydet</button>
+        </div>
+    </div>
+</div>
     <!-- YEDEK GERİ YÜKLEME MODALI -->
     <div id="restore-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -1215,6 +1362,7 @@
 
         window.onload = async function() {
             populateRefereeYearFilter();
+            populateConsultantYearFilter();
             populatePaymentsYearFilter();
             await fetchCentralData();
 
@@ -1523,7 +1671,7 @@
         }
 
         function switchTab(tab) {
-            ['dashboard', 'campuses', 'rentals', 'referees', 'payments', 'users'].forEach(t => {
+            ['dashboard', 'campuses', 'rentals', 'referees', 'consultants','payments', 'users'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
 
@@ -1551,6 +1699,7 @@
             if(tab === 'campuses') renderCampuses();
             if(tab === 'rentals') renderRentals();
             if(tab === 'referees') renderReferees();
+            if(tab === 'consultants') renderConsultants();
             if(tab === 'payments') renderPayments();
             if(tab === 'users') renderUsers();
         }
@@ -1827,7 +1976,21 @@
                     paymentDate: m.paymentDate || ''
                 });
             });
-
+(data.consultantPayments || []).forEach(c => {
+    list.push({
+        id: c.id,
+        source: 'consultant',
+        sourceLabel: 'Danışmanlık Ödemesi',
+        name: c.name || 'İsimsiz Danışman',
+        iban: c.iban || '-',
+        desc: c.desc || '-',
+        amount: parseFloat(c.netPayable) || 0, // Excel'deki 'Net Ödenen'
+        isPaid: !!c.isPaid,
+        date: c.date || '',
+        dueDate: '',
+        paymentDate: c.paymentDate || ''
+    });
+});
             return list;
         }
 
@@ -4025,6 +4188,274 @@
                 if (selectAllCb) selectAllCb.checked = false;
             }
         }
+        // Danışmanlık verisi tanımlaması
+if (!data.consultantPayments) data.consultantPayments = [];
+let currentConsultantFilter = 'pending';
+
+function populateConsultantYearFilter() {
+    const yearSelect = document.getElementById('consultant-year-filter');
+    if (!yearSelect) return;
+    const currentYear = new Date().getFullYear();
+    yearSelect.innerHTML = '';
+    for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+        yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+    }
+    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    const monthSelect = document.getElementById('consultant-month-filter');
+    if (monthSelect) monthSelect.value = currentMonth;
+}
+
+function setConsultantStatusFilter(status) {
+    currentConsultantFilter = status;
+    const btnPending = document.getElementById('btn-con-filter-pending');
+    const btnPaid = document.getElementById('btn-con-filter-paid');
+    const netLabel = document.getElementById('con-total-net-label');
+
+    if (status === 'pending') {
+        btnPending.className = "px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition";
+        btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+        if (netLabel) netLabel.innerText = "Danışmana Net Ödenecek Toplam";
+    } else {
+        btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
+        btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+        if (netLabel) netLabel.innerText = "Danışmana Net Ödenen Toplam";
+    }
+    renderConsultants();
+}
+
+// Excel Formülleri: NetExcl = Gross / 1.20 | TPark = NetExcl * 0.15 | NetPayable = NetExcl - TPark
+function calculateConsultantAmounts() {
+    const grossVal = parseFloat(document.getElementById('con-gross').value) || 0;
+    const netExcl = grossVal / 1.20;
+    const tparkVal = netExcl * 0.15;
+    const netPayable = netExcl - tparkVal;
+
+    document.getElementById('con-net-excl').value = netExcl > 0 ? netExcl.toFixed(2) : '';
+    document.getElementById('con-tax-tpark').value = tparkVal > 0 ? tparkVal.toFixed(2) : '';
+    document.getElementById('con-net-payable').value = netPayable > 0 ? netPayable.toFixed(2) : '';
+}
+
+function openConsultantModal(editId = null) {
+    document.getElementById('editing-consultant-id').value = editId || '';
+    const modalTitle = document.getElementById('consultant-modal-title');
+    const ibanInput = document.getElementById('con-iban');
+    if (ibanInput) ibanInput.oninput = function() { this.value = formatIBAN(this.value); };
+
+    if (editId) {
+        const item = data.consultantPayments.find(c => String(c.id) === String(editId));
+        if (!item) return;
+        modalTitle.innerText = "Danışmanlık Ödemesini Düzenle";
+        document.getElementById('con-name').value = item.name || '';
+        document.getElementById('con-tc').value = item.tc || '';
+        document.getElementById('con-iban').value = formatIBAN(item.iban || '');
+        document.getElementById('con-date').value = item.date || '';
+        document.getElementById('con-gross').value = item.gross || '';
+        document.getElementById('con-desc').value = item.desc || '';
+        document.getElementById('con-is-paid').checked = !!item.isPaid;
+        calculateConsultantAmounts();
+    } else {
+        modalTitle.innerText = "Yeni Danışmanlık Ödemesi Ekle";
+        document.getElementById('con-name').value = '';
+        document.getElementById('con-tc').value = '';
+        document.getElementById('con-iban').value = '';
+        document.getElementById('con-date').value = new Date().toLocaleDateString('tr-TR');
+        document.getElementById('con-gross').value = '';
+        document.getElementById('con-net-excl').value = '';
+        document.getElementById('con-tax-tpark').value = '';
+        document.getElementById('con-net-payable').value = '';
+        document.getElementById('con-desc').value = '';
+        document.getElementById('con-is-paid').checked = false;
+    }
+    document.getElementById('consultant-modal').classList.remove('hidden');
+}
+
+async function saveConsultantPayment() {
+    const editId = document.getElementById('editing-consultant-id').value;
+    const name = document.getElementById('con-name').value.trim();
+    const tc = document.getElementById('con-tc').value.trim();
+    const iban = document.getElementById('con-iban').value.trim();
+    const date = document.getElementById('con-date').value.trim();
+    const gross = parseFloat(document.getElementById('con-gross').value) || 0;
+    const desc = document.getElementById('con-desc').value.trim();
+    const isPaid = document.getElementById('con-is-paid').checked;
+
+    if (!name || gross <= 0) {
+        alert("Lütfen Danışman Adı Soyadı ve geçerli bir KDV Dahil Tutar girin.");
+        return;
+    }
+
+    const netExcl = gross / 1.20;
+    const tpark = netExcl * 0.15;
+    const netPayable = netExcl - tpark;
+
+    const payload = {
+        id: editId ? Number(editId) : Date.now(),
+        name, tc, iban, desc,
+        date: date || new Date().toLocaleDateString('tr-TR'),
+        gross, netExcl, tpark, netPayable,
+        isPaid,
+        paymentDate: isPaid ? (editId ? (data.consultantPayments.find(c => String(c.id) === String(editId))?.paymentDate || new Date().toLocaleDateString('tr-TR')) : new Date().toLocaleDateString('tr-TR')) : ''
+    };
+
+    if (editId) {
+        const idx = data.consultantPayments.findIndex(c => String(c.id) === String(editId));
+        if (idx !== -1) data.consultantPayments[idx] = payload;
+    } else {
+        data.consultantPayments.unshift(payload);
+    }
+
+    closeModal('consultant-modal');
+    renderConsultants();
+    renderPayments();
+    await saveData();
+}
+
+async function toggleConsultantPaidStatus(id, isChecked) {
+    const todayStr = new Date().toLocaleDateString('tr-TR');
+    const item = data.consultantPayments.find(c => String(c.id) === String(id));
+    if (item) {
+        item.isPaid = isChecked;
+        item.paymentDate = isChecked ? todayStr : '';
+        renderConsultants();
+        renderPayments();
+        await saveData();
+    }
+}
+
+async function deleteConsultantPayment(id) {
+    if (confirm("Bu danışmanlık ödemesini silmek istediğinize emin misiniz?")) {
+        recentlyDeletedIds.add('con_' + String(id));
+        data.consultantPayments = data.consultantPayments.filter(c => String(c.id) !== String(id));
+        renderConsultants();
+        renderPayments();
+        await saveData();
+    }
+}
+
+function renderConsultants() {
+    const tbody = document.getElementById('consultant-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const selYear = document.getElementById('consultant-year-filter') ? document.getElementById('consultant-year-filter').value : String(new Date().getFullYear());
+    const selMonth = document.getElementById('consultant-month-filter') ? document.getElementById('consultant-month-filter').value : String(new Date().getMonth() + 1).padStart(2, '0');
+
+    let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
+    const isUserAdmin = currentUser && currentUser.role === 'admin';
+    const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
+    const isPending = currentConsultantFilter === 'pending';
+
+    const filtered = data.consultantPayments.filter(c => {
+        const isPaid = !!c.isPaid;
+        if (isPending ? isPaid : !isPaid) return false;
+        const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
+        const { year, month } = extractYearMonth(targetDate);
+        if (year && month) return year === selYear && month === selMonth;
+        return true;
+    });
+
+    filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+
+    filtered.forEach(c => {
+        totalIncl += parseFloat(c.gross || 0);
+        totalExcl += parseFloat(c.netExcl || 0);
+        totalTPark += parseFloat(c.tpark || 0);
+        totalNet += parseFloat(c.netPayable || 0);
+        const isPaidChecked = !!c.isPaid;
+        const ibanDisplay = (c.iban && c.iban.trim() !== '') ? c.iban.trim() : '-';
+
+        tbody.innerHTML += `
+            <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
+                <td class="p-3 text-center">
+                    <div class="inline-flex items-center space-x-1.5 justify-center">
+                        <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                            ${isUserAdmin ? '' : 'disabled'}
+                            onchange="toggleConsultantPaidStatus('${c.id}', this.checked)" 
+                            class="w-4 h-4 text-teal-600 rounded cursor-pointer focus:ring-teal-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
+                            title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin değiştirebilir'}">
+                        ${c.paymentDate ? `
+                            <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
+                                <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${c.paymentDate}
+                            </span>
+                        ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
+                    </div>
+                </td>
+                <td class="p-3 font-semibold text-gray-600">${c.date || '-'}</td>
+                <td class="p-3 font-bold text-gray-800">${c.name}</td>
+                <td class="p-3 text-gray-600 font-semibold">${c.tc || '-'}</td>
+                <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
+                <td class="p-3 text-right font-bold text-gray-800 tabular-nums">${formatCurrency(c.gross)}</td>
+                <td class="p-3 text-right font-semibold text-indigo-700 tabular-nums">${formatCurrency(c.netExcl)}</td>
+                <td class="p-3 text-right font-semibold text-amber-700 tabular-nums">${formatCurrency(c.tpark)}</td>
+                <td class="p-3 text-right font-bold text-teal-700 tabular-nums bg-teal-50/50">${formatCurrency(c.netPayable)}</td>
+                <td class="p-3 text-gray-600 font-medium">${c.desc || '-'}</td>
+                <td class="p-3 text-center">
+                    ${canEdit ? `
+                        <button onclick="openConsultantModal('${c.id}')" class="text-teal-600 hover:text-teal-800 font-semibold bg-teal-50 px-2 py-1 rounded mr-1">Düzenle</button>
+                        <button onclick="deleteConsultantPayment('${c.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
+                    ` : '-'}
+                </td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('con-total-incl').innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('con-total-excl').innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('con-total-tpark').innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('con-total-net').innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (tbody.innerHTML === '') {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait danışmanlık kaydı bulunamadı.</td></tr>`;
+    }
+}
+
+function exportConsultantsToExcel() {
+    try {
+        if (!data || !data.consultantPayments || data.consultantPayments.length === 0) {
+            alert("Sistemde henüz kayıtlı danışmanlık ödemesi bulunmuyor.");
+            return;
+        }
+        const selYear = String(document.getElementById('consultant-year-filter').value).trim();
+        const selMonth = String(document.getElementById('consultant-month-filter').value).trim().padStart(2, '0');
+        const isPending = currentConsultantFilter === 'pending';
+
+        const filtered = data.consultantPayments.filter(c => {
+            const isPaid = !!c.isPaid;
+            if (isPending ? isPaid : !isPaid) return false;
+            const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
+            const { year, month } = extractYearMonth(targetDate);
+            if (year && month) return year === selYear && month === selMonth;
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            alert(`Seçilen dönemine ait danışmanlık kaydı bulunamadı.`);
+            return;
+        }
+
+        const exportList = filtered.map((c, idx) => ({
+            "Sıra": idx + 1,
+            "Tarih": c.date || '-',
+            "TC": c.tc || '-',
+            "Ödeme Yapılan İban": c.iban || '-',
+            "Adı Soyadı": c.name || '',
+            "KDV Dahil": Number((parseFloat(c.gross) || 0).toFixed(2)),
+            "K%20 KDV Hariç": Number((parseFloat(c.netExcl) || 0).toFixed(2)),
+            "T.Park Kalan %15": Number((parseFloat(c.tpark) || 0).toFixed(2)),
+            "Net Ödenen": Number((parseFloat(c.netPayable) || 0).toFixed(2)),
+            "Açıklama": c.desc || '-',
+            "Durum": c.isPaid ? 'Ödendi' : 'Ödenecek',
+            "Ödeme Tarihi": c.paymentDate || '-'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportList);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "AR-GE MUHASEBE");
+        XLSX.writeFile(wb, `Danismanlik_Odemeleri_${selMonth}_${selYear}.xlsx`);
+    } catch (err) {
+        alert("Excel indirilirken hata: " + err.message);
+    }
+}
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
