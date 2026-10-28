@@ -635,8 +635,8 @@
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
                                 <th class="p-3">Son Ödeme (Vade)</th>
-                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
                                 <th class="p-3 text-right">Ödenecek Tutar</th>
+                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
                                 <th class="p-3 text-center">İşlem</th>
                             </tr>
                         </thead>
@@ -1907,8 +1907,9 @@
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
-                tbody.innerHTML += `
+tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
+                        <!-- 1. Seçim Kutusu -->
                         <td class="p-3 text-center">
                             <input type="checkbox" ${isSelected ? 'checked' : ''} 
                                 data-key="${uniqueKey}"
@@ -1916,30 +1917,38 @@
                                 class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
                                 title="Bu ödemeyi toplama dahil etmek için seç">
                         </td>
+                        <!-- 2. Tür -->
                         <td class="p-3">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReferee ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">
                                 ${item.sourceLabel}
                             </span>
                         </td>
+                        <!-- 3. Firma / Hakem Adı -->
                         <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.name}</span>
                                 <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>
                             </div>
                         </td>
+                        <!-- 4. IBAN Bilgisi -->
                         <td class="p-3 font-semibold text-gray-700 text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')" title="Kopyalamak için tıklayın (boşluksuz)">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.iban}</span>
                                 ${item.iban !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
+                        <!-- 5. Açıklama -->
                         <td class="p-3 text-gray-600 font-medium cursor-pointer group" onclick="copyToClipboard('${safeDesc}', 'Açıklama')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
                                 <span>${item.desc}</span>
                                 ${item.desc !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
                             </div>
                         </td>
+                        <!-- 6. Son Ödeme (Vade) -->
                         <td class="p-3">${dueHtml}</td>
+                        <!-- 7. Ödenecek Tutar (ÖNE ALINDI) -->
+                        <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
+                        <!-- 8. Durum & Ödeme Tarihi (TUTARDAN SONRAYA ALINDI) -->
                         <td class="p-3 text-center">
                             <div class="inline-flex items-center space-x-2 justify-center">
                                 <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
@@ -1956,7 +1965,7 @@
                                 ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                             </div>
                         </td>
-                        <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
+                        <!-- 9. İşlem Butonları -->
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isReferee ? `
