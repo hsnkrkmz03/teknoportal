@@ -2776,10 +2776,11 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
 
     return (data.rentals || [])
         .filter(r => {
+            // Kesin ve net ofis ID eşleşmesi (Başka ofisle karışamaz)
             const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
             const isActive = r.status === 'active';
             const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
-            const notDeleted = typeof persistentDeletedIds !== 'undefined' ? !persistentDeletedIds.has('rent_' + String(r.id)) : true;
+            const notDeleted = (typeof persistentDeletedIds !== 'undefined') ? !persistentDeletedIds.has('rent_' + String(r.id)) : true;
             return matchOffice && isActive && notExcluded && notDeleted;
         })
         .reduce((acc, r) => acc + (parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0), 0);
@@ -2790,13 +2791,20 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
     if (!targetOfficeId) return 0;
 
     let totalArea = 0;
+    let officeFound = false;
+
     (data.campuses || []).forEach(c => {
         (c.offices || []).forEach(o => {
+            // SADECE ve SADECE ofisin kendi benzersiz ID'si ile eşleşmeli
             if (String(o.id || '').trim() === targetOfficeId) {
                 totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
+                officeFound = true;
             }
         });
     });
+
+    // Eğer ofis bulunamadıysa (veri tabanında kopukluk varsa) 0 dön
+    if (!officeFound) return 0;
 
     const rentedArea = getOfficeRentedArea(targetOfficeId, excludeRentalId);
     return Math.max(0, totalArea - rentedArea);
