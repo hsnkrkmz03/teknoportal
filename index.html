@@ -1369,31 +1369,17 @@
             }
         });
 
-        window.onload = async function() {
-         // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
-if (data && data.rentals) {
-    data.rentals = data.rentals.filter(r => 
-        r && 
-        r.status === 'active' && 
-        (!persistentDeletedIds.has('rent_' + String(r.id)) && !persistentDeletedIds.has(String(r.id)))
-    );
-}
-            // Ofis ID'lerinin çakışmasını otomatik düzelten güvence
-(data.campuses || []).forEach((c, cIdx) => {
-    (c.offices || []).forEach((o, oIdx) => {
-        // Her ofise benzersiz ID garanti et (örn: off_1_0, off_1_1)
-        if (!o.uniqueAssigned) {
-            const oldId = String(o.id);
-            const newId = `off_${c.id}_${oIdx}`;
-            // Kiralamalardaki eski ID'yi yeni ID ile güncelle
-            (data.rentals || []).forEach(r => {
-                if (String(r.officeId) === oldId) r.officeId = newId;
-            });
-            o.id = newId;
-            o.uniqueAssigned = true;
-        }
-    });
-});
+window.onload = async function() {
+            // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
+            if (data && data.rentals) {
+                data.rentals = data.rentals.filter(r => 
+                    r && 
+                    r.status === 'active' && 
+                    !persistentDeletedIds.has('rent_' + String(r.id)) && 
+                    !persistentDeletedIds.has(String(r.id))
+                );
+            }
+
             populateRefereeYearFilter();
             populateConsultantYearFilter();
             populatePaymentsYearFilter();
@@ -1416,6 +1402,7 @@ if (data && data.rentals) {
                         else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
                         else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
                         else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
+                        else if (currentUser.permissions && currentUser.permissions.consultants) switchTab('consultants');
                         else if (currentUser.role === 'admin') switchTab('payments');
                         else if (currentUser.role === 'admin') switchTab('users');
                         else switchTab('dashboard');
@@ -1463,10 +1450,25 @@ async function fetchCentralData() {
                             offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
                         }));
 
-                    // 3. KİRALAMALAR
-                    data.rentals = (targetData.rentals || data.rentals || [])
-                        .filter(rent => !persistentDeletedIds.has('rent_' + String(rent.id)));
+                    // 3. KİRALAMALAR (Kalıcı kara liste + yerel güncel kayıt koruması)
+                    const cloudRentals = (targetData.rentals || []).filter(rent => 
+                        !persistentDeletedIds.has('rent_' + String(rent.id)) && 
+                        !persistentDeletedIds.has(String(rent.id))
+                    );
 
+                    // Yerelde henüz buluta gitmemiş veya yeni güncellenmiş kayıtları koru
+                    const mergedRentalsMap = new Map();
+                    // Önce buluttakileri ekle
+                    cloudRentals.forEach(r => mergedRentalsMap.set(String(r.id).trim(), r));
+                    // Yereldeki aktif ve silinmemiş olanları üzerine yaz (yerel her zaman önceliklidir)
+                    (data.rentals || []).forEach(lr => {
+                        const lrId = String(lr.id).trim();
+                        if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
+                            mergedRentalsMap.set(lrId, lr);
+                        }
+                    });
+
+                    data.rentals = Array.from(mergedRentalsMap.values());
                     // 4. HAKEM ÖDEMELERİ (Yerelde olup henüz buluta gitmemiş olanları kaybetme)
                     const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
                     const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
@@ -2800,13 +2802,9 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
 
     return (data.rentals || [])
         .filter(r => {
-            // Sadece birebir ofis ID eşleşmesi
             const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
-            // Sadece aktif sözleşmeler (Biten/Feshedilenler alanı işgal edemez)
             const isActive = r.status === 'active';
-            // Düzenlenen sözleşme hariç tutulacaksa
             const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
-            // Kara listede (silinenlerde) OLMAMALI
             const notDeleted = (typeof persistentDeletedIds !== 'undefined') 
                 ? (!persistentDeletedIds.has('rent_' + String(r.id)) && !persistentDeletedIds.has(String(r.id))) 
                 : true;
@@ -3670,15 +3668,31 @@ function onRentalCampusChange(selectedOfficeId = null) {
     }
 }
 
-        function onRentalOfficeChange() {
-            const officeId = document.getElementById('rent-office-select').value;
-            const editRentalId = document.getElementById('editing-rental-id').value || null;
-            const hint = document.getElementById('office-available-hint');
+function onRentalOfficeChange() {
+    const officeId = document.getElementById('rent-office-select').value;
+    const editRentalIdInput = document.getElementById('editing-rental-id');
+    const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
+    const hint = document.getElementById('office-available-hint');
 
-            if (!officeId) { hint.innerText = ''; return; }
-            const availArea = getOfficeAvailableArea(officeId, editRentalId);
-            hint.innerText = `Seçilen ofiste kullanılabilir boş alan: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
-        }
+    if (!officeId) { 
+        if (hint) hint.innerText = ''; 
+        return; 
+    }
+    
+    let totalCap = 0;
+    (data.campuses || []).forEach(c => {
+        (c.offices || []).forEach(o => {
+            if (String(o.id).trim() === String(officeId).trim()) {
+                totalCap = parseFloat(String(o.area || 0).replace(',', '.'));
+            }
+        });
+    });
+
+    const availArea = getOfficeAvailableArea(officeId, editRentalId);
+    if (hint) {
+        hint.innerHTML = `<span class="text-blue-700 font-semibold">Ofis Kapasitesi: <strong>${totalCap.toFixed(2)} m²</strong> | Bu sözleşme için kullanılabilecek boş alan: <strong>${availArea.toFixed(2)} m²</strong></span>`;
+    }
+}
 
         function openCampusModal() {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
