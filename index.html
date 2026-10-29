@@ -1318,7 +1318,38 @@
         let currentUser = null;
         let isSyncing = false;
         let persistentDeletedIds = new Set(JSON.parse(localStorage.getItem('teknoparkDeletedIds') || '[]'));
+// === 112 VE 221 KİMLİK VE ALAN AYRIŞTIRICI (KESİN ÇÖZÜM) ===
+function sanitizeOfficeData() {
+    if (!data || !data.campuses) return;
 
+    data.campuses.forEach(c => {
+        (c.offices || []).forEach(o => {
+            const nameStr = String(o.name || '');
+            const idStr = String(o.id || '');
+
+            // 112 nolu ofisi kesin olarak 112 ID'sine ve 26.10 m2'ye sabitle
+            if (nameStr.includes('112') || idStr === '112') {
+                o.id = '112';
+                o.name = '112 nolu Ofis';
+                o.area = 26.10;
+            }
+            // 221 nolu ofisi kesin olarak 221 ID'sine ve 13.27 m2'ye sabitle
+            else if (nameStr.includes('221') || idStr === '221') {
+                o.id = '221';
+                o.name = '221 nolu Ofis';
+                o.area = 13.27;
+            }
+        });
+    });
+
+    // Kiralamalardaki karışıklığı düzelt: 13.27 m2 olan sözleşmeyi 221'e bağla
+    (data.rentals || []).forEach(r => {
+        const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.'));
+        if (Math.abs(area - 13.27) < 0.05) {
+            r.officeId = '221';
+        }
+    });
+}
         function markAsDeleted(uniqueKey) {
             persistentDeletedIds.add(String(uniqueKey));
             localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
@@ -1380,6 +1411,7 @@
 
         // === WINDOW.ONLOAD (Kapanış hatası düzeltildi, kilitlenme önlendi) ===
         window.onload = async function() {
+            sanitizeOfficeData();
             // 1. Temel yerleşkeleri ve 112/221 nolu ofisleri eksiksiz garanti et
             let mainCampus = (data.campuses || []).find(c => c.name.includes("OSB") || c.name.includes("Afyon")) || data.campuses[0];
             if (mainCampus) {
@@ -1461,7 +1493,7 @@
 
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
-                if (targetData) {
+              if (targetData) {
                     const localPaidStatus = new Map();
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
                     (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
@@ -1515,6 +1547,14 @@
 
                     users = (parsedPayload.users || users).filter(u => !persistentDeletedIds.has('user_' + String(u.id)));
                     userNotes = parsedPayload.userNotes || userNotes;
+
+                    // === BULUTTAN GELEN VERİLERİ DÜZELT VE TEMİZ KİMLİKLERLE BULUTA GERİ YAZ ===
+                    if (typeof sanitizeOfficeData === 'function') {
+                        sanitizeOfficeData();
+                    }
+                    if (typeof saveData === 'function') {
+                        saveData(); // Google Sheets bulutuna da temizlenmiş ID'leri geri yazar
+                    }
 
                     localStorage.setItem('teknoparkData', JSON.stringify(data));
                     localStorage.setItem('teknoparkUsers', JSON.stringify(users));
