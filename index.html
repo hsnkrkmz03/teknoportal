@@ -1370,7 +1370,14 @@
         });
 
         window.onload = async function() {
-         
+         // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
+if (data && data.rentals) {
+    data.rentals = data.rentals.filter(r => 
+        r && 
+        r.status === 'active' && 
+        (!persistentDeletedIds.has('rent_' + String(r.id)) && !persistentDeletedIds.has(String(r.id)))
+    );
+}
             // Ofis ID'lerinin çakışmasını otomatik düzelten güvence
 (data.campuses || []).forEach((c, cIdx) => {
     (c.offices || []).forEach((o, oIdx) => {
@@ -2793,11 +2800,17 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
 
     return (data.rentals || [])
         .filter(r => {
-            // Sadece ve sadece tam ID eşleşmesi (İsim veya benzerlik araması kaldırıldı)
+            // Sadece birebir ofis ID eşleşmesi
             const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
+            // Sadece aktif sözleşmeler (Biten/Feshedilenler alanı işgal edemez)
             const isActive = r.status === 'active';
+            // Düzenlenen sözleşme hariç tutulacaksa
             const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
-            const notDeleted = (typeof persistentDeletedIds !== 'undefined') ? !persistentDeletedIds.has('rent_' + String(r.id)) : true;
+            // Kara listede (silinenlerde) OLMAMALI
+            const notDeleted = (typeof persistentDeletedIds !== 'undefined') 
+                ? (!persistentDeletedIds.has('rent_' + String(r.id)) && !persistentDeletedIds.has(String(r.id))) 
+                : true;
+
             return matchOffice && isActive && notExcluded && notDeleted;
         })
         .reduce((acc, r) => acc + (parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0), 0);
@@ -2810,7 +2823,6 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
     let totalArea = 0;
     (data.campuses || []).forEach(c => {
         (c.offices || []).forEach(o => {
-            // Kesin ve net ID kontrolü
             if (String(o.id || '').trim() === targetOfficeId) {
                 totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
             }
@@ -3355,20 +3367,32 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             }
         }
 
-        async function deleteContractDirectly(rentalId) {
-            if(!currentUser || currentUser.role !== 'admin') return;
-            const r = data.rentals.find(item => String(item.id) === String(rentalId));
-            if(!r) return;
+async function deleteContractDirectly(rentalId) {
+    if (!currentUser || currentUser.role !== 'admin') {
+        alert("Yalnızca sistem yöneticisi sözleşme silebilir.");
+        return;
+    }
+    const targetId = String(rentalId).trim();
+    const r = (data.rentals || []).find(item => String(item.id).trim() === targetId);
+    if (!r) return;
 
-            if(confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi SİLMEK istediğinize emin misiniz?`)) {
-                recentlyDeletedIds.add('rent_' + String(rentalId));
-                data.rentals = data.rentals.filter(item => String(item.id) !== String(rentalId));
-                renderRentals();
-                renderCampuses();
-                renderDashboard();
-                await saveData();
-            }
-        }
+    if (confirm(`"${r.company}" firmasına ait sözleşmeyi kalıcı olarak SİLMEK istediğinize emin misiniz?`)) {
+        // Hem önekli hem öneksiz kara listeye al
+        markAsDeleted('rent_' + targetId);
+        markAsDeleted(targetId);
+
+        // Listeden çıkar
+        data.rentals = (data.rentals || []).filter(item => String(item.id).trim() !== targetId);
+
+        // TÜM EKRANLARI YENİDEN ÇİZ (Senkronizasyonu sağlar)
+        renderRentals();
+        renderCampuses();
+        renderDashboard();
+        renderExpiringAlerts();
+
+        await saveData();
+    }
+}
 
         function renderUsers() {
             const tbody = document.getElementById('user-table-body');
