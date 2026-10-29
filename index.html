@@ -1179,7 +1179,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">1. Bina / Yerleşke Seçimi</label>
-                    <select id="rent-campus-select" class="w-full border p-2 rounded-lg" onchange="()"></select>                </div>
+                    <select id="rent-campus-select" class="w-full border p-2 rounded-lg" onchange="onRentalCampusChange()"></select>                </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">2. Kiralanacak Ofis Seçimi</label>
                     <select id="rent-office-select" class="w-full border p-2 rounded-lg" onchange="onRentalOfficeChange()" disabled>
@@ -3694,6 +3694,7 @@ function onRentalCampusChange(selectedOfficeId = null) {
         return;
     }
 
+    // Yerleşkeyi ID eşitliğiyle bul
     const campus = (data.campuses || []).find(c => String(c.id).trim() === selectedCampusId);
     
     if (!campus || !campus.offices || campus.offices.length === 0) {
@@ -3702,6 +3703,7 @@ function onRentalCampusChange(selectedOfficeId = null) {
         return;
     }
 
+    // Kilidi kaldır ve ofisleri bas
     officeSelect.disabled = false;
     let optionsHtml = '<option value="">Ofis Seçiniz...</option>';
 
