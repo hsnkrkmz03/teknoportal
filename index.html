@@ -1260,7 +1260,49 @@
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
         Chart.register(ChartDataLabels);
+// === OFİS VE KİRALAMA KİMLİK ÇAKIŞMASI OTO-TAMİR ROBOTU ===
+(function repairOfficeIdentities() {
+    let localData = JSON.parse(localStorage.getItem('teknoparkData'));
+    if (!localData || !localData.campuses) return;
 
+    let repaired = false;
+    let nameToIdMap = new Map();
+
+    // 1. Her ofise benzersiz, asla çakışmayacak kimlik ata (İsim + Yerleşke bazlı)
+    localData.campuses.forEach(c => {
+        (c.offices || []).forEach((o, idx) => {
+            // Ofisin adını ve yerleşkesini temel alan temiz benzersiz ID üret
+            const cleanUniqueId = "bina_" + String(c.id).trim() + "_ofis_" + String(o.name).trim().replace(/\s+/g, '_');
+            
+            // Eski ID ile yenisini haritalandır
+            nameToIdMap.set(String(o.id).trim(), cleanUniqueId);
+            nameToIdMap.set(String(o.name).trim().toLowerCase(), cleanUniqueId);
+
+            if (o.id !== cleanUniqueId) {
+                o.id = cleanUniqueId;
+                repaired = true;
+            }
+        });
+    });
+
+    // 2. Kiralamalardaki ofis bağlantılarını doğru ofise bağla
+    if (localData.rentals) {
+        localData.rentals.forEach(r => {
+            const currentOfficeId = String(r.officeId).trim();
+            // Eğer kiralama eski/çakışan bir ID'ye bağlıysa yeni tekil ID ile güncelle
+            if (nameToIdMap.has(currentOfficeId)) {
+                r.officeId = nameToIdMap.get(currentOfficeId);
+                repaired = true;
+            }
+        });
+    }
+
+    if (repaired) {
+        localStorage.setItem('teknoparkData', JSON.stringify(localData));
+        data = localData;
+        console.log("✓ 112 ve 221 nolu ofislerin kimlikleri kalıcı olarak birbirinden ayrıldı!");
+    }
+})();
         const VAT_RATE = 0.20;
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUArRB77ANPEAJ2mBLTFcMgTWWHQmqu7KXz99pqtCKYT_wlc6DiKr9YeLZljBsomW3/exec";
 
