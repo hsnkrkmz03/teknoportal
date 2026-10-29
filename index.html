@@ -1370,6 +1370,23 @@
         });
 
         window.onload = async function() {
+         
+            // Ofis ID'lerinin çakışmasını otomatik düzelten güvence
+(data.campuses || []).forEach((c, cIdx) => {
+    (c.offices || []).forEach((o, oIdx) => {
+        // Her ofise benzersiz ID garanti et (örn: off_1_0, off_1_1)
+        if (!o.uniqueAssigned) {
+            const oldId = String(o.id);
+            const newId = `off_${c.id}_${oIdx}`;
+            // Kiralamalardaki eski ID'yi yeni ID ile güncelle
+            (data.rentals || []).forEach(r => {
+                if (String(r.officeId) === oldId) r.officeId = newId;
+            });
+            o.id = newId;
+            o.uniqueAssigned = true;
+        }
+    });
+});
             populateRefereeYearFilter();
             populateConsultantYearFilter();
             populatePaymentsYearFilter();
