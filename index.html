@@ -4391,30 +4391,38 @@ function renderConsultants() {
     const yearSelect = document.getElementById('consultant-year-filter');
     const monthSelect = document.getElementById('consultant-month-filter');
 
-    // Eğer filtre kutuları henüz dolmadıysa mevcut yılı ve ayı ata
-    const currentYear = String(new Date().getFullYear());
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+    // Filtre değerlerini al, boşsa güncel yılı/ayı varsayılan yap
+    const now = new Date();
+    const currentYear = String(now.getFullYear());
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
 
-    const selYear = yearSelect && yearSelect.value ? String(yearSelect.value).trim() : currentYear;
-    const selMonth = monthSelect && monthSelect.value ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
+    const selYear = (yearSelect && yearSelect.value) ? String(yearSelect.value).trim() : currentYear;
+    const selMonth = (monthSelect && monthSelect.value) ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
 
     let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
     const isUserAdmin = currentUser && currentUser.role === 'admin';
     const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
     const isPending = currentConsultantFilter === 'pending';
 
-    const filtered = (data.consultantPayments || []).filter(c => {
+    const list = data.consultantPayments || [];
+
+    const filtered = list.filter(c => {
         const isPaid = !!c.isPaid;
-        // Ödenecekler / Ödenenler sekme kontrolü
+        // 1. Ödenecekler / Ödenenler sekme kontrolü
         if (isPending ? isPaid : !isPaid) return false;
 
+        // 2. Tarih filtresi kontrolü
         const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
+        if (!targetDate) return true; // Tarih girilmemişse bile kaydı ekranda gizleme
+
         const { year, month } = extractYearMonth(targetDate);
         
-        // Eğer tarih ayrıştırılamıyorsa kaydı gizleme, göster; ayrıştırılabiliyorsa filtreye bak
+        // Eğer tarih ayrıştırılabildiyse yıl ve aya göre süz
         if (year && month) {
             return String(year).trim() === selYear && String(month).trim().padStart(2, '0') === selMonth;
         }
+        
+        // Tarih formatı uyuşmuyorsa kaydı kaybetmek yerine listede göster
         return true;
     });
 
@@ -4425,6 +4433,7 @@ function renderConsultants() {
         totalExcl += parseFloat(c.netExcl || 0);
         totalTPark += parseFloat(c.tpark || 0);
         totalNet += parseFloat(c.netPayable || 0);
+
         const isPaidChecked = !!c.isPaid;
         const ibanDisplay = (c.iban && c.iban.trim() !== '') ? c.iban.trim() : '-';
 
@@ -4445,7 +4454,7 @@ function renderConsultants() {
                     </div>
                 </td>
                 <td class="p-3 font-semibold text-gray-600">${c.date || '-'}</td>
-                <td class="p-3 font-bold text-gray-800">${c.name}</td>
+                <td class="p-3 font-bold text-gray-800">${c.name || '-'}</td>
                 <td class="p-3 text-gray-600 font-semibold">${c.tc || '-'}</td>
                 <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
                 <td class="p-3 text-right font-bold text-gray-800 tabular-nums">${formatCurrency(c.gross)}</td>
@@ -4463,6 +4472,7 @@ function renderConsultants() {
         `;
     });
 
+    // Kart toplamlarını güncelle
     const conInclEl = document.getElementById('con-total-incl');
     const conExclEl = document.getElementById('con-total-excl');
     const conTparkEl = document.getElementById('con-total-tpark');
