@@ -1441,7 +1441,7 @@
             populateRefereeYearFilter();
             populateConsultantYearFilter();
             populatePaymentsYearFilter();
-            await fetchCentralData();
+            fetchCentralData();
 
             const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
             if (savedUserJson) {
@@ -1476,15 +1476,18 @@ async function fetchCentralData() {
             }
 
             if (!APPS_SCRIPT_URL) return;
-
-            // Eğer şu an bir kaydetme işlemi sürüyorsa buluttan çekip yereli ezme!
             if (isSyncing) return;
 
             try {
+                // 2.5 saniye içinde buluttan ses çıkmazsa isteği iptal et, sayfayı bekletme
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500);
+
                 const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
-                const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow' });
+                const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
+                clearTimeout(timeoutId);
+
                 const textData = await res.text();
-                
                 if (!textData || textData.trim() === "") return;
 
                 let parsedPayload = JSON.parse(textData);
