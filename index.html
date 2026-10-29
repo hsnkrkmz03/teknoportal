@@ -1391,7 +1391,7 @@
             }
         };
 
-        async function fetchCentralData() {
+async function fetchCentralData() {
             const statusEl = document.getElementById('cloud-sync-status');
             if (statusEl) {
                 statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
@@ -1421,6 +1421,7 @@
                 if (targetData) {
                     const localPaidStatus = new Map();
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
+                    (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
                     (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
                     data.campuses = (targetData.campuses || [])
@@ -1437,19 +1438,24 @@
                         .filter(r => !recentlyDeletedIds.has('ref_' + String(r.id)))
                         .map(r => {
                             const local = localPaidStatus.get('ref_' + r.id);
-                            if (isSyncing && local) {
-                                return { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate };
-                            }
+                            if (isSyncing && local) return { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate };
                             return r;
+                        });
+
+                    // DANIŞMANLIK ÖDEMELERİ BULUT KORUMASI VE BİRLEŞTİRMESİ (DÜZELTİLDİ)
+                    data.consultantPayments = (targetData.consultantPayments || data.consultantPayments || [])
+                        .filter(c => !recentlyDeletedIds.has('con_' + String(c.id)))
+                        .map(c => {
+                            const local = localPaidStatus.get('con_' + c.id);
+                            if (isSyncing && local) return { ...c, isPaid: local.isPaid, paymentDate: local.paymentDate };
+                            return c;
                         });
 
                     data.manualPayments = (targetData.manualPayments || [])
                         .filter(m => !recentlyDeletedIds.has('man_' + String(m.id)))
                         .map(m => {
                             const local = localPaidStatus.get('man_' + m.id);
-                            if (isSyncing && local) {
-                                return { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate };
-                            }
+                            if (isSyncing && local) return { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate };
                             return m;
                         });
 
@@ -1480,6 +1486,7 @@
                 if (localData) {
                     data = JSON.parse(localData);
                     if (!data.refereePayments) data.refereePayments = [];
+                    if (!data.consultantPayments) data.consultantPayments = [];
                     if (!data.manualPayments) data.manualPayments = [];
                     users = JSON.parse(localStorage.getItem('teknoparkUsers')) || users;
                     userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || userNotes;
@@ -1487,7 +1494,6 @@
                 }
             }
         }
-
         async function saveData() {
             isSyncing = true;
 
@@ -1549,6 +1555,7 @@
                             data = importedObj.data;
                             if (!data.refereePayments) data.refereePayments = [];
                             if (!data.manualPayments) data.manualPayments = [];
+                            if (!data.consultantPayments) data.consultantPayments = [];
                             users = importedObj.users;
                             userNotes = importedObj.userNotes || [];
                             saveData();
@@ -2805,6 +2812,7 @@
             renderCampuses();
             renderRentals();
             renderReferees();
+            renderConsultants();
             renderPayments();
             renderExpiringAlerts();
             renderAdminNotes();
