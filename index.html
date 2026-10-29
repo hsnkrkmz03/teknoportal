@@ -51,7 +51,7 @@
             </div>
 
             <!-- CANLI BULUT VERİTABANI BAĞLANTI DURUMU BİLDİRİMİ -->
-            <div id="cloud-sync-status" class="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm">
+            <div id="cloud-sync-status" class="hidden mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm">
                 <i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i>
                 <span>Merkezi Bulut Veritabanına Bağlanıyor...</span>
             </div>
@@ -1410,37 +1410,21 @@ function sanitizeOfficeData() {
         });
 
         // === WINDOW.ONLOAD (Kapanış hatası düzeltildi, kilitlenme önlendi) ===
-        window.onload = async function() {
-            sanitizeOfficeData();
-            // 1. Temel yerleşkeleri ve 112/221 nolu ofisleri eksiksiz garanti et
-            let mainCampus = (data.campuses || []).find(c => c.name.includes("OSB") || c.name.includes("Afyon")) || data.campuses[0];
-            if (mainCampus) {
-                if (!mainCampus.offices) mainCampus.offices = [];
-                const has112 = mainCampus.offices.some(o => String(o.id) === "112" || String(o.name).includes("112"));
-                const has221 = mainCampus.offices.some(o => String(o.id) === "221" || String(o.name).includes("221"));
-                
-                if (!has112) mainCampus.offices.push({ id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" });
-                if (!has221) mainCampus.offices.push({ id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" });
-            }
-
-            // 2. Sözleşmelerdeki silinmiş kayıtları filtrele
-            if (data && data.rentals) {
-                data.rentals = data.rentals.filter(r => 
-                    r && 
-                    r.status === 'active' && 
-                    !persistentDeletedIds.has('rent_' + String(r.id)) && 
-                    !persistentDeletedIds.has(String(r.id))
-                );
-            }
-
+window.onload = function() {
+            // 1. Ekran filtrelerini ve listeleri doldur
             populateRefereeYearFilter();
             populateConsultantYearFilter();
             populatePaymentsYearFilter();
 
-            // 3. Bulut senkronizasyonunu başlat (await kaldırıldı; sayfa kilitlenmeden anında açılır)
+            // 2. Temizleme ve ayrıştırma fonksiyonunu güvenle çalıştır
+            if (typeof sanitizeOfficeData === 'function') {
+                sanitizeOfficeData();
+            }
+
+            // 3. Bulut senkronizasyonunu ARKAPLANDA başlat (await YOK - Sayfayı ASLA kilitlemez)
             fetchCentralData();
 
-            // 4. Oturumu aç
+            // 4. Oturumu doğrudan aç ve paneli göster
             const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
             if (savedUserJson) {
                 try {
@@ -1466,7 +1450,6 @@ function sanitizeOfficeData() {
                 } catch(e) { console.error("Oturum yükleme hatası:", e); }
             }
         };
-
         // === FETCHCENTRALDATA (3 Saniyelik Güvenlik Zaman Aşımı Korumalı) ===
         async function fetchCentralData() {
             const statusEl = document.getElementById('cloud-sync-status');
