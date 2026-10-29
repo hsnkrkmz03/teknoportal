@@ -3538,108 +3538,147 @@ async function deleteContractDirectly(rentalId) {
         }
 
 function openRentalModal(editRentalId = null) {
-    const campusSelect = document.getElementById('rent-campus-select');
-    const officeSelect = document.getElementById('rent-office-select');
-    const hint = document.getElementById('office-available-hint');
-    const editRentalIdInput = document.getElementById('editing-rental-id');
+    try {
+        const campusSelect = document.getElementById('rent-campus-select');
+        const officeSelect = document.getElementById('rent-office-select');
+        const hint = document.getElementById('office-available-hint');
+        const editRentalIdInput = document.getElementById('editing-rental-id');
+        const modal = document.getElementById('rental-modal');
 
-    // 1. Yerleşkeleri dinamik doldur
-    campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
-    (data.campuses || []).forEach(c => { 
-        campusSelect.innerHTML += `<option value="${String(c.id).trim()}">${c.name}</option>`; 
-    });
-    
-    // 2. ID ve not alanlarını sıfırla/ata
-    editRentalIdInput.value = editRentalId ? String(editRentalId).trim() : '';
-    document.getElementById('rent-user-note').value = '';
-    if (hint) hint.innerText = '';
-
-    // 3. Yetki denetimleri
-    const isUserAdmin = currentUser && currentUser.role === 'admin';
-    const perm = currentUser ? (currentUser.permissions || {}) : {};
-
-    document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
-    document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
-    document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
-    document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
-    document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-    document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-
-    const historySection = document.getElementById('rental-history-section');
-    const historyList = document.getElementById('rental-history-list');
-
-    // DÜZENLEME MODU
-    if (editRentalId !== null && editRentalId !== undefined && String(editRentalId).trim() !== '') {
-        const r = (data.rentals || []).find(item => String(item.id).trim() === String(editRentalId).trim());
-        if (!r) return;
-
-        document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
-        document.getElementById('save-rental-btn').innerText = "Güncelle";
-
-        // Ofisin ait olduğu yerleşkeyi bul
-        let currentCampusId = null;
-        (data.campuses || []).forEach(c => { 
-            if ((c.offices || []).some(o => String(o.id).trim() === String(r.officeId).trim())) {
-                currentCampusId = String(c.id).trim(); 
-            }
-        });
-
-        if (currentCampusId) {
-            campusSelect.value = currentCampusId;
-            // Ofisleri seçili ofisle beraber anında doldur
-            onRentalCampusChange(r.officeId);
-        } else {
-            officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-            officeSelect.disabled = true;
+        if (!modal) {
+            console.error("Kiralama modalı bulunamadı!");
+            return;
         }
 
-        document.getElementById('rent-company-name').value = r.company || '';
-        document.getElementById('rent-start-date').value = r.startDate || '';
-        document.getElementById('rent-target-end-date').value = r.endDate || '';
-        document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
-        document.getElementById('rent-unit-price').value = r.unitPrice !== undefined ? r.unitPrice : 0;
-        document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 !== undefined ? r.commonCostPerM2 : 0;
-        document.getElementById('rent-other-cost').value = r.otherCost !== undefined ? r.otherCost : 0;
-
-        historyList.innerHTML = '';
-        const hList = r.history || [];
-        if (hList.length > 0) {
-            hList.forEach(h => {
-                historyList.innerHTML += `
-                    <div class="border-b pb-1 border-gray-200 last:border-0">
-                        <span class="font-bold text-indigo-900">${h.username}</span> 
-                        <span class="text-[10px] text-gray-400">(${h.date}):</span> 
-                        <p class="text-gray-700 font-medium">${h.note}</p>
-                    </div>
-                `;
+        // 1. Yerleşkeleri doldur
+        if (campusSelect) {
+            campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
+            (data.campuses || []).forEach(c => { 
+                campusSelect.innerHTML += `<option value="${String(c.id).trim()}">${c.name}</option>`; 
             });
-            historySection.classList.remove('hidden');
-        } else {
-            historyList.innerHTML = '<p class="text-gray-400 italic text-[11px]">Gelişmiş değişiklik notu bulunmuyor.</p>';
-            historySection.classList.remove('hidden');
+            campusSelect.value = '';
         }
-    } 
-    // YENİ KİRALAMA MODU
-    else {
-        document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
-        document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
+        
+        // 2. ID ve ipucu alanlarını sıfırla
+        if (editRentalIdInput) {
+            editRentalIdInput.value = editRentalId ? String(editRentalId).trim() : '';
+        }
+        const noteInput = document.getElementById('rent-user-note');
+        if (noteInput) noteInput.value = '';
+        if (hint) hint.innerText = '';
 
-        campusSelect.value = '';
-        officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-        officeSelect.disabled = true;
+        // 3. Güvenli yetki denetimleri (currentUser veya permissions null olsa bile çökmez)
+        const isUserAdmin = currentUser && currentUser.role === 'admin';
+        const perm = (currentUser && currentUser.permissions) ? currentUser.permissions : {};
 
-        document.getElementById('rent-company-name').value = '';
-        document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('rent-target-end-date').value = '';
-        document.getElementById('rent-allocated-area').value = '';
-        document.getElementById('rent-unit-price').value = '';
-        document.getElementById('rent-common-cost-per-m2').value = '';
-        document.getElementById('rent-other-cost').value = '';
+        const setDisabled = (id, condition) => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = condition;
+        };
 
-        historySection.classList.add('hidden');
+        setDisabled('rent-unit-price', !(isUserAdmin || perm.rentalPriceEdit));
+        setDisabled('rent-common-cost-per-m2', !(isUserAdmin || perm.rentalCommonCostEdit));
+        setDisabled('rent-other-cost', !(isUserAdmin || perm.rentalOtherCostEdit));
+        setDisabled('rent-allocated-area', !(isUserAdmin || perm.rentalAreaEdit));
+        setDisabled('rent-start-date', !(isUserAdmin || perm.rentalDatesEdit));
+        setDisabled('rent-target-end-date', !(isUserAdmin || perm.rentalDatesEdit));
+
+        const historySection = document.getElementById('rental-history-section');
+        const historyList = document.getElementById('rental-history-list');
+
+        // DÜZENLEME MODU
+        if (editRentalId !== null && editRentalId !== undefined && String(editRentalId).trim() !== '') {
+            const r = (data.rentals || []).find(item => String(item.id).trim() === String(editRentalId).trim());
+            if (!r) return;
+
+            const modalTitle = document.getElementById('rental-modal-title');
+            const saveBtn = document.getElementById('save-rental-btn');
+            if (modalTitle) modalTitle.innerText = "Sözleşme Bilgilerini Güncelle";
+            if (saveBtn) saveBtn.innerText = "Güncelle";
+
+            let currentCampusId = null;
+            (data.campuses || []).forEach(c => { 
+                if ((c.offices || []).some(o => String(o.id).trim() === String(r.officeId).trim())) {
+                    currentCampusId = String(c.id).trim(); 
+                }
+            });
+
+            if (currentCampusId && campusSelect) {
+                campusSelect.value = currentCampusId;
+                onRentalCampusChange(r.officeId);
+            } else if (officeSelect) {
+                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+                officeSelect.disabled = true;
+            }
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = (val !== undefined && val !== null) ? val : '';
+            };
+
+            setVal('rent-company-name', r.company);
+            setVal('rent-start-date', r.startDate);
+            setVal('rent-target-end-date', r.endDate);
+            setVal('rent-allocated-area', r.allocatedArea);
+            setVal('rent-unit-price', r.unitPrice);
+            setVal('rent-common-cost-per-m2', r.commonCostPerM2);
+            setVal('rent-other-cost', r.otherCost);
+
+            if (historyList && historySection) {
+                historyList.innerHTML = '';
+                const hList = r.history || [];
+                if (hList.length > 0) {
+                    hList.forEach(h => {
+                        historyList.innerHTML += `
+                            <div class="border-b pb-1 border-gray-200 last:border-0">
+                                <span class="font-bold text-indigo-900">${h.username || 'Kullanıcı'}</span> 
+                                <span class="text-[10px] text-gray-400">(${h.date || '-'}):</span> 
+                                <p class="text-gray-700 font-medium">${h.note || ''}</p>
+                            </div>
+                        `;
+                    });
+                    historySection.classList.remove('hidden');
+                } else {
+                    historyList.innerHTML = '<p class="text-gray-400 italic text-[11px]">Gelişmiş değişiklik notu bulunmuyor.</p>';
+                    historySection.classList.remove('hidden');
+                }
+            }
+        } 
+        // YENİ KİRALAMA MODU
+        else {
+            const modalTitle = document.getElementById('rental-modal-title');
+            const saveBtn = document.getElementById('save-rental-btn');
+            if (modalTitle) modalTitle.innerText = "Ofis Kiralama Sözleşmesi";
+            if (saveBtn) saveBtn.innerText = "Kiralama Tamamla";
+
+            if (officeSelect) {
+                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+                officeSelect.disabled = true;
+            }
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            };
+
+            setVal('rent-company-name', '');
+            setVal('rent-start-date', new Date().toISOString().split('T')[0]);
+            setVal('rent-target-end-date', '');
+            setVal('rent-allocated-area', '');
+            setVal('rent-unit-price', '');
+            setVal('rent-common-cost-per-m2', '');
+            setVal('rent-other-cost', '');
+
+            if (historySection) historySection.classList.add('hidden');
+        }
+
+        // Modalı görünür yap
+        modal.classList.remove('hidden');
+
+    } catch (err) {
+        console.error("Kiralama modalı açılırken hata:", err);
+        alert("Modal açılırken bir hata oluştu: " + err.message);
     }
-
-    document.getElementById('rental-modal').classList.remove('hidden');
 }
 
 function onRentalCampusChange(selectedOfficeId = null) {
