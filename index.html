@@ -1258,7 +1258,7 @@
     </div>
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
-    <script>
+<script>
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -1283,76 +1283,42 @@
             campuses: [
                 {
                     id: 1,
-                    name: "Ana AR-GE Binası",
+                    name: "Afyon OSB Alanı",
                     offices: [
-                        { id: 101, name: "Ofis 101 (Paylaşımlı)", area: 100, floor: "1. Kat" },
-                        { id: 102, name: "Ofis 102", area: 150, floor: "1. Kat" }
+                        { id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" },
+                        { id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" }
                     ]
                 }
             ],
-            rentals: [
-                {
-                    id: 1, company: "Gelecek Yazılım Teknolojileri", officeId: 101, allocatedArea: 60,
-                    unitPrice: 300, commonCostPerM2: 50, otherCost: 500, startDate: "2023-01-01",
-                    endDate: "2026-11-15", status: "active",
-                    history: [ { username: "Sistem", date: "01.01.2023 09:00", note: "Sözleşme ilk defa oluşturuldu." } ]
-                }
-            ],
+            rentals: [],
             refereePayments: [],
-            manualPayments: []
+            manualPayments: [],
+            consultantPayments: []
         };
 
+        if (!data.campuses || data.campuses.length === 0) {
+            data.campuses = [
+                {
+                    id: 1,
+                    name: "Afyon OSB Alanı",
+                    offices: [
+                        { id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" },
+                        { id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" }
+                    ]
+                }
+            ];
+        }
+
+        if (!data.rentals) data.rentals = [];
         if (!data.refereePayments) data.refereePayments = [];
         if (!data.manualPayments) data.manualPayments = [];
+        if (!data.consultantPayments) data.consultantPayments = [];
 
         let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
         let currentUser = null;
         let isSyncing = false;
-        // Silinen verilerin buluttan hortlamasını engelleyen kalıcı kara liste
         let persistentDeletedIds = new Set(JSON.parse(localStorage.getItem('teknoparkDeletedIds') || '[]'));
-// === OFİS VE KİRALAMA KİMLİK ÇAKIŞMASI OTO-TAMİR ROBOTU ===
-(function repairOfficeIdentities() {
-    let localData = JSON.parse(localStorage.getItem('teknoparkData'));
-    if (!localData || !localData.campuses) return;
 
-    let repaired = false;
-    let nameToIdMap = new Map();
-
-    // 1. Her ofise benzersiz, asla çakışmayacak kimlik ata (İsim + Yerleşke bazlı)
-    localData.campuses.forEach(c => {
-        (c.offices || []).forEach((o, idx) => {
-            // Ofisin adını ve yerleşkesini temel alan temiz benzersiz ID üret
-            const cleanUniqueId = "bina_" + String(c.id).trim() + "_ofis_" + String(o.name).trim().replace(/\s+/g, '_');
-            
-            // Eski ID ile yenisini haritalandır
-            nameToIdMap.set(String(o.id).trim(), cleanUniqueId);
-            nameToIdMap.set(String(o.name).trim().toLowerCase(), cleanUniqueId);
-
-            if (o.id !== cleanUniqueId) {
-                o.id = cleanUniqueId;
-                repaired = true;
-            }
-        });
-    });
-
-    // 2. Kiralamalardaki ofis bağlantılarını doğru ofise bağla
-    if (localData.rentals) {
-        localData.rentals.forEach(r => {
-            const currentOfficeId = String(r.officeId).trim();
-            // Eğer kiralama eski/çakışan bir ID'ye bağlıysa yeni tekil ID ile güncelle
-            if (nameToIdMap.has(currentOfficeId)) {
-                r.officeId = nameToIdMap.get(currentOfficeId);
-                repaired = true;
-            }
-        });
-    }
-
-    if (repaired) {
-        localStorage.setItem('teknoparkData', JSON.stringify(localData));
-        data = localData;
-        console.log("✓ 112 ve 221 nolu ofislerin kimlikleri kalıcı olarak birbirinden ayrıldı!");
-    }
-})();
         function markAsDeleted(uniqueKey) {
             persistentDeletedIds.add(String(uniqueKey));
             localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
@@ -1377,6 +1343,7 @@
 
         let currentPaymentFilter = 'pending';
         let currentRefereeFilter = 'pending';
+        let currentConsultantFilter = 'pending';
 
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
@@ -1411,160 +1378,162 @@
             }
         });
 
-window.onload = async function() {
-    // === YERLEŞKE VE OFİSLERİ OTOMATİK KURTARICI VE EŞLEŞTİRİCİ ===
-    if (!data.campuses || data.campuses.length === 0) {
-        data.campuses = [
-            {
-                id: 1,
-                name: "Afyon OSB Alanı",
-                offices: [
-                    { id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" },
-                    { id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" }
-                ]
+        // === WINDOW.ONLOAD (Kapanış hatası düzeltildi, kilitlenme önlendi) ===
+        window.onload = async function() {
+            // 1. Temel yerleşkeleri ve 112/221 nolu ofisleri eksiksiz garanti et
+            let mainCampus = (data.campuses || []).find(c => c.name.includes("OSB") || c.name.includes("Afyon")) || data.campuses[0];
+            if (mainCampus) {
+                if (!mainCampus.offices) mainCampus.offices = [];
+                const has112 = mainCampus.offices.some(o => String(o.id) === "112" || String(o.name).includes("112"));
+                const has221 = mainCampus.offices.some(o => String(o.id) === "221" || String(o.name).includes("221"));
+                
+                if (!has112) mainCampus.offices.push({ id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" });
+                if (!has221) mainCampus.offices.push({ id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" });
             }
-        ];
-    } else {
-        // Afyon OSB Alanı altındaki 112 ve 221 nolu ofisleri eksiksiz garanti et
-        let mainCampus = data.campuses.find(c => c.name.includes("OSB") || c.name.includes("Afyon")) || data.campuses[0];
-        if (mainCampus) {
-            if (!mainCampus.offices) mainCampus.offices = [];
-            const has112 = mainCampus.offices.some(o => String(o.id) === "112" || o.name.includes("112"));
-            const has221 = mainCampus.offices.some(o => String(o.id) === "221" || o.name.includes("221"));
-            
-            if (!has112) mainCampus.offices.push({ id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" });
-            if (!has221) mainCampus.offices.push({ id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" });
-        }
-    }
 
-    // Sözleşmelerde geçen tüm ofisleri tara ve yerleşkeye bağla
-    (data.rentals || []).forEach(r => {
-        let officeFound = false;
-        (data.campuses || []).forEach(c => {
-            if ((c.offices || []).some(o => String(o.id).trim() === String(r.officeId).trim() || String(o.name).trim().toLowerCase() === String(r.officeId).trim().toLowerCase())) {
-                officeFound = true;
+            // 2. Sözleşmelerdeki silinmiş kayıtları filtrele
+            if (data && data.rentals) {
+                data.rentals = data.rentals.filter(r => 
+                    r && 
+                    r.status === 'active' && 
+                    !persistentDeletedIds.has('rent_' + String(r.id)) && 
+                    !persistentDeletedIds.has(String(r.id))
+                );
             }
-        });
 
-        // Sözleşmedeki ofis yerleşkede yoksa otomatik ekle
-        if (!officeFound && data.campuses.length > 0) {
-            const rawName = String(r.officeId).includes('ofis') ? String(r.officeId) : `${r.officeId} nolu Ofis`;
-            data.campuses[0].offices.push({
-                id: r.officeId,
-                name: rawName,
-                area: parseFloat(r.allocatedArea || 50),
-                floor: "1. Kat"
-            });
-        }
-    });
+            populateRefereeYearFilter();
+            populateConsultantYearFilter();
+            populatePaymentsYearFilter();
 
-    // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
-    if (data && data.rentals) {
-        data.rentals = data.rentals.filter(r => 
-            r && 
-            r.status === 'active' && 
-            !persistentDeletedIds.has('rent_' + String(r.id)) && 
-            !persistentDeletedIds.has(String(r.id))
-        );
-    }
+            // 3. Bulut senkronizasyonunu başlat (await kaldırıldı; sayfa kilitlenmeden anında açılır)
+            fetchCentralData();
 
-async function fetchCentralData() {
-    const statusEl = document.getElementById('cloud-sync-status');
-    if (statusEl && !currentUser) {
-        statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
-        statusEl.className = "mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm";
-    }
+            // 4. Oturumu aç
+            const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
+            if (savedUserJson) {
+                try {
+                    const parsedUser = JSON.parse(savedUserJson);
+                    const validUser = users.find(u => u.username === parsedUser.username && u.password === parsedUser.password);
+                    if (validUser) {
+                        currentUser = validUser;
+                        document.getElementById('login-screen').classList.add('hidden');
+                        document.getElementById('app').classList.remove('hidden');
+                        applyUserPermissionsUI();
+                        populateCampusFilters();
+                        renderAll();
 
-    if (!APPS_SCRIPT_URL || isSyncing) return;
+                        if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
+                        else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
+                        else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
+                        else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
+                        else if (currentUser.permissions && currentUser.permissions.consultants) switchTab('consultants');
+                        else if (currentUser.role === 'admin') switchTab('payments');
+                        else if (currentUser.role === 'admin') switchTab('users');
+                        else switchTab('dashboard');
+                    }
+                } catch(e) { console.error("Oturum yükleme hatası:", e); }
+            }
+        };
 
-    try {
-        // 3 saniye içinde buluttan yanıt gelmezse beklemeden yerel verilerle aç
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        // === FETCHCENTRALDATA (3 Saniyelik Güvenlik Zaman Aşımı Korumalı) ===
+        async function fetchCentralData() {
+            const statusEl = document.getElementById('cloud-sync-status');
+            if (statusEl && !currentUser) {
+                statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
+                statusEl.className = "mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm";
+            }
 
-        const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
-        const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
-        clearTimeout(timeoutId);
+            if (!APPS_SCRIPT_URL || isSyncing) return;
 
-        const textData = await res.text();
-        if (!textData || textData.trim() === "") return;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-        let parsedPayload = JSON.parse(textData);
-        if (typeof parsedPayload === 'string') parsedPayload = JSON.parse(parsedPayload);
+                const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
+                const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
+                clearTimeout(timeoutId);
 
-        let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
+                const textData = await res.text();
+                if (!textData || textData.trim() === "") return;
 
-        if (targetData) {
-            const localPaidStatus = new Map();
-            (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
-            (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
-            (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
+                let parsedPayload = JSON.parse(textData);
+                if (typeof parsedPayload === 'string') parsedPayload = JSON.parse(parsedPayload);
 
-            data.campuses = (targetData.campuses || data.campuses || [])
-                .filter(c => !persistentDeletedIds.has('cam_' + String(c.id)))
-                .map(c => ({
-                    ...c,
-                    offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
-                }));
+                let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
-            const cloudRentals = (targetData.rentals || []).filter(rent => 
-                !persistentDeletedIds.has('rent_' + String(rent.id)) && 
-                !persistentDeletedIds.has(String(rent.id))
-            );
+                if (targetData) {
+                    const localPaidStatus = new Map();
+                    (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
+                    (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
+                    (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
-            const mergedRentalsMap = new Map();
-            cloudRentals.forEach(r => mergedRentalsMap.set(String(r.id).trim(), r));
-            (data.rentals || []).forEach(lr => {
-                const lrId = String(lr.id).trim();
-                if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
-                    mergedRentalsMap.set(lrId, lr);
+                    if (targetData.campuses && targetData.campuses.length > 0) {
+                        data.campuses = targetData.campuses
+                            .filter(c => !persistentDeletedIds.has('cam_' + String(c.id)))
+                            .map(c => ({
+                                ...c,
+                                offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
+                            }));
+                    }
+
+                    const cloudRentals = (targetData.rentals || []).filter(rent => 
+                        !persistentDeletedIds.has('rent_' + String(rent.id)) && 
+                        !persistentDeletedIds.has(String(rent.id))
+                    );
+
+                    const mergedRentalsMap = new Map();
+                    cloudRentals.forEach(r => mergedRentalsMap.set(String(r.id).trim(), r));
+                    (data.rentals || []).forEach(lr => {
+                        const lrId = String(lr.id).trim();
+                        if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
+                            mergedRentalsMap.set(lrId, lr);
+                        }
+                    });
+
+                    data.rentals = Array.from(mergedRentalsMap.values());
+
+                    const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
+                    const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
+                    data.refereePayments = [...cloudRef, ...localOnlyRef].map(r => {
+                        const local = localPaidStatus.get('ref_' + r.id);
+                        return local ? { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate } : r;
+                    });
+
+                    const cloudCon = (targetData.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)));
+                    const localOnlyCon = (data.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !cloudCon.some(cc => String(cc.id) === String(c.id)));
+                    data.consultantPayments = [...cloudCon, ...localOnlyCon].map(c => {
+                        const local = localPaidStatus.get('con_' + c.id);
+                        return local ? { ...c, isPaid: local.isPaid, paymentDate: local.paymentDate } : c;
+                    });
+
+                    const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)));
+                    const localOnlyMan = (data.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !cloudMan.some(cm => String(cm.id) === String(m.id)));
+                    data.manualPayments = [...cloudMan, ...localOnlyMan].map(m => {
+                        const local = localPaidStatus.get('man_' + m.id);
+                        return local ? { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate } : m;
+                    });
+
+                    users = (parsedPayload.users || users).filter(u => !persistentDeletedIds.has('user_' + String(u.id)));
+                    userNotes = parsedPayload.userNotes || userNotes;
+
+                    localStorage.setItem('teknoparkData', JSON.stringify(data));
+                    localStorage.setItem('teknoparkUsers', JSON.stringify(users));
+                    localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
+
+                    if (statusEl) {
+                        statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1.5"></i><span>Bulut Veritabanı Eşitlendi (Canlı Sync)</span>`;
+                        statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
+                    }
+                    if (currentUser) renderAll();
                 }
-            });
-
-            data.rentals = Array.from(mergedRentalsMap.values());
-
-            const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
-            const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
-            data.refereePayments = [...cloudRef, ...localOnlyRef].map(r => {
-                const local = localPaidStatus.get('ref_' + r.id);
-                return local ? { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate } : r;
-            });
-
-            const cloudCon = (targetData.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)));
-            const localOnlyCon = (data.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !cloudCon.some(cc => String(cc.id) === String(c.id)));
-            data.consultantPayments = [...cloudCon, ...localOnlyCon].map(c => {
-                const local = localPaidStatus.get('con_' + c.id);
-                return local ? { ...c, isPaid: local.isPaid, paymentDate: local.paymentDate } : c;
-            });
-
-            const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)));
-            const localOnlyMan = (data.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !cloudMan.some(cm => String(cm.id) === String(m.id)));
-            data.manualPayments = [...cloudMan, ...localOnlyMan].map(m => {
-                const local = localPaidStatus.get('man_' + m.id);
-                return local ? { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate } : m;
-            });
-
-            users = (parsedPayload.users || users).filter(u => !persistentDeletedIds.has('user_' + String(u.id)));
-            userNotes = parsedPayload.userNotes || userNotes;
-
-            localStorage.setItem('teknoparkData', JSON.stringify(data));
-            localStorage.setItem('teknoparkUsers', JSON.stringify(users));
-            localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
-
-            if (statusEl) {
-                statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1.5"></i><span>Bulut Veritabanı Eşitlendi (Canlı Sync)</span>`;
-                statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
+            } catch (e) {
+                console.warn("Bulut eşitleme yerel modda devam ediyor:", e);
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1.5"></i><span>Çevrimdışı / Yerel Modda Çalışıyor</span>`;
+                    statusEl.className = "mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs font-semibold text-amber-900 shadow-sm";
+                }
             }
-            if (currentUser) renderAll();
         }
-    } catch (e) {
-        console.warn("Bulut eşitleme yerel modda devam ediyor:", e);
-        if (statusEl) {
-            statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-600 mr-1.5"></i><span>Çevrimdışı / Yerel Modda Çalışıyor</span>`;
-            statusEl.className = "mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs font-semibold text-amber-900 shadow-sm";
-        }
-    }
-}
 async function saveData() {
             isSyncing = true;
 
