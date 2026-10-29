@@ -3482,7 +3482,7 @@ function renderRentals() {
             if (filteredRentals.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
             }
-        }
+        
 async function deleteContractDirectly(rentalId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             if (!isUserAdmin) {
