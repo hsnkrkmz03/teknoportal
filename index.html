@@ -2771,18 +2771,44 @@ filtered.forEach(item => {
         }
 
         function getOfficeRentedArea(officeId, excludeRentalId = null) {
-            return data.rentals
-                .filter(r => String(r.officeId) === String(officeId) && r.status === 'active' && String(r.id) !== String(excludeRentalId))
-                .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
+            const targetId = String(officeId || '').trim();
+            if (!targetId) return 0;
+            const excludeIdStr = excludeRentalId ? String(excludeRentalId).trim() : null;
+
+            // Hedef ofisin adını al
+            let targetName = '';
+            (data.campuses || []).forEach(c => {
+                (c.offices || []).forEach(o => {
+                    if (String(o.id).trim() === targetId) targetName = String(o.name).trim();
+                });
+            });
+
+            return (data.rentals || [])
+                .filter(r => {
+                    if (!r || r.status !== 'active') return false;
+                    if (excludeIdStr && String(r.id).trim() === excludeIdStr) return false;
+                    
+                    const rOffice = String(r.officeId || '').trim();
+                    // Sadece bu ofisin ID'si veya adı birebir tutuyorsa dahil et
+                    return rOffice === targetId || (targetName && rOffice.toLowerCase() === targetName.toLowerCase());
+                })
+                .reduce((acc, r) => acc + parseFloat(String(r.allocatedArea || 0).replace(',', '.')), 0);
         }
 
         function getOfficeAvailableArea(officeId, excludeRentalId = null) {
+            const targetId = String(officeId || '').trim();
+            if (!targetId) return 0;
+
             let totalArea = 0;
-            data.campuses.forEach(c => {
-                const off = (c.offices || []).find(o => String(o.id) === String(officeId));
-                if(off) totalArea = parseFloat(off.area || 0);
+            (data.campuses || []).forEach(c => {
+                (c.offices || []).forEach(o => {
+                    if (String(o.id).trim() === targetId) {
+                        totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
+                    }
+                });
             });
-            return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
+
+            return Math.max(0, totalArea - getOfficeRentedArea(targetId, excludeRentalId));
         }
 
         function getStats(selectedCampusId = 'all') {
@@ -3236,7 +3262,7 @@ filtered.forEach(item => {
             } else { alertContainer.classList.add('hidden'); }
         }
 
-        function renderRentals() {
+function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -3250,14 +3276,32 @@ filtered.forEach(item => {
             const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
-            let filteredRentals = data.rentals.filter(r => {
+            function getOfficeDetails(officeRef) {
+                const ref = String(officeRef || '').trim().toLowerCase();
+                let officeName = "Bilinmiyor";
+                let campusName = "Bilinmiyor";
                 let campusId = null;
-                data.campuses.forEach(c => {
-                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
-                    if(off) campusId = c.id;
-                });
 
-                if (selectedCampus !== 'all' && String(campusId) !== String(selectedCampus)) return false;
+                for (let c of (data.campuses || [])) {
+                    for (let o of (c.offices || [])) {
+                        const oId = String(o.id || '').trim().toLowerCase();
+                        const oName = String(o.name || '').trim().toLowerCase();
+
+                        if (oId === ref || oName === ref) {
+                            officeName = o.name;
+                            campusName = c.name;
+                            campusId = c.id;
+                            return { officeName, campusName, campusId };
+                        }
+                    }
+                }
+                return { officeName, campusName, campusId };
+            }
+
+            let filteredRentals = (data.rentals || []).filter(r => {
+                const details = getOfficeDetails(r.officeId);
+
+                if (selectedCampus !== 'all' && String(details.campusId) !== String(selectedCampus)) return false;
                 if (selectedStatus !== 'all' && r.status !== selectedStatus) return false;
                 if (searchKeyword && !String(r.company || '').toLowerCase().includes(searchKeyword)) return false;
 
@@ -3267,25 +3311,20 @@ filtered.forEach(item => {
             filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
             filteredRentals.forEach(r => {
-                let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
+                const details = getOfficeDetails(r.officeId);
 
-                data.campuses.forEach(c => {
-                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
-                    if(off) { officeName = off.name; campusName = c.name; }
-                });
-
-                const area = parseFloat(r.allocatedArea || 0);
-                const totalRent = area * (parseFloat(r.unitPrice) || 0);
-                const totalCommonCost = area * (parseFloat(r.commonCostPerM2) || 0);
-                const totalExclVat = totalRent + totalCommonCost + parseFloat(r.otherCost || 0);
+                const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0;
+                const totalRent = area * (parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0);
+                const totalCommonCost = area * (parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0);
+                const totalExclVat = totalRent + totalCommonCost + (parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0);
                 const totalInclVat = totalExclVat * (1 + VAT_RATE);
                 const isActive = r.status === 'active';
 
                 tbody.innerHTML += `
                     <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
                         <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
-                        <td class="p-4 font-semibold text-gray-800">${r.company}</td>
-                        <td class="p-4">${campusName} - <strong>${officeName}</strong></td>
+                        <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
+                        <td class="p-4">${details.campusName} - <strong>${details.officeName}</strong></td>
                         <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
                         <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
                         <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
