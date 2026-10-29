@@ -424,42 +424,71 @@
                         </div>
                     </div>
                 </div>
-<!-- KİRA TAKİBİ DİNAMİK ÖZET KARTLARI -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+<!-- KİRA TAKİBİ DİNAMİK 6'LI ÖZET KARTLAR -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                        <!-- 1. Sözleşme Sayısı -->
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
-                                <div class="text-gray-500 text-xs font-medium mb-1">Filtrelenen Sözleşme Sayısı</div>
-                                <div class="text-xl font-bold text-gray-800" id="rental-stat-count">0</div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Sözleşme Sayısı</div>
+                                <div class="text-lg font-bold text-gray-800" id="rental-stat-count">0</div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <i class="fa-solid fa-file-signature text-lg"></i>
+                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-file-signature text-sm"></i>
                             </div>
                         </div>
+
+                        <!-- 2. Kiralanan Alan -->
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
-                                <div class="text-gray-500 text-xs font-medium mb-1">Toplam Kiralanan Alan</div>
-                                <div class="text-xl font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Kiralanan Alan</div>
+                                <div class="text-lg font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                <i class="fa-solid fa-ruler-combined text-lg"></i>
+                            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-ruler-combined text-sm"></i>
                             </div>
                         </div>
+
+                        <!-- 3. Toplam Kira Tutarı -->
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
                             <div>
-                                <div class="text-gray-500 text-xs font-medium mb-1">Aylık Net Kira (KDV Hariç)</div>
-                                <div class="text-xl font-bold text-indigo-600"><span id="rental-stat-rent-excl">0,00</span> ₺</div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Kira Tutarı (KDV Hariç)</div>
+                                <div class="text-lg font-bold text-indigo-600"><span id="rental-stat-rent">0,00</span> ₺</div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                <i class="fa-solid fa-coins text-lg"></i>
+                            <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-coins text-sm"></i>
                             </div>
                         </div>
+
+                        <!-- 4. Toplam Ortak Gider -->
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Ort. Gider (KDV Hariç)</div>
+                                <div class="text-lg font-bold text-sky-600"><span id="rental-stat-common">0,00</span> ₺</div>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- 5. Toplam Katılım Payı -->
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Katılım Payı (KDV Hariç)</div>
+                                <div class="text-lg font-bold text-teal-600"><span id="rental-stat-other">0,00</span> ₺</div>
+                            </div>
+                            <div class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-receipt text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- 6. Toplam Ciro (KDV Dahil) -->
                         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
                             <div>
-                                <div class="text-gray-500 text-xs font-medium mb-1">Aylık Toplam Ciro (KDV Dahil)</div>
-                                <div class="text-xl font-bold text-blue-600"><span id="rental-stat-total-incl">0,00</span> ₺</div>
+                                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Ciro (KDV Dahil)</div>
+                                <div class="text-lg font-bold text-blue-600"><span id="rental-stat-total-incl">0,00</span> ₺</div>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <i class="fa-solid fa-vault text-lg"></i>
+                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-vault text-sm"></i>
                             </div>
                         </div>
                     </div>
@@ -3336,7 +3365,6 @@ function renderRentals() {
                 return { officeName, campusName, campusId };
             }
 
-            // Filtrelere göre sözleşmeleri süz
             let filteredRentals = (data.rentals || []).filter(r => {
                 const details = getOfficeDetails(r.officeId);
 
@@ -3349,10 +3377,12 @@ function renderRentals() {
 
             filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
-            // Kartlar için toplam değişkenleri
+            // 6 Kart için bağımsız toplam değişkenleri
             let statTotalCount = filteredRentals.length;
             let statTotalArea = 0;
-            let statTotalRentExcl = 0;
+            let statTotalRent = 0;
+            let statTotalCommon = 0;
+            let statTotalOther = 0;
             let statTotalOverallIncl = 0;
 
             filteredRentals.forEach(r => {
@@ -3369,9 +3399,11 @@ function renderRentals() {
                 const totalInclVat = totalExclVat * (1 + VAT_RATE);
                 const isActive = r.status === 'active';
 
-                // Kart toplamlarına ekle
+                // Her kalemi kendi kart değişkenine ekle
                 statTotalArea += area;
-                statTotalRentExcl += totalRent;
+                statTotalRent += totalRent;
+                statTotalCommon += totalCommonCost;
+                statTotalOther += otherCost;
                 statTotalOverallIncl += totalInclVat;
 
                 tbody.innerHTML += `
@@ -3399,6 +3431,26 @@ function renderRentals() {
                     </tr>
                 `;
             });
+
+            // 6 Kart Değerini Formatlayarak DOM'a Yazdır
+            const countEl = document.getElementById('rental-stat-count');
+            const areaEl = document.getElementById('rental-stat-area');
+            const rentEl = document.getElementById('rental-stat-rent');
+            const commonEl = document.getElementById('rental-stat-common');
+            const otherEl = document.getElementById('rental-stat-other');
+            const totalInclEl = document.getElementById('rental-stat-total-incl');
+
+            if (countEl) countEl.innerText = statTotalCount;
+            if (areaEl) areaEl.innerText = statTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (rentEl) rentEl.innerText = statTotalRent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (commonEl) commonEl.innerText = statTotalCommon.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (otherEl) otherEl.innerText = statTotalOther.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (totalInclEl) totalInclEl.innerText = statTotalOverallIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            if (filteredRentals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
+            }
+        }
 
             // Kart Değerlerini Ekrana Yazdır
             const countEl = document.getElementById('rental-stat-count');
