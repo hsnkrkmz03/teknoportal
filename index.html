@@ -2769,20 +2769,38 @@ filtered.forEach(item => {
             renderCampuses();
         }
 
-        function getOfficeRentedArea(officeId, excludeRentalId = null) {
-            return data.rentals
-                .filter(r => String(r.officeId) === String(officeId) && r.status === 'active' && String(r.id) !== String(excludeRentalId))
-                .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
-        }
+function getOfficeRentedArea(officeId, excludeRentalId = null) {
+    const targetOfficeId = String(officeId || '').trim();
+    if (!targetOfficeId) return 0;
+    const excludeIdStr = excludeRentalId ? String(excludeRentalId).trim() : null;
 
-        function getOfficeAvailableArea(officeId, excludeRentalId = null) {
-            let totalArea = 0;
-            data.campuses.forEach(c => {
-                const off = (c.offices || []).find(o => String(o.id) === String(officeId));
-                if(off) totalArea = parseFloat(off.area || 0);
-            });
-            return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
-        }
+    return (data.rentals || [])
+        .filter(r => {
+            const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
+            const isActive = r.status === 'active';
+            const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
+            const notDeleted = typeof persistentDeletedIds !== 'undefined' ? !persistentDeletedIds.has('rent_' + String(r.id)) : true;
+            return matchOffice && isActive && notExcluded && notDeleted;
+        })
+        .reduce((acc, r) => acc + (parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0), 0);
+}
+
+function getOfficeAvailableArea(officeId, excludeRentalId = null) {
+    const targetOfficeId = String(officeId || '').trim();
+    if (!targetOfficeId) return 0;
+
+    let totalArea = 0;
+    (data.campuses || []).forEach(c => {
+        (c.offices || []).forEach(o => {
+            if (String(o.id || '').trim() === targetOfficeId) {
+                totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
+            }
+        });
+    });
+
+    const rentedArea = getOfficeRentedArea(targetOfficeId, excludeRentalId);
+    return Math.max(0, totalArea - rentedArea);
+}
 
         function getStats(selectedCampusId = 'all') {
             let totalArea = 0, rentedArea = 0, rentRevenueExcl = 0, commonRevenueExcl = 0, otherRevenueExcl = 0;
@@ -2799,13 +2817,17 @@ filtered.forEach(item => {
                 });
             });
 
-            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(String(r.officeId))).forEach(r => {
-                const area = parseFloat(r.allocatedArea || 0);
-                rentedArea += area;
-                rentRevenueExcl += (area * (parseFloat(r.unitPrice) || 0));
-                commonRevenueExcl += (area * (parseFloat(r.commonCostPerM2) || 0));
-                otherRevenueExcl += parseFloat(r.otherCost || 0);
-            });
+(data.rentals || []).filter(r => 
+    r.status === 'active' && 
+    validOfficeIds.includes(String(r.officeId).trim()) &&
+    !persistentDeletedIds.has('rent_' + String(r.id))
+).forEach(r => {
+    const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.'));
+    rentedArea += area;
+    rentRevenueExcl += (area * (parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0));
+    commonRevenueExcl += (area * (parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0));
+    otherRevenueExcl += parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0;
+});
 
             const totalRevenueExcl = rentRevenueExcl + commonRevenueExcl + otherRevenueExcl;
 
@@ -3129,7 +3151,11 @@ filtered.forEach(item => {
                         statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-red-100 text-red-700">Tamamı Dolu</span>`;
                     }
 
-                    const hasActiveRental = data.rentals.some(r => String(r.officeId) === String(o.id) && r.status === 'active');
+                    const hasActiveRental = (data.rentals || []).some(r => 
+                        String(r.officeId).trim() === String(o.id).trim() && 
+                        r.status === 'active' && 
+                        !persistentDeletedIds.has('rent_' + String(r.id))
+                    );
 
                     return `
                         <div class="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 transition rounded-lg border border-gray-200">
@@ -3320,6 +3346,8 @@ filtered.forEach(item => {
                 recentlyDeletedIds.add('rent_' + String(rentalId));
                 data.rentals = data.rentals.filter(item => String(item.id) !== String(rentalId));
                 renderRentals();
+                renderCampuses();
+                renderDashboard();
                 await saveData();
             }
         }
