@@ -2776,7 +2776,7 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
 
     return (data.rentals || [])
         .filter(r => {
-            // Kesin ve net ofis ID eşleşmesi (Başka ofisle karışamaz)
+            // Sadece ve sadece tam ID eşleşmesi (İsim veya benzerlik araması kaldırıldı)
             const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
             const isActive = r.status === 'active';
             const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
@@ -2791,25 +2791,18 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
     if (!targetOfficeId) return 0;
 
     let totalArea = 0;
-    let officeFound = false;
-
     (data.campuses || []).forEach(c => {
         (c.offices || []).forEach(o => {
-            // SADECE ve SADECE ofisin kendi benzersiz ID'si ile eşleşmeli
+            // Kesin ve net ID kontrolü
             if (String(o.id || '').trim() === targetOfficeId) {
                 totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
-                officeFound = true;
             }
         });
     });
 
-    // Eğer ofis bulunamadıysa (veri tabanında kopukluk varsa) 0 dön
-    if (!officeFound) return 0;
-
     const rentedArea = getOfficeRentedArea(targetOfficeId, excludeRentalId);
     return Math.max(0, totalArea - rentedArea);
 }
-
         function getStats(selectedCampusId = 'all') {
             let totalArea = 0, rentedArea = 0, rentRevenueExcl = 0, commonRevenueExcl = 0, otherRevenueExcl = 0;
 
