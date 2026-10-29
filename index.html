@@ -3082,7 +3082,7 @@ filtered.forEach(item => {
 
             const canEditGeneral = isUserAdmin || perm.canEdit;
             const canAddOffice = isUserAdmin || perm.officeAdd !== false;
-            const canDeleteOffice = isUserAdmin || perm.officeDelete !== false;
+            const can = isUserAdmin || perm.officeDelete !== false;
             const canDeleteCampus = isUserAdmin || perm.campusDelete !== false;
 
             const suggestionBox = document.getElementById('smart-suggestion-box');
@@ -3249,8 +3249,8 @@ filtered.forEach(item => {
                             </div>
                             <div class="flex items-center space-x-3">
                                 ${statusBadge}
-                                ${(canEditGeneral && canDeleteOffice) ? `
-                                    <button onclick="deleteOffice('${c.id}', '${o.id}')" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
+                                ${(canEditGeneral && can) ? `
+                                    <button onclick="('${c.id}', '${o.id}')" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
                                         <i class="fa-solid ${hasActiveRental ? 'fa-lock' : 'fa-trash'}"></i>
                                     </button>
                                 ` : ''}
@@ -3927,27 +3927,50 @@ async function deleteContractDirectly(rentalId) {
             closeModal('end-rental-modal'); saveData();
         }
 
-        async function deleteOffice(campusId, officeId) {
+async function deleteOffice(campusId, officeId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
 
-            if (!isUserAdmin && perm.officeDelete === false) { alert("Ofis silme yetkiniz bulunmamaktadır!"); return; }
+            if (!isUserAdmin && perm.officeDelete === false) { 
+                alert("Ofis silme yetkiniz bulunmamaktadır!"); 
+                return; 
+            }
 
-            const activeRentals = data.rentals.filter(r => String(r.officeId) === String(officeId) && r.status === 'active');
+            const targetOfficeId = String(officeId || '').trim();
+
+            // Aktif kira sözleşmesi kontrolü
+            const activeRentals = (data.rentals || []).filter(r => 
+                String(r.officeId || '').trim() === targetOfficeId && r.status === 'active'
+            );
+
             if (activeRentals.length > 0) {
                 const companies = activeRentals.map(r => r.company).join(", ");
                 alert(`GÜVENLİK UYARISI: Bu ofiste aktif kira sözleşmesi devam eden firma/firmalar bulunmaktadır (${companies}).\n\nAktif kiralama bitirilmeden bu ofis SİLİNEMEZ!`);
                 return;
             }
 
-            if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('off_' + String(officeId));
-                const campus = data.campuses.find(c => String(c.id) === String(campusId));
-                if(campus && campus.offices) {
-                    campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
-                    data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
+            if (confirm("Bu ofisi kalıcı olarak silmek istediğinize emin misiniz?")) {
+                // HATA DÜZELTİLDİ: persistentDeletedIds kullanıldı
+                if (typeof markAsDeleted === 'function') {
+                    markAsDeleted('off_' + targetOfficeId);
+                    markAsDeleted(targetOfficeId);
+                } else {
+                    persistentDeletedIds.add('off_' + targetOfficeId);
+                    persistentDeletedIds.add(targetOfficeId);
+                    localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
                 }
+
+                // Ofisi yerleşkeden temizle
+                const campus = (data.campuses || []).find(c => String(c.id).trim() === String(campusId).trim());
+                if (campus && campus.offices) {
+                    campus.offices = campus.offices.filter(o => String(o.id).trim() !== targetOfficeId);
+                    data.rentals = (data.rentals || []).filter(r => String(r.officeId).trim() !== targetOfficeId);
+                }
+
+                // Ekranları yeniden çiz ve kaydet
                 renderCampuses();
+                renderRentals();
+                renderDashboard();
                 await saveData();
             }
         }
@@ -3956,13 +3979,19 @@ async function deleteContractDirectly(rentalId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
 
-            if (!isUserAdmin && perm.campusDelete === false) { alert("Yerleşke silme yetkiniz bulunmamaktadır!"); return; }
+            if (!isUserAdmin && perm.campusDelete === false) { 
+                alert("Yerleşke silme yetkiniz bulunmamaktadır!"); 
+                return; 
+            }
 
-            const campus = data.campuses.find(c => String(c.id) === String(campusId));
+            const targetCampusId = String(campusId || '').trim();
+            const campus = (data.campuses || []).find(c => String(c.id).trim() === targetCampusId);
             if (!campus) return;
 
-            const officeIds = (campus.offices || []).map(o => String(o.id));
-            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(String(r.officeId)) && r.status === 'active');
+            const officeIds = (campus.offices || []).map(o => String(o.id).trim());
+            const activeRentalsInCampus = (data.rentals || []).filter(r => 
+                officeIds.includes(String(r.officeId || '').trim()) && r.status === 'active'
+            );
 
             if (activeRentalsInCampus.length > 0) {
                 const companies = activeRentalsInCampus.map(r => r.company).join(", ");
@@ -3970,10 +3999,34 @@ async function deleteContractDirectly(rentalId) {
                 return;
             }
 
-            if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('cam_' + String(campusId));
-                data.campuses = data.campuses.filter(c => String(c.id) !== String(campusId));
+            if (confirm(`"${campus.name}" yerleşkesini ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?`)) {
+                // HATA DÜZELTİLDİ: persistentDeletedIds kullanıldı
+                if (typeof markAsDeleted === 'function') {
+                    markAsDeleted('cam_' + targetCampusId);
+                    markAsDeleted(targetCampusId);
+                    officeIds.forEach(offId => {
+                        markAsDeleted('off_' + offId);
+                        markAsDeleted(offId);
+                    });
+                } else {
+                    persistentDeletedIds.add('cam_' + targetCampusId);
+                    persistentDeletedIds.add(targetCampusId);
+                    officeIds.forEach(offId => {
+                        persistentDeletedIds.add('off_' + offId);
+                        persistentDeletedIds.add(offId);
+                    });
+                    localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
+                }
+
+                // Yerleşkeyi ve bağlı kayıtları listeden çıkar
+                data.campuses = (data.campuses || []).filter(c => String(c.id).trim() !== targetCampusId);
+                data.rentals = (data.rentals || []).filter(r => !officeIds.includes(String(r.officeId || '').trim()));
+
+                // Ekranları ve filtreleri yeniden çiz ve kaydet
+                populateCampusFilters();
                 renderCampuses();
+                renderRentals();
+                renderDashboard();
                 await saveData();
             }
         }
