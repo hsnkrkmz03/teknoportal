@@ -424,7 +424,45 @@
                         </div>
                     </div>
                 </div>
-
+<!-- KİRA TAKİBİ DİNAMİK ÖZET KARTLARI -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-xs font-medium mb-1">Filtrelenen Sözleşme Sayısı</div>
+                                <div class="text-xl font-bold text-gray-800" id="rental-stat-count">0</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-file-signature text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-xs font-medium mb-1">Toplam Kiralanan Alan</div>
+                                <div class="text-xl font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <i class="fa-solid fa-ruler-combined text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-xs font-medium mb-1">Aylık Net Kira (KDV Hariç)</div>
+                                <div class="text-xl font-bold text-indigo-600"><span id="rental-stat-rent-excl">0,00</span> ₺</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                <i class="fa-solid fa-coins text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
+                            <div>
+                                <div class="text-gray-500 text-xs font-medium mb-1">Aylık Toplam Ciro (KDV Dahil)</div>
+                                <div class="text-xl font-bold text-blue-600"><span id="rental-stat-total-incl">0,00</span> ₺</div>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <i class="fa-solid fa-vault text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1200px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
@@ -3298,6 +3336,7 @@ function renderRentals() {
                 return { officeName, campusName, campusId };
             }
 
+            // Filtrelere göre sözleşmeleri süz
             let filteredRentals = (data.rentals || []).filter(r => {
                 const details = getOfficeDetails(r.officeId);
 
@@ -3310,15 +3349,30 @@ function renderRentals() {
 
             filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
+            // Kartlar için toplam değişkenleri
+            let statTotalCount = filteredRentals.length;
+            let statTotalArea = 0;
+            let statTotalRentExcl = 0;
+            let statTotalOverallIncl = 0;
+
             filteredRentals.forEach(r => {
                 const details = getOfficeDetails(r.officeId);
 
                 const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0;
-                const totalRent = area * (parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0);
-                const totalCommonCost = area * (parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0);
-                const totalExclVat = totalRent + totalCommonCost + (parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0);
+                const unitPrice = parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0;
+                const commonCost = parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0;
+                const otherCost = parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0;
+
+                const totalRent = area * unitPrice;
+                const totalCommonCost = area * commonCost;
+                const totalExclVat = totalRent + totalCommonCost + otherCost;
                 const totalInclVat = totalExclVat * (1 + VAT_RATE);
                 const isActive = r.status === 'active';
+
+                // Kart toplamlarına ekle
+                statTotalArea += area;
+                statTotalRentExcl += totalRent;
+                statTotalOverallIncl += totalInclVat;
 
                 tbody.innerHTML += `
                     <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
@@ -3330,7 +3384,7 @@ function renderRentals() {
                         <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
                         <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
-                        <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(r.otherCost)}</td>
+                        <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
                         <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
                         <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
                         <td class="p-4 text-center">
@@ -3346,11 +3400,21 @@ function renderRentals() {
                 `;
             });
 
+            // Kart Değerlerini Ekrana Yazdır
+            const countEl = document.getElementById('rental-stat-count');
+            const areaEl = document.getElementById('rental-stat-area');
+            const rentExclEl = document.getElementById('rental-stat-rent-excl');
+            const totalInclEl = document.getElementById('rental-stat-total-incl');
+
+            if (countEl) countEl.innerText = statTotalCount;
+            if (areaEl) areaEl.innerText = statTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (rentExclEl) rentExclEl.innerText = statTotalRentExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (totalInclEl) totalInclEl.innerText = statTotalOverallIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
             if (filteredRentals.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
             }
         }
-
         async function deleteContractDirectly(rentalId) {
             if(!currentUser || currentUser.role !== 'admin') return;
             const r = data.rentals.find(item => String(item.id) === String(rentalId));
