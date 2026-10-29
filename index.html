@@ -2771,20 +2771,34 @@ filtered.forEach(item => {
         }
 
 function getOfficeRentedArea(officeId, excludeRentalId = null) {
+    const targetOfficeId = String(officeId || '').trim();
+    const excludeIdStr = excludeRentalId ? String(excludeRentalId).trim() : null;
+
     return (data.rentals || [])
-        .filter(r => String(r.officeId) === String(officeId) && 
-                     r.status === 'active' && 
-                     (excludeRentalId ? String(r.id) !== String(excludeRentalId) : true))
-        .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
+        .filter(r => {
+            const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
+            const isActive = r.status === 'active';
+            const notExcluded = excludeIdStr ? String(r.id).trim() !== excludeIdStr : true;
+            return matchOffice && isActive && notExcluded;
+        })
+        .reduce((acc, r) => acc + (parseFloat(r.allocatedArea) || 0), 0);
 }
 
 function getOfficeAvailableArea(officeId, excludeRentalId = null) {
+    const targetOfficeId = String(officeId || '').trim();
+    if (!targetOfficeId) return 0;
+
     let totalArea = 0;
     (data.campuses || []).forEach(c => {
-        const off = (c.offices || []).find(o => String(o.id) === String(officeId));
-        if(off) totalArea = parseFloat(off.area || 0);
+        (c.offices || []).forEach(o => {
+            if (String(o.id || '').trim() === targetOfficeId) {
+                totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
+            }
+        });
     });
-    return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
+
+    const rentedArea = getOfficeRentedArea(officeId, excludeRentalId);
+    return Math.max(0, totalArea - rentedArea);
 }
 
         function getStats(selectedCampusId = 'all') {
@@ -3588,15 +3602,22 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             } else { document.getElementById('office-available-hint').innerText = ''; }
         }
 
-        function onRentalOfficeChange() {
-            const officeId = document.getElementById('rent-office-select').value;
-            const editRentalId = document.getElementById('editing-rental-id').value || null;
-            const hint = document.getElementById('office-available-hint');
+function onRentalOfficeChange() {
+    const officeId = document.getElementById('rent-office-select').value;
+    const editRentalId = document.getElementById('editing-rental-id').value || null;
+    const hint = document.getElementById('office-available-hint');
 
-            if (!officeId) { hint.innerText = ''; return; }
-            const availArea = getOfficeAvailableArea(officeId, editRentalId);
-            hint.innerText = `Seçilen ofiste kullanılabilir boş alan: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
-        }
+    if (!officeId) { 
+        if (hint) hint.innerText = ''; 
+        return; 
+    }
+    
+    // Düzenlenen sözleşmenin kendi alanını hariç tutarak ofisteki gerçek boş alanı gösterir
+    const availArea = getOfficeAvailableArea(officeId, editRentalId);
+    if (hint) {
+        hint.innerText = `Seçilen ofiste bu sözleşme için kullanılabilecek maksimum alan: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
+    }
+}
 
         function openCampusModal() {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
@@ -3653,7 +3674,8 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
         }
 
 function saveRental() {
-    const editRentalId = document.getElementById('editing-rental-id').value || null;
+    const editRentalIdInput = document.getElementById('editing-rental-id');
+    const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
     const company = document.getElementById('rent-company-name').value;
     const officeId = document.getElementById('rent-office-select').value;
     const startDate = document.getElementById('rent-start-date').value;
@@ -3672,7 +3694,8 @@ function saveRental() {
     // DÜZELTME: Düzenlenen sözleşmenin kendi m²'sini hesaba katarak ofiste çıkılabilecek maksimum tavanı hesaplar
     const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
     
-    if(allocatedArea > maxAvail) {
+    // Toleranslı float kontrolü (0.01 m² yuvarlama farklarını tolere eder)
+    if (allocatedArea > (maxAvail + 0.001)) {
         alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin bu sözleşme için kullanılabilir maksimum alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
         return;
     }
