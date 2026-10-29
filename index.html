@@ -4334,15 +4334,35 @@ async function toggleConsultantPaidStatus(id, isChecked) {
 }
 
 async function deleteConsultantPayment(id) {
+    if (!id) return;
+    
     if (confirm("Bu danışmanlık ödemesini silmek istediğinize emin misiniz?")) {
-        markAsDeleted('con_' + String(id));
-                data.consultantPayments = (data.consultantPayments || []).filter(c => String(c.id) !== String(id));
-                selectedPaymentKeys.delete('consultant_' + String(id));
-                if (typeof renderConsultants === 'function') renderConsultants();
-                renderPayments();
-                await saveData();
-            }
+        const targetIdStr = String(id).trim();
+
+        // 1. Kara listeye String olarak ekle
+        if (typeof markAsDeleted === 'function') {
+            markAsDeleted('con_' + targetIdStr);
+        } else if (typeof persistentDeletedIds !== 'undefined') {
+            persistentDeletedIds.add('con_' + targetIdStr);
+            localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
         }
+
+        // 2. Tür bağımsız filtreleme yap (String vs Number uyuşmazlığını önler)
+        data.consultantPayments = (data.consultantPayments || []).filter(c => String(c.id).trim() !== targetIdStr);
+
+        // 3. Seçili kalemler havuzunda varsa temizle
+        if (typeof selectedPaymentKeys !== 'undefined') {
+            selectedPaymentKeys.delete('consultant_' + targetIdStr);
+        }
+
+        // 4. İlgili tabloları güncelle
+        if (typeof renderConsultants === 'function') renderConsultants();
+        if (typeof renderPayments === 'function') renderPayments();
+
+        // 5. Değişikliği kalıcı olarak kaydet
+        await saveData();
+    }
+}
 
 function renderConsultants() {
     const tbody = document.getElementById('consultant-table-body');
