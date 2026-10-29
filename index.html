@@ -1412,46 +1412,61 @@
         });
 
 window.onload = async function() {
-            // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
-            if (data && data.rentals) {
-                data.rentals = data.rentals.filter(r => 
-                    r && 
-                    r.status === 'active' && 
-                    !persistentDeletedIds.has('rent_' + String(r.id)) && 
-                    !persistentDeletedIds.has(String(r.id))
-                );
+    // === YERLEŞKE VE OFİSLERİ OTOMATİK KURTARICI VE EŞLEŞTİRİCİ ===
+    if (!data.campuses || data.campuses.length === 0) {
+        data.campuses = [
+            {
+                id: 1,
+                name: "Afyon OSB Alanı",
+                offices: [
+                    { id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" },
+                    { id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" }
+                ]
             }
+        ];
+    } else {
+        // Afyon OSB Alanı altındaki 112 ve 221 nolu ofisleri eksiksiz garanti et
+        let mainCampus = data.campuses.find(c => c.name.includes("OSB") || c.name.includes("Afyon")) || data.campuses[0];
+        if (mainCampus) {
+            if (!mainCampus.offices) mainCampus.offices = [];
+            const has112 = mainCampus.offices.some(o => String(o.id) === "112" || o.name.includes("112"));
+            const has221 = mainCampus.offices.some(o => String(o.id) === "221" || o.name.includes("221"));
+            
+            if (!has112) mainCampus.offices.push({ id: 112, name: "112 nolu Ofis", area: 26.10, floor: "1. Kat" });
+            if (!has221) mainCampus.offices.push({ id: 221, name: "221 nolu Ofis", area: 13.27, floor: "2. Kat" });
+        }
+    }
 
-            populateRefereeYearFilter();
-            populateConsultantYearFilter();
-            populatePaymentsYearFilter();
-            await fetchCentralData();
-
-            const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
-            if (savedUserJson) {
-                try {
-                    const parsedUser = JSON.parse(savedUserJson);
-                    const validUser = users.find(u => u.username === parsedUser.username && u.password === parsedUser.password);
-                    if (validUser) {
-                        currentUser = validUser;
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('app').classList.remove('hidden');
-                        applyUserPermissionsUI();
-                        populateCampusFilters();
-                        renderAll();
-
-                        if (currentUser.permissions && currentUser.permissions.dashboard) switchTab('dashboard');
-                        else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
-                        else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
-                        else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
-                        else if (currentUser.permissions && currentUser.permissions.consultants) switchTab('consultants');
-                        else if (currentUser.role === 'admin') switchTab('payments');
-                        else if (currentUser.role === 'admin') switchTab('users');
-                        else switchTab('dashboard');
-                    }
-                } catch(e) { console.error("Oturum yükleme hatası:", e); }
+    // Sözleşmelerde geçen tüm ofisleri tara ve yerleşkeye bağla
+    (data.rentals || []).forEach(r => {
+        let officeFound = false;
+        (data.campuses || []).forEach(c => {
+            if ((c.offices || []).some(o => String(o.id).trim() === String(r.officeId).trim() || String(o.name).trim().toLowerCase() === String(r.officeId).trim().toLowerCase())) {
+                officeFound = true;
             }
-        };
+        });
+
+        // Sözleşmedeki ofis yerleşkede yoksa otomatik ekle
+        if (!officeFound && data.campuses.length > 0) {
+            const rawName = String(r.officeId).includes('ofis') ? String(r.officeId) : `${r.officeId} nolu Ofis`;
+            data.campuses[0].offices.push({
+                id: r.officeId,
+                name: rawName,
+                area: parseFloat(r.allocatedArea || 50),
+                floor: "1. Kat"
+            });
+        }
+    });
+
+    // Geçersiz veya silinmiş sözleşmeleri hafızadan arındır
+    if (data && data.rentals) {
+        data.rentals = data.rentals.filter(r => 
+            r && 
+            r.status === 'active' && 
+            !persistentDeletedIds.has('rent_' + String(r.id)) && 
+            !persistentDeletedIds.has(String(r.id))
+        );
+    }
 
 async function fetchCentralData() {
     const statusEl = document.getElementById('cloud-sync-status');
