@@ -3289,7 +3289,7 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             } else { alertContainer.classList.add('hidden'); }
         }
 
-        function renderRentals() {
+function renderRentals() {
             const tbody = document.getElementById('rental-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -3303,10 +3303,10 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
-            let filteredRentals = data.rentals.filter(r => {
+            let filteredRentals = (data.rentals || []).filter(r => {
                 let campusId = null;
-                data.campuses.forEach(c => {
-                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
+                (data.campuses || []).forEach(c => {
+                    const off = (c.offices || []).find(o => String(o.id).trim() === String(r.officeId).trim());
                     if(off) campusId = c.id;
                 });
 
@@ -3322,9 +3322,13 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
             filteredRentals.forEach(r => {
                 let officeName = "Bilinmiyor", campusName = "Bilinmiyor";
 
-                data.campuses.forEach(c => {
-                    const off = (c.offices || []).find(o => String(o.id) === String(r.officeId));
-                    if(off) { officeName = off.name; campusName = c.name; }
+                // KESİN VE TEKİL EŞLEŞTİRME
+                (data.campuses || []).forEach(c => {
+                    const off = (c.offices || []).find(o => String(o.id).trim() === String(r.officeId).trim());
+                    if(off) { 
+                        officeName = off.name; 
+                        campusName = c.name; 
+                    }
                 });
 
                 const area = parseFloat(r.allocatedArea || 0);
@@ -3820,7 +3824,8 @@ function saveRental() {
     const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
 
     const company = document.getElementById('rent-company-name').value.trim();
-    const officeId = document.getElementById('rent-office-select').value;
+    const officeSelect = document.getElementById('rent-office-select');
+    const officeId = officeSelect ? String(officeSelect.value || '').trim() : '';
     const startDate = document.getElementById('rent-start-date').value;
     const endDate = document.getElementById('rent-target-end-date').value;
     const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
@@ -3858,10 +3863,10 @@ function saveRental() {
     const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
 
     if (editRentalId) {
-        const rental = data.rentals.find(r => String(r.id || '').trim() === editRentalId);
+        const rental = (data.rentals || []).find(r => String(r.id || '').trim() === editRentalId);
         if (rental) {
             rental.company = company; 
-            rental.officeId = officeId; 
+            rental.officeId = officeId; // Kesin seçilen ofis ID'si
             rental.startDate = startDate;
             rental.endDate = endDate || null; 
             rental.allocatedArea = allocatedArea;
@@ -3885,8 +3890,17 @@ function saveRental() {
         newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
 
         data.rentals.unshift({ 
-            id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
-            startDate, endDate: endDate || null, status: 'active', history: newHistory
+            id: Date.now(), 
+            company, 
+            officeId: officeId, // SADECE kullanıcının seçtiği ofis ID'si atanır
+            allocatedArea, 
+            unitPrice, 
+            commonCostPerM2, 
+            otherCost,
+            startDate, 
+            endDate: endDate || null, 
+            status: 'active', 
+            history: newHistory
         });
 
         if (currentUser && currentUser.role !== 'admin' && noteText) {
