@@ -2778,7 +2778,7 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
         .filter(r => {
             const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
             const isActive = r.status === 'active';
-            const notExcluded = excludeIdStr ? String(r.id).trim() !== excludeIdStr : true;
+            const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
             return matchOffice && isActive && notExcluded;
         })
         .reduce((acc, r) => acc + (parseFloat(r.allocatedArea) || 0), 0);
@@ -3612,7 +3612,6 @@ function onRentalOfficeChange() {
         return; 
     }
     
-    // Düzenlenen sözleşmenin kendi alanını hariç tutarak ofisteki gerçek boş alanı gösterir
     const availArea = getOfficeAvailableArea(officeId, editRentalId);
     if (hint) {
         hint.innerText = `Seçilen ofiste bu sözleşme için kullanılabilecek maksimum alan: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`;
@@ -3676,7 +3675,8 @@ function onRentalOfficeChange() {
 function saveRental() {
     const editRentalIdInput = document.getElementById('editing-rental-id');
     const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
-    const company = document.getElementById('rent-company-name').value;
+
+    const company = document.getElementById('rent-company-name').value.trim();
     const officeId = document.getElementById('rent-office-select').value;
     const startDate = document.getElementById('rent-start-date').value;
     const endDate = document.getElementById('rent-target-end-date').value;
@@ -3686,16 +3686,16 @@ function saveRental() {
     const otherCost = parseFloat(document.getElementById('rent-other-cost').value) || 0;
     const noteText = document.getElementById('rent-user-note').value.trim();
 
-    if(!company || !officeId || !startDate || !allocatedArea) { 
-        alert("Lütfen gerekli tüm alanları doldurun."); 
+    if (!company || !officeId || !startDate || isNaN(allocatedArea) || allocatedArea <= 0) { 
+        alert("Lütfen gerekli tüm alanları eksiksiz ve geçerli değerlerle doldurun."); 
         return; 
     }
 
-    // DÜZELTME: Düzenlenen sözleşmenin kendi m²'sini hesaba katarak ofiste çıkılabilecek maksimum tavanı hesaplar
+    // Düzenlenen sözleşmenin kendi alanını hariç tutarak ofisteki tavanı hesapla
     const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
     
-    // Toleranslı float kontrolü (0.01 m² yuvarlama farklarını tolere eder)
-    if (allocatedArea > (maxAvail + 0.001)) {
+    // Küçük yuvarlama payı (0.01) ile tolerans kontrolü
+    if (allocatedArea > (maxAvail + 0.01)) {
         alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin bu sözleşme için kullanılabilir maksimum alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
         return;
     }
@@ -3703,9 +3703,9 @@ function saveRental() {
     const currentTimestamp = new Date().toLocaleString('tr-TR');
     const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
 
-    if(editRentalId) {
-        const rental = data.rentals.find(r => String(r.id) === String(editRentalId));
-        if(rental) {
+    if (editRentalId) {
+        const rental = data.rentals.find(r => String(r.id || '').trim() === editRentalId);
+        if (rental) {
             rental.company = company; 
             rental.officeId = officeId; 
             rental.startDate = startDate;
