@@ -1507,9 +1507,24 @@ async function fetchCentralData() {
                             offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
                         }));
 
-                    // 3. KİRALAMALAR
-                    data.rentals = (targetData.rentals || data.rentals || [])
-                        .filter(rent => !persistentDeletedIds.has('rent_' + String(rent.id)));
+                    // 3. KİRALAMALAR (Silinenleri süz, yereldeki yenileri koru)
+                    const cloudRentals = (targetData.rentals || []).filter(rent => 
+                        !persistentDeletedIds.has('rent_' + String(rent.id)) && 
+                        !persistentDeletedIds.has(String(rent.id))
+                    );
+
+                    const rentalMap = new Map();
+                    // Önce buluttakileri haritaya al
+                    cloudRentals.forEach(r => rentalMap.set(String(r.id).trim(), r));
+                    // Yerelde olup henüz buluta yazılmamış olanları koru (ezilmesini önler)
+                    (data.rentals || []).forEach(lr => {
+                        const lrId = String(lr.id).trim();
+                        if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
+                            rentalMap.set(lrId, lr);
+                        }
+                    });
+
+                    data.rentals = Array.from(rentalMap.values());
 
                     // 4. HAKEM ÖDEMELERİ (Yerelde olup henüz buluta gitmemiş olanları kaybetme)
                     const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
@@ -1555,17 +1570,17 @@ async function fetchCentralData() {
             }
         }
 async function saveData() {
-            isSyncing = true;
-
-            // 1. Önce doğrudan yerel depoya yaz (Kayıp asla yaşanmaz)
+            // 1. ANINDA YEREL DEPOYA YAZ (Sayfa yenilense dahi veri kaybolmaz)
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
+            // Ekranları hemen güncelle
             renderAll();
 
-            // 2. Ardından buluta gönder
+            // 2. BULUTA GÖNDER
             if (APPS_SCRIPT_URL) {
+                isSyncing = true;
                 try {
                     const payload = JSON.stringify({ data: data, users: users, userNotes: userNotes });
                     await fetch(APPS_SCRIPT_URL, {
@@ -1577,13 +1592,11 @@ async function saveData() {
                 } catch(err) {
                     console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
                 } finally {
-                    // Bulutun veriyi yazması için 4 saniye güvenli bekleme
+                    // Bulutun veriyi Google Sheets'e işlemesi için 3 saniye bekle
                     setTimeout(() => {
                         isSyncing = false;
-                    }, 4000);
+                    }, 3000);
                 }
-            } else {
-                isSyncing = false;
             }
         }
         function exportSystemJSON() {
@@ -3467,15 +3480,38 @@ function renderRentals() {
                 tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
             }
         }
-        async function deleteContractDirectly(rentalId) {
-            if(!currentUser || currentUser.role !== 'admin') return;
-            const r = data.rentals.find(item => String(item.id) === String(rentalId));
-            if(!r) return;
+async function deleteContractDirectly(rentalId) {
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            if (!isUserAdmin) {
+                alert("Yalnızca sistem yöneticisi sözleşme silebilir.");
+                return;
+            }
 
-            if(confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi SİLMEK istediğinize emin misiniz?`)) {
-                recentlyDeletedIds.add('rent_' + String(rentalId));
-                data.rentals = data.rentals.filter(item => String(item.id) !== String(rentalId));
+            const targetId = String(rentalId).trim();
+            const r = (data.rentals || []).find(item => String(item.id).trim() === targetId);
+            if (!r) return;
+
+            if (confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi kalıcı olarak SİLMEK istediğinize emin misiniz?`)) {
+                // Kalıcı kara listeye doğru isimle (persistentDeletedIds) ekle
+                if (typeof markAsDeleted === 'function') {
+                    markAsDeleted('rent_' + targetId);
+                    markAsDeleted(targetId);
+                } else {
+                    persistentDeletedIds.add('rent_' + targetId);
+                    persistentDeletedIds.add(targetId);
+                    localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
+                }
+
+                // data.rentals dizisinden kesin olarak çıkar
+                data.rentals = (data.rentals || []).filter(item => String(item.id).trim() !== targetId);
+
+                // Tüm ekranları hemen güncelle
                 renderRentals();
+                renderCampuses();
+                renderDashboard();
+                renderExpiringAlerts();
+
+                // Yerel depoyu ve bulutu anında güncelle
                 await saveData();
             }
         }
