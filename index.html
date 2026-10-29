@@ -2770,20 +2770,22 @@ filtered.forEach(item => {
             renderCampuses();
         }
 
-        function getOfficeRentedArea(officeId, excludeRentalId = null) {
-            return data.rentals
-                .filter(r => String(r.officeId) === String(officeId) && r.status === 'active' && String(r.id) !== String(excludeRentalId))
-                .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
-        }
+function getOfficeRentedArea(officeId, excludeRentalId = null) {
+    return (data.rentals || [])
+        .filter(r => String(r.officeId) === String(officeId) && 
+                     r.status === 'active' && 
+                     (excludeRentalId ? String(r.id) !== String(excludeRentalId) : true))
+        .reduce((acc, r) => acc + parseFloat(r.allocatedArea || 0), 0);
+}
 
-        function getOfficeAvailableArea(officeId, excludeRentalId = null) {
-            let totalArea = 0;
-            data.campuses.forEach(c => {
-                const off = (c.offices || []).find(o => String(o.id) === String(officeId));
-                if(off) totalArea = parseFloat(off.area || 0);
-            });
-            return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
-        }
+function getOfficeAvailableArea(officeId, excludeRentalId = null) {
+    let totalArea = 0;
+    (data.campuses || []).forEach(c => {
+        const off = (c.offices || []).find(o => String(o.id) === String(officeId));
+        if(off) totalArea = parseFloat(off.area || 0);
+    });
+    return Math.max(0, totalArea - getOfficeRentedArea(officeId, excludeRentalId));
+}
 
         function getStats(selectedCampusId = 'all') {
             let totalArea = 0, rentedArea = 0, rentRevenueExcl = 0, commonRevenueExcl = 0, otherRevenueExcl = 0;
@@ -3650,63 +3652,74 @@ filtered.forEach(item => {
             closeModal('office-modal'); saveData();
         }
 
-        function saveRental() {
-            const editRentalId = document.getElementById('editing-rental-id').value || null;
-            const company = document.getElementById('rent-company-name').value;
-            const officeId = document.getElementById('rent-office-select').value;
-            const startDate = document.getElementById('rent-start-date').value;
-            const endDate = document.getElementById('rent-target-end-date').value;
-            const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
-            const unitPrice = parseFloat(document.getElementById('rent-unit-price').value) || 0;
-            const commonCostPerM2 = parseFloat(document.getElementById('rent-common-cost-per-m2').value) || 0;
-            const otherCost = parseFloat(document.getElementById('rent-other-cost').value) || 0;
-            const noteText = document.getElementById('rent-user-note').value.trim();
+function saveRental() {
+    const editRentalId = document.getElementById('editing-rental-id').value || null;
+    const company = document.getElementById('rent-company-name').value;
+    const officeId = document.getElementById('rent-office-select').value;
+    const startDate = document.getElementById('rent-start-date').value;
+    const endDate = document.getElementById('rent-target-end-date').value;
+    const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
+    const unitPrice = parseFloat(document.getElementById('rent-unit-price').value) || 0;
+    const commonCostPerM2 = parseFloat(document.getElementById('rent-common-cost-per-m2').value) || 0;
+    const otherCost = parseFloat(document.getElementById('rent-other-cost').value) || 0;
+    const noteText = document.getElementById('rent-user-note').value.trim();
 
-            if(!company || !officeId || !startDate || !allocatedArea) { alert("Lütfen gerekli tüm alanları doldurun."); return; }
+    if(!company || !officeId || !startDate || !allocatedArea) { 
+        alert("Lütfen gerekli tüm alanları doldurun."); 
+        return; 
+    }
 
-            const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
-            if(allocatedArea > maxAvail) {
-                alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin boş alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
-                return;
-            }
+    // DÜZELTME: Düzenlenen sözleşmenin kendi m²'sini hesaba katarak ofiste çıkılabilecek maksimum tavanı hesaplar
+    const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
+    
+    if(allocatedArea > maxAvail) {
+        alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin bu sözleşme için kullanılabilir maksimum alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
+        return;
+    }
 
-            const currentTimestamp = new Date().toLocaleString('tr-TR');
-            const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
+    const currentTimestamp = new Date().toLocaleString('tr-TR');
+    const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
 
-            if(editRentalId) {
-                const rental = data.rentals.find(r => String(r.id) === String(editRentalId));
-                if(rental) {
-                    rental.company = company; rental.officeId = officeId; rental.startDate = startDate;
-                    rental.endDate = endDate || null; rental.allocatedArea = allocatedArea;
-                    rental.unitPrice = unitPrice; rental.commonCostPerM2 = commonCostPerM2; rental.otherCost = otherCost;
+    if(editRentalId) {
+        const rental = data.rentals.find(r => String(r.id) === String(editRentalId));
+        if(rental) {
+            rental.company = company; 
+            rental.officeId = officeId; 
+            rental.startDate = startDate;
+            rental.endDate = endDate || null; 
+            rental.allocatedArea = allocatedArea;
+            rental.unitPrice = unitPrice; 
+            rental.commonCostPerM2 = commonCostPerM2; 
+            rental.otherCost = otherCost;
 
-                    if (!rental.history) rental.history = [];
-                    if (noteText) {
-                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: noteText });
-                        if (currentUser && currentUser.role !== 'admin') {
-                            userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[${company}] ${noteText}` });
-                        }
-                    } else {
-                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
-                    }
+            if (!rental.history) rental.history = [];
+            if (noteText) {
+                rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: noteText });
+                if (currentUser && currentUser.role !== 'admin') {
+                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[${company}] ${noteText}` });
                 }
             } else {
-                const newHistory = [];
-                const initialNote = noteText || "Sözleşme oluşturuldu.";
-                newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
-
-                data.rentals.unshift({ 
-                    id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
-                    startDate, endDate: endDate || null, status: 'active', history: newHistory
-                });
-
-                if (currentUser && currentUser.role !== 'admin' && noteText) {
-                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[Yeni Sözleşme - ${company}] ${noteText}` });
-                }
+                rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
             }
-
-            closeModal('rental-modal'); saveData();
         }
+    } else {
+        const newHistory = [];
+        const initialNote = noteText || "Sözleşme oluşturuldu.";
+        newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
+
+        data.rentals.unshift({ 
+            id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
+            startDate, endDate: endDate || null, status: 'active', history: newHistory
+        });
+
+        if (currentUser && currentUser.role !== 'admin' && noteText) {
+            userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[Yeni Sözleşme - ${company}] ${noteText}` });
+        }
+    }
+
+    closeModal('rental-modal'); 
+    saveData();
+}
 
         function confirmEndRental() {
             const rentalId = document.getElementById('end-rental-id').value;
