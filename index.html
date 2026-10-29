@@ -651,6 +651,10 @@
                             <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
                                 <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
                             </button>
+                            <button id="btn-bulk-pay" onclick="markSelectedPaymentsAsPaid()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center shadow-sm">
+                                <i class="fa-solid fa-check-double mr-1.5"></i> 
+                                <span>Seçilenleri Ödendi İşaretle (<span id="bulk-pay-count">0</span>)</span>
+                            </button>
                         </div>
                     </div>
 
@@ -4147,59 +4151,66 @@ async function fetchCentralData() {
             updatePaymentSelectionSummary();
         }
 
-        function updatePaymentSelectionSummary() {
-            const countEl = document.getElementById('pay-total-count');
-            const amountEl = document.getElementById('pay-total-amount');
-            const amountLabelEl = document.getElementById('pay-total-amount-label');
-            const selectAllCb = document.getElementById('pay-select-all');
+function updatePaymentSelectionSummary() {
+    const countEl = document.getElementById('pay-total-count');
+    const amountEl = document.getElementById('pay-total-amount');
+    const amountLabelEl = document.getElementById('pay-total-amount-label');
+    const selectAllCb = document.getElementById('pay-select-all');
+    const bulkPayBtn = document.getElementById('btn-bulk-pay');
+    const bulkPayCount = document.getElementById('bulk-pay-count');
 
-            const allList = getAllPaymentsList();
-            const isPending = currentPaymentFilter === 'pending';
+    const allList = getAllPaymentsList();
+    const isPending = currentPaymentFilter === 'pending';
 
-            if (selectedPaymentKeys.size > 0) {
-                let selTotal = 0;
-                let validCount = 0;
+    if (selectedPaymentKeys.size > 0) {
+        let selTotal = 0;
+        let validCount = 0;
 
-                selectedPaymentKeys.forEach(key => {
-                    const [source, id] = key.split('_');
-                    const found = allList.find(item => item.source === source && String(item.id) === String(id));
-                    if (found) {
-                        selTotal += found.amount;
-                        validCount++;
-                    }
-                });
-
-                if (countEl) countEl.innerHTML = `<span class="text-blue-600 font-black">${validCount}</span> <span class="text-xs font-normal text-gray-500">(Seçilen)</span>`;
-                if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
-            } else {
-                const selYearEl = document.getElementById('payments-year-filter');
-                const selMonthEl = document.getElementById('payments-month-filter');
-                const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
-                const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
-                const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
-
-                const filtered = allList.filter(item => {
-                    if (isPending ? item.isPaid : !item.isPaid) return false;
-                    if (selectedType !== 'all' && item.source !== selectedType) return false;
-                    const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
-                    const { year, month } = extractYearMonth(targetDate);
-                    if (year && month) return year === selYear && month === selMonth;
-                    return true;
-                });
-
-                const totalAmt = filtered.reduce((acc, it) => acc + it.amount, 0);
-
-                if (countEl) countEl.innerText = filtered.length;
-                if (amountEl) amountEl.innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                if (amountLabelEl) amountLabelEl.innerText = isPending ? "Ödenecek Toplam Tutar" : "Ödenen Toplam Tutar";
-                if (selectAllCb) selectAllCb.checked = false;
+        selectedPaymentKeys.forEach(key => {
+            const [source, id] = key.split('_');
+            const found = allList.find(item => item.source === source && String(item.id) === String(id));
+            if (found) {
+                selTotal += found.amount;
+                validCount++;
             }
-        }
-        // Danışmanlık verisi tanımlaması
-if (!data.consultantPayments) data.consultantPayments = [];
-let currentConsultantFilter = 'pending';
+        });
 
+        if (countEl) countEl.innerHTML = `<span class="text-blue-600 font-black">${validCount}</span> <span class="text-xs font-normal text-gray-500">(Seçilen)</span>`;
+        if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
+
+        // Bekleyenler (Ödenecekler) sekmesindeyken toplu ödeme butonunu göster
+        if (bulkPayBtn && isPending) {
+            bulkPayBtn.classList.remove('hidden');
+            if (bulkPayCount) bulkPayCount.innerText = validCount;
+        }
+    } else {
+        const selYearEl = document.getElementById('payments-year-filter');
+        const selMonthEl = document.getElementById('payments-month-filter');
+        const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
+        const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+        const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
+
+        const filtered = allList.filter(item => {
+            if (isPending ? item.isPaid : !item.isPaid) return false;
+            if (selectedType !== 'all' && item.source !== selectedType) return false;
+            const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
+            const { year, month } = extractYearMonth(targetDate);
+            if (year && month) return year === selYear && month === selMonth;
+            return true;
+        });
+
+        const totalAmt = filtered.reduce((acc, it) => acc + it.amount, 0);
+
+        if (countEl) countEl.innerText = filtered.length;
+        if (amountEl) amountEl.innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (amountLabelEl) amountLabelEl.innerText = isPending ? "Ödenecek Toplam Tutar" : "Ödenen Toplam Tutar";
+        if (selectAllCb) selectAllCb.checked = false;
+
+        // Seçim yoksa butonu gizle
+        if (bulkPayBtn) bulkPayBtn.classList.add('hidden');
+    }
+}
 function populateConsultantYearFilter() {
     const yearSelect = document.getElementById('consultant-year-filter');
     if (!yearSelect) return;
@@ -4462,6 +4473,65 @@ function exportConsultantsToExcel() {
         XLSX.writeFile(wb, `Danismanlik_Odemeleri_${selMonth}_${selYear}.xlsx`);
     } catch (err) {
         alert("Excel indirilirken hata: " + err.message);
+    }
+}
+        // Seçilen tüm ödemeleri topluca 'Ödendi' durumuna geçiren fonksiyon
+async function markSelectedPaymentsAsPaid() {
+    if (selectedPaymentKeys.size === 0) {
+        alert("Lütfen önce ödendi olarak işaretlemek istediğiniz kayıtları seçin.");
+        return;
+    }
+
+    const count = selectedPaymentKeys.size;
+    const confirmMsg = `Seçilen ${count} adet ödeme kaydını 'Ödendi' olarak işaretlemek istiyor musunuz?`;
+    if (!confirm(confirmMsg)) return;
+
+    const todayStr = new Date().toLocaleDateString('tr-TR');
+    let updatedCount = 0;
+
+    selectedPaymentKeys.forEach(key => {
+        const [source, id] = key.split('_');
+
+        if (source === 'referee') {
+            const item = data.refereePayments.find(r => String(r.id) === String(id));
+            if (item) {
+                item.isPaid = true;
+                item.paymentDate = todayStr;
+                updatedCount++;
+            }
+        } else if (source === 'consultant') {
+            const item = (data.consultantPayments || []).find(c => String(c.id) === String(id));
+            if (item) {
+                item.isPaid = true;
+                item.paymentDate = todayStr;
+                updatedCount++;
+            }
+        } else if (source === 'manual') {
+            const item = data.manualPayments.find(m => String(m.id) === String(id));
+            if (item) {
+                item.isPaid = true;
+                item.paymentDate = todayStr;
+                updatedCount++;
+            }
+        }
+    });
+
+    // Seçim havuzunu sıfırla
+    selectedPaymentKeys.clear();
+
+    // Tüm ilgili tabloları yeniden çizdir
+    renderPayments();
+    renderReferees();
+    if (typeof renderConsultants === 'function') renderConsultants();
+
+    // Buluta ve yerel belleğe yaz
+    await saveData();
+
+    // Kullanıcıya bildirim göster
+    if (typeof showToast === 'function') {
+        showToast(`✓ ${updatedCount} adet ödeme başarıyla ödendi işaretlendi!`);
+    } else {
+        alert(`${updatedCount} adet ödeme başarıyla 'Ödendi' durumuna geçirildi.`);
     }
 }
     </script>
