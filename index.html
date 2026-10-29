@@ -3369,108 +3369,121 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
 
 // 3. KİRA SÖZLEŞMELERİ TABLOSU (Bilinmiyor Hatasını Kökten Çözen Eşleştirici)
 function renderRentals() {
-    const tbody = document.getElementById('rental-table-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+            const tbody = document.getElementById('rental-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
 
-    const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
-    const selectedStatus = document.getElementById('rentals-status-filter') ? document.getElementById('rentals-status-filter').value : 'all';
-    const searchInput = document.getElementById('rental-company-search-input');
-    const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
+            const selectedStatus = document.getElementById('rentals-status-filter') ? document.getElementById('rentals-status-filter').value : 'all';
+            const searchInput = document.getElementById('rental-company-search-input');
+            const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-    const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
-    const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
-    const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
+            const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
 
-    // Ofis ve Yerleşkeyi Hem Numara Hem İsim Üzerinden Kusursuz Eşleştir
-    function resolveOfficeAndCampus(officeRef) {
-        const raw = String(officeRef || '').trim();
-        const rawNum = raw.replace(/[^0-9]/g, '');
+            // GENEL VE DİNAMİK OFİS ÇÖZÜCÜ (TÜM SÖZLEŞMELER İÇİN)
+            function getCleanOfficeDisplay(rental) {
+                const rawOfficeRef = String(rental.officeId || '').trim();
+                const rentArea = parseFloat(String(rental.allocatedArea || 0).replace(',', '.')) || 0;
 
-        let foundOffice = null;
-        let foundCampus = null;
+                // 1. Doğrudan yerleşkeler altındaki ofislerle ID veya İsim üzerinden eşleştir
+                for (let c of (data.campuses || [])) {
+                    for (let o of (c.offices || [])) {
+                        const oIdStr = String(o.id || '').trim();
+                        const oNameStr = String(o.name || '').trim();
 
-        for (let c of (data.campuses || [])) {
-            for (let o of (c.offices || [])) {
-                const oId = String(o.id || '').trim();
-                const oName = String(o.name || '').trim();
-                const oNum = (oId + oName).replace(/[^0-9]/g, '');
-
-                // 1. Önce numara kontrolü (112 == 112, 221 == 221)
-                if (rawNum && oNum && rawNum === oNum) {
-                    foundOffice = o;
-                    foundCampus = c;
-                    break;
+                        if (oIdStr === rawOfficeRef || oNameStr.toLowerCase() === rawOfficeRef.toLowerCase()) {
+                            return { campusName: c.name, officeName: o.name, campusId: c.id };
+                        }
+                    }
                 }
-                // 2. Birebir ID veya İsim kontrolü
-                if (oId === raw || oName.toLowerCase() === raw.toLowerCase()) {
-                    foundOffice = o;
-                    foundCampus = c;
-                    break;
+
+                // 2. Eğer ID rastgele bir zaman damgası sayısı (8 haneden uzun) ise:
+                // Yerleşkelerdeki ofislerin metrekaresiyle sözleşmenin metrekaresini dinamik eşleştir
+                if (rawOfficeRef.length > 8 && rentArea > 0) {
+                    for (let c of (data.campuses || [])) {
+                        for (let o of (c.offices || [])) {
+                            const oArea = parseFloat(String(o.area || 0).replace(',', '.')) || 0;
+                            // Eğer ofisin büyüklüğü ile sözleşmenin alanı uyuşuyorsa veya ofis bu alanı kapsıyorsa
+                            if (Math.abs(oArea - rentArea) < 0.1) {
+                                return { campusName: c.name, officeName: o.name, campusId: c.id };
+                            }
+                        }
+                    }
                 }
+
+                // 3. Hiçbir şekilde bulunamayan eski bir kayıt varsa:
+                // Kesinlikle 16 haneli sayıyı ekrana basma; anlaşılır temiz bir etiket koy
+                const defaultCampus = (data.campuses && data.campuses.length > 0) ? data.campuses[0] : { name: "Merkez Yerleşke", id: 1 };
+                let fallbackOfficeName = rawOfficeRef;
+                if (rawOfficeRef.length > 8) {
+                    fallbackOfficeName = rentArea > 0 ? `Ofis (${rentArea.toFixed(2)} m²)` : "Kayıtlı Ofis";
+                }
+
+                return {
+                    campusName: defaultCampus.name,
+                    officeName: fallbackOfficeName,
+                    campusId: defaultCampus.id
+                };
             }
-            if (foundOffice) break;
+
+            let filteredRentals = (data.rentals || []).filter(r => {
+                const info = getCleanOfficeDisplay(r);
+
+                if (selectedCampus !== 'all' && String(info.campusId) !== String(selectedCampus)) return false;
+                if (selectedStatus !== 'all' && r.status !== selectedStatus) return false;
+                if (searchKeyword && !String(r.company || '').toLowerCase().includes(searchKeyword)) return false;
+
+                return true;
+            });
+
+            filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
+
+            filteredRentals.forEach(r => {
+                const info = getCleanOfficeDisplay(r);
+
+                const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0;
+                const unitPrice = parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0;
+                const commonCost = parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0;
+                const otherCost = parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0;
+
+                const totalRent = area * unitPrice;
+                const totalCommonCost = area * commonCost;
+                const totalExclVat = totalRent + totalCommonCost + otherCost;
+                const totalInclVat = totalExclVat * (1 + VAT_RATE);
+                const isActive = r.status === 'active';
+
+                tbody.innerHTML += `
+                    <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
+                        <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
+                        <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
+                        <td class="p-4">${info.campusName} - <strong>${info.officeName}</strong></td>
+                        <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
+                        <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
+                        <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
+                        <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
+                        <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
+                        <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
+                        <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
+                        <td class="p-4 text-center">
+                            <div class="flex items-center justify-center space-x-1.5">
+                                ${isActive ? `
+                                    ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
+                                    ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
+                                ` : '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>'}
+                                ${isUserAdmin ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            if (filteredRentals.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
+            }
         }
-
-        return {
-            officeName: foundOffice ? foundOffice.name : (raw ? (rawNum ? `${rawNum} nolu Ofis` : raw) : "Bilinmiyor"),
-            campusName: foundCampus ? foundCampus.name : "Afyon OSB Alanı",
-            campusId: foundCampus ? foundCampus.id : (data.campuses[0] ? data.campuses[0].id : null)
-        };
-    }
-
-    let filteredRentals = (data.rentals || []).filter(r => {
-        const info = resolveOfficeAndCampus(r.officeId);
-
-        if (selectedCampus !== 'all' && String(info.campusId) !== String(selectedCampus)) return false;
-        if (selectedStatus !== 'all' && r.status !== selectedStatus) return false;
-        if (searchKeyword && !String(r.company || '').toLowerCase().includes(searchKeyword)) return false;
-
-        return true;
-    });
-
-    filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
-
-    filteredRentals.forEach(r => {
-        const info = resolveOfficeAndCampus(r.officeId);
-
-        const area = parseFloat(String(r.allocatedArea || 0).replace(',', '.')) || 0;
-        const unitPrice = parseFloat(String(r.unitPrice || 0).replace(',', '.')) || 0;
-        const commonCost = parseFloat(String(r.commonCostPerM2 || 0).replace(',', '.')) || 0;
-        const otherCost = parseFloat(String(r.otherCost || 0).replace(',', '.')) || 0;
-
-        const totalRent = area * unitPrice;
-        const totalCommonCost = area * commonCost;
-        const totalExclVat = totalRent + totalCommonCost + otherCost;
-        const totalInclVat = totalExclVat * (1 + VAT_RATE);
-        const isActive = r.status === 'active';
-
-        tbody.innerHTML += `
-            <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
-                <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
-                <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
-                <td class="p-4">${info.campusName} - <strong>${info.officeName}</strong></td>
-                <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
-                <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
-                <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
-                <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
-                <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
-                <td class="p-4 text-center">
-                    <div class="flex items-center justify-center space-x-1.5">
-                        ${isActive ? `
-                            ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
-                            ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
-                        ` : '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>'}
-                        ${isUserAdmin ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>` : ''}
-                    </div>
-                </td>
-            </tr>
-        `;
-    });
-
     if (filteredRentals.length === 0) {
         tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
     }
