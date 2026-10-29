@@ -2036,13 +2036,18 @@ async function saveData() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            filtered.forEach(item => {
+filtered.forEach(item => {
                 const isReferee = item.source === 'referee';
+                const isConsultant = item.source === 'consultant';
                 const uniqueKey = `${item.source}_${item.id}`;
                 const isSelected = selectedPaymentKeys.has(uniqueKey);
 
+                let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
+                if (isReferee) badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200';
+                if (isConsultant) badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200 font-bold';
+
                 let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
-                if (!isReferee && item.dueDate) {
+                if (!isReferee && !isConsultant && item.dueDate) {
                     const due = new Date(item.dueDate);
                     due.setHours(0, 0, 0, 0);
                     const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
@@ -2068,6 +2073,25 @@ async function saveData() {
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
+                // İŞLEM BUTONLARI AYRIMI (HAKEM vs DANIŞMAN vs FATURA)
+                let actionButtonsHtml = '';
+                if (isReferee) {
+                    actionButtonsHtml = `
+                        <button onclick="openRefereeModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
+                        <button onclick="deleteRefereePayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
+                    `;
+                } else if (isConsultant) {
+                    actionButtonsHtml = `
+                        <button onclick="openConsultantModal('${item.id}')" class="text-teal-600 hover:text-teal-800 bg-teal-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
+                        <button onclick="deleteConsultantPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
+                    `;
+                } else {
+                    actionButtonsHtml = `
+                        <button onclick="openManualPaymentModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
+                        <button onclick="deleteManualPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
+                    `;
+                }
+
                 tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
                         <td class="p-3 text-center">
@@ -2078,7 +2102,7 @@ async function saveData() {
                                 title="Bu ödemeyi toplama dahil etmek için seç">
                         </td>
                         <td class="p-3">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isReferee ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-800'}">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] ${badgeClass}">
                                 ${item.sourceLabel}
                             </span>
                         </td>
@@ -2120,13 +2144,7 @@ async function saveData() {
                         </td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
-                                ${isReferee ? `
-                                    <button onclick="openRefereeModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition" title="Hakem Detayını Düzenle">Düzenle</button>
-                                    <button onclick="deleteRefereePayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition" title="Hakem Ödemesini Sil">Sil</button>
-                                ` : `
-                                    <button onclick="openManualPaymentModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition" title="Faturayı Düzenle">Düzenle</button>
-                                    <button onclick="deleteManualPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition" title="Faturayı Sil">Sil</button>
-                                `}
+                                ${actionButtonsHtml}
                             </div>
                         </td>
                     </tr>
@@ -4334,12 +4352,12 @@ async function toggleConsultantPaidStatus(id, isChecked) {
 }
 
 async function deleteConsultantPayment(id) {
-    if (!id) return;
+    if (!id && id !== 0) return;
     
     if (confirm("Bu danışmanlık ödemesini silmek istediğinize emin misiniz?")) {
         const targetIdStr = String(id).trim();
 
-        // 1. Kara listeye String olarak ekle
+        // 1. Silinen ID'yi kara listeye ekle
         if (typeof markAsDeleted === 'function') {
             markAsDeleted('con_' + targetIdStr);
         } else if (typeof persistentDeletedIds !== 'undefined') {
@@ -4347,19 +4365,20 @@ async function deleteConsultantPayment(id) {
             localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
         }
 
-        // 2. Tür bağımsız filtreleme yap (String vs Number uyuşmazlığını önler)
+        // 2. data.consultantPayments dizisinden hem Number hem String olarak temizle
         data.consultantPayments = (data.consultantPayments || []).filter(c => String(c.id).trim() !== targetIdStr);
 
-        // 3. Seçili kalemler havuzunda varsa temizle
+        // 3. Seçim listesinden çıkar
         if (typeof selectedPaymentKeys !== 'undefined') {
             selectedPaymentKeys.delete('consultant_' + targetIdStr);
+            selectedPaymentKeys.delete(targetIdStr);
         }
 
-        // 4. İlgili tabloları güncelle
-        if (typeof renderConsultants === 'function') renderConsultants();
-        if (typeof renderPayments === 'function') renderPayments();
+        // 4. İki tabloyu da hemen sıfırdan çiz
+        renderConsultants();
+        renderPayments();
 
-        // 5. Değişikliği kalıcı olarak kaydet
+        // 5. Yerel depoya ve buluta kaydet
         await saveData();
     }
 }
@@ -4369,20 +4388,33 @@ function renderConsultants() {
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const selYear = document.getElementById('consultant-year-filter') ? document.getElementById('consultant-year-filter').value : String(new Date().getFullYear());
-    const selMonth = document.getElementById('consultant-month-filter') ? document.getElementById('consultant-month-filter').value : String(new Date().getMonth() + 1).padStart(2, '0');
+    const yearSelect = document.getElementById('consultant-year-filter');
+    const monthSelect = document.getElementById('consultant-month-filter');
+
+    // Eğer filtre kutuları henüz dolmadıysa mevcut yılı ve ayı ata
+    const currentYear = String(new Date().getFullYear());
+    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    const selYear = yearSelect && yearSelect.value ? String(yearSelect.value).trim() : currentYear;
+    const selMonth = monthSelect && monthSelect.value ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
 
     let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
     const isUserAdmin = currentUser && currentUser.role === 'admin';
     const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
     const isPending = currentConsultantFilter === 'pending';
 
-    const filtered = data.consultantPayments.filter(c => {
+    const filtered = (data.consultantPayments || []).filter(c => {
         const isPaid = !!c.isPaid;
+        // Ödenecekler / Ödenenler sekme kontrolü
         if (isPending ? isPaid : !isPaid) return false;
+
         const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
         const { year, month } = extractYearMonth(targetDate);
-        if (year && month) return year === selYear && month === selMonth;
+        
+        // Eğer tarih ayrıştırılamıyorsa kaydı gizleme, göster; ayrıştırılabiliyorsa filtreye bak
+        if (year && month) {
+            return String(year).trim() === selYear && String(month).trim().padStart(2, '0') === selMonth;
+        }
         return true;
     });
 
@@ -4431,13 +4463,18 @@ function renderConsultants() {
         `;
     });
 
-    document.getElementById('con-total-incl').innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('con-total-excl').innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('con-total-tpark').innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    document.getElementById('con-total-net').innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const conInclEl = document.getElementById('con-total-incl');
+    const conExclEl = document.getElementById('con-total-excl');
+    const conTparkEl = document.getElementById('con-total-tpark');
+    const conNetEl = document.getElementById('con-total-net');
 
-    if (tbody.innerHTML === '') {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait danışmanlık kaydı bulunamadı.</td></tr>`;
+    if (conInclEl) conInclEl.innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (conExclEl) conExclEl.innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (conTparkEl) conTparkEl.innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (conNetEl) conNetEl.innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} danışmanlık kaydı bulunamadı.</td></tr>`;
     }
 }
 
