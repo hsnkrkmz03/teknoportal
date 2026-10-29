@@ -403,7 +403,7 @@
                             <button onclick="exportToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition perm-export shadow-sm">
                                 <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
                             </button>
-                            <button id="btn-new-rental" onclick="()" class="bg-green-600 text-white px-3.5 py-2 rounded-lg hover:bg-green-700 font-semibold text-xs transition perm-edit shadow-sm">
+                            <button id="btn-new-rental" onclick="openRentalModal()" class="bg-green-600 text-white px-3.5 py-2 rounded-lg hover:bg-green-700 font-semibold text-xs transition perm-edit shadow-sm">
                                 <i class="fa-solid fa-file-signature mr-1.5"></i> Yeni Kiralama Yap
                             </button>
                         </div>
@@ -3350,7 +3350,7 @@ function getOfficeAvailableArea(officeId, excludeRentalId = null) {
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center space-x-1.5">
                                 ${isActive ? `
-                                    ${canEdit ? `<button onclick="('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
+                                    ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
                                     ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
                                 ` : '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>'}
                                 ${isUserAdmin ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>` : ''}
@@ -3545,10 +3545,7 @@ function openRentalModal(editRentalId = null) {
         const editRentalIdInput = document.getElementById('editing-rental-id');
         const modal = document.getElementById('rental-modal');
 
-        if (!modal) {
-            console.error("Kiralama modalı bulunamadı!");
-            return;
-        }
+        if (!modal) return;
 
         // 1. Yerleşkeleri doldur
         if (campusSelect) {
@@ -3567,7 +3564,7 @@ function openRentalModal(editRentalId = null) {
         if (noteInput) noteInput.value = '';
         if (hint) hint.innerText = '';
 
-        // 3. Güvenli yetki denetimleri (currentUser veya permissions null olsa bile çökmez)
+        // 3. Güvenli yetki denetimleri
         const isUserAdmin = currentUser && currentUser.role === 'admin';
         const perm = (currentUser && currentUser.permissions) ? currentUser.permissions : {};
 
@@ -3672,7 +3669,6 @@ function openRentalModal(editRentalId = null) {
             if (historySection) historySection.classList.add('hidden');
         }
 
-        // Modalı görünür yap
         modal.classList.remove('hidden');
 
     } catch (err) {
@@ -3698,7 +3694,6 @@ function onRentalCampusChange(selectedOfficeId = null) {
         return;
     }
 
-    // Yerleşkeyi tip bağımsız string olarak bul
     const campus = (data.campuses || []).find(c => String(c.id).trim() === selectedCampusId);
     
     if (!campus || !campus.offices || campus.offices.length === 0) {
@@ -3707,7 +3702,6 @@ function onRentalCampusChange(selectedOfficeId = null) {
         return;
     }
 
-    // Kilidi kaldır ve seçenekleri hazırla
     officeSelect.disabled = false;
     let optionsHtml = '<option value="">Ofis Seçiniz...</option>';
 
@@ -3747,7 +3741,6 @@ function onRentalOfficeChange() {
         return;
     }
 
-    // Seçilen ofisin toplam alanını bul
     let totalCap = 0;
     let foundOfficeName = '';
 
@@ -3760,7 +3753,6 @@ function onRentalOfficeChange() {
         });
     });
 
-    // Yalnızca bu ofisin boş alanını hesapla
     const availArea = getOfficeAvailableArea(officeId, editRentalId);
 
     if (hint) {
