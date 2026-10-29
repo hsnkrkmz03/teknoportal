@@ -75,7 +75,7 @@
         </div>
     </div>
 
-    <!-- ANA PANEL (TAM EKRAN BOYUTUNA SABİTLENDİ) -->
+    <!-- ANA PANEL -->
     <div id="app" class="hidden h-screen w-screen flex overflow-hidden">
         
         <!-- Sol Menü (Sidebar) -->
@@ -122,9 +122,9 @@
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Hakem Ödemeleri</span>
                 </button>
-                <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ (HAKEM ÖDEMELERİ'NDEN HEMEN SONRA) -->
+                <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
                 <button onclick="switchTab('consultants')" id="nav-consultants" title="Danışmanlık Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
-                      <i class="fa-solid fa-chalkboard-user text-base min-w-[20px]"></i>
+                    <i class="fa-solid fa-chalkboard-user text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Danışmanlık Ödemeleri</span>
                 </button>
                 <!-- ÖDEMELER TAKİBİ SEKMESİ -->
@@ -139,7 +139,7 @@
                 </button>
             </nav>
 
-            <!-- ALT ALAN: Sabit Alt Butonlar -->
+            <!-- ALT ALAN -->
             <div class="p-3 border-t border-slate-800 space-y-1.5 shrink-0 bg-slate-950/40">
                 <div id="backup-buttons-container" class="space-y-1.5">
                     <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
@@ -344,7 +344,7 @@
                                 <i class="fa-solid fa-ruler-combined mr-1 text-gray-600"></i> Manuel Boş m² Aralığı İle Arama
                             </label>
                             <div class="flex items-center space-x-2">
-                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
+                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-1 focus:ring-blue-500" oninput="onManualM2Input()">
                                 <span class="text-gray-400 text-xs font-bold">-</span>
                                 <input type="number" id="filter-max-m2" placeholder="Max Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
                             </div>
@@ -546,88 +546,91 @@
                     </table>
                 </div>
             </section>
-        <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
-<section id="tab-consultants" class="hidden">
-    <div class="mb-6 space-y-3">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Danışmanlık Ödemeleri Takibi</h1>
-                <p class="text-xs text-gray-500">Ar-Ge projelerine kesilen faturaların akademisyenlere ödeme listesini yönetin ve hesaplayın.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                    <button id="btn-con-filter-pending" onclick="setConsultantStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition">
-                        <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
-                    </button>
-                    <button id="btn-con-filter-paid" onclick="setConsultantStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
-                        <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
-                    </button>
+
+            <!-- 5. DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
+            <section id="tab-consultants" class="hidden">
+                <div class="mb-6 space-y-3">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Danışmanlık Ödemeleri Takibi</h1>
+                            <p class="text-xs text-gray-500">Ar-Ge projelerine kesilen faturaların akademisyenlere ödeme listesini yönetin ve hesaplayın.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
+                                <button id="btn-con-filter-pending" onclick="setConsultantStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition">
+                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
+                                </button>
+                                <button id="btn-con-filter-paid" onclick="setConsultantStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
+                                </button>
+                            </div>
+
+                            <button onclick="exportConsultantsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
+                            </button>
+                            <button onclick="openConsultantModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Yeni Danışmanlık Ödemesi Ekle
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
+                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-teal-600"></i> Dönem:</label>
+                            <select id="consultant-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()"></select>
+                            <select id="consultant-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()">
+                                <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                                <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
+                                <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                                <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <button onclick="exportConsultantsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                    <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
-                </button>
-                <button onclick="openConsultantModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
-                    <i class="fa-solid fa-plus mr-1.5"></i> Yeni Danışmanlık Ödemesi Ekle
-                </button>
-            </div>
-        </div>
 
-        <div class="flex justify-end">
-            <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
-                <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-teal-600"></i> Dönem:</label>
-                <select id="consultant-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()"></select>
-                <select id="consultant-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()">
-                    <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
-                    <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
-                    <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
-                    <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-                </select>
-            </div>
-        </div>
-    </div>
+                <!-- ÖZET KARTLARI -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Dahil Toplam</div>
+                        <div class="text-lg font-bold text-gray-800"><span id="con-total-incl">0,00</span> ₺</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Hariç (%20)</div>
+                        <div class="text-lg font-bold text-indigo-600"><span id="con-total-excl">0,00</span> ₺</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <div class="text-gray-500 text-xs font-medium mb-1">Teknopark Kalan (%15)</div>
+                        <div class="text-lg font-bold text-amber-600"><span id="con-total-tpark">0,00</span> ₺</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-teal-600">
+                        <div class="text-gray-500 text-xs font-medium mb-1" id="con-total-net-label">Danışmana Net Ödenecek Toplam</div>
+                        <div class="text-lg font-bold text-teal-600"><span id="con-total-net">0,00</span> ₺</div>
+                    </div>
+                </div>
 
-    <!-- ÖZET KARTLARI -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Dahil Toplam</div>
-            <div class="text-lg font-bold text-gray-800"><span id="con-total-incl">0,00</span> ₺</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Hariç (%20)</div>
-            <div class="text-lg font-bold text-indigo-600"><span id="con-total-excl">0,00</span> ₺</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Teknopark Kalan (%15)</div>
-            <div class="text-lg font-bold text-amber-600"><span id="con-total-tpark">0,00</span> ₺</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-teal-600">
-            <div class="text-gray-500 text-xs font-medium mb-1" id="con-total-net-label">Danışmana Net Ödenecek Toplam</div>
-            <div class="text-lg font-bold text-teal-600"><span id="con-total-net">0,00</span> ₺</div>
-        </div>
-    </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[1300px]">
+                        <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
+                            <tr>
+                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
+                                <th class="p-3">Tarih</th>
+                                <th class="p-3">Adı Soyadı</th>
+                                <th class="p-3">TC Kimlik No</th>
+                                <th class="p-3">Ödeme Yapılan IBAN</th>
+                                <th class="p-3 text-right">KDV Dahil</th>
+                                <th class="p-3 text-right">KDV Hariç</th>
+                                <th class="p-3 text-right">Teknopark %15</th>
+                                <th class="p-3 text-right text-teal-700">Net Ödenen</th>
+                                <th class="p-3">Açıklama</th>
+                                <th class="p-3 text-center">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consultant-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
+                    </table>
+                </div>
+            </section>     
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[1300px]">
-            <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
-                <tr>
-                    <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
-                    <th class="p-3">Tarih</th>
-                    <th class="p-3">Adı Soyadı</th>
-                    <th class="p-3">TC Kimlik No</th>
-                    <th class="p-3">Ödeme Yapılan IBAN</th>
-                    <th class="p-3 text-right">KDV Dahil</th>
-                    <th class="p-3 text-right">KDV Hariç</th>
-                    <th class="p-3 text-right">Teknopark %15</th>
-                    <th class="p-3 text-right text-teal-700">Net Ödenen</th>
-                    <th class="p-3">Açıklama</th>
-                    <th class="p-3 text-center">İşlem</th>
-                </tr>
-            </thead>
-            <tbody id="consultant-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
-        </table>
-    </div>
-</section>     
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
+            <!-- 6. ÖDEMELER TAKİBİ SEKMESİ -->
             <section id="tab-payments" class="hidden">
                 <div class="mb-6 space-y-3">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -714,6 +717,7 @@
                                         <select id="pay-type-filter" onchange="renderPayments()" class="border border-gray-300 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
                                             <option value="all">Tümü</option>
                                             <option value="referee">Hakem Ödemesi</option>
+                                            <option value="consultant">Danışmanlık Ödemesi</option>
                                             <option value="manual">Fatura / Gider</option>
                                         </select>
                                     </div>
@@ -732,7 +736,7 @@
                 </div>
             </section>
 
-            <!-- 6. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
+            <!-- 7. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
             <section id="tab-users" class="hidden">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -765,6 +769,70 @@
     </div>
 
     <!-- MODALLAR -->
+
+    <!-- DANIŞMANLIK ÖDEMESİ EKLE / DÜZENLE MODALI -->
+    <div id="consultant-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
+            <h3 class="text-xl font-bold mb-4 text-teal-900" id="consultant-modal-title">Yeni Danışmanlık Ödemesi Ekle</h3>
+            <input type="hidden" id="editing-consultant-id">
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Danışman Adı Soyadı</label>
+                        <input type="text" id="con-name" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: Prof. Dr. Ahmet Yılmaz">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">T.C. Kimlik No</label>
+                        <input type="text" id="con-tc" class="w-full border p-2 rounded-lg text-xs" placeholder="TC Kimlik No" maxlength="11">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Ödeme Yapılan IBAN</label>
+                        <input type="text" id="con-iban" class="w-full border p-2 rounded-lg text-xs tracking-wider font-bold text-gray-700" placeholder="TRXX XXXX..." maxlength="32">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Tarih (gg.aa.yyyy)</label>
+                        <input type="text" id="con-date" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 28.10.2026">
+                    </div>
+                </div>
+
+                <!-- FORMÜL HESAPLAMASI -->
+                <div class="grid grid-cols-4 gap-3 bg-teal-50/60 p-3 rounded-lg border border-teal-100">
+                    <div>
+                        <label class="block font-bold text-teal-950 mb-1">KDV Dahil (₺)</label>
+                        <input type="number" id="con-gross" class="w-full border p-2 rounded-lg text-xs font-bold text-teal-700" placeholder="12000" oninput="calculateConsultantAmounts()">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-indigo-900 mb-1">%20 KDV Hariç (₺)</label>
+                        <input type="number" id="con-net-excl" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-indigo-700" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-amber-900 mb-1">T.Park %15 (₺)</label>
+                        <input type="number" id="con-tax-tpark" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-amber-700" readonly>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-emerald-900 mb-1">Net Ödenen (₺)</label>
+                        <input type="number" id="con-net-payable" class="w-full border p-2 rounded-lg text-xs bg-emerald-100 border-emerald-300 font-black text-emerald-800" readonly>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Açıklama</label>
+                    <input type="text" id="con-desc" class="w-full border p-2 rounded-lg text-xs" placeholder="Proje / Danışmanlık Açıklaması">
+                </div>
+
+                <div class="pt-2 border-t flex items-center space-x-2">
+                    <input type="checkbox" id="con-is-paid" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500">
+                    <label for="con-is-paid" class="font-bold text-teal-900">Ödeme Yapıldı (Ödendi İşaretle)</label>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-2 mt-6">
+                <button onclick="closeModal('consultant-modal')" class="px-4 py-2 bg-gray-200 rounded-lg text-xs font-semibold">İptal</button>
+                <button onclick="saveConsultantPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700">Kaydet</button>
+            </div>
+        </div>
+    </div>
 
     <!-- MANUEL ÖDEME EKLE / DÜZENLE MODALI -->
     <div id="manual-payment-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -915,69 +983,7 @@
             </div>
         </div>
     </div>
-    <!-- DANIŞMANLIK ÖDEMESİ EKLE / DÜZENLE MODALI -->
-<div id="consultant-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-        <h3 class="text-xl font-bold mb-4 text-teal-900" id="consultant-modal-title">Yeni Danışmanlık Ödemesi Ekle</h3>
-        <input type="hidden" id="editing-consultant-id">
-        <div class="space-y-4 text-xs">
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Danışman Adı Soyadı</label>
-                    <input type="text" id="con-name" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: Prof. Dr. Ahmet Yılmaz">
-                </div>
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">T.C. Kimlik No</label>
-                    <input type="text" id="con-tc" class="w-full border p-2 rounded-lg text-xs" placeholder="TC Kimlik No" maxlength="11">
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Ödeme Yapılan IBAN</label>
-                    <input type="text" id="con-iban" class="w-full border p-2 rounded-lg text-xs tracking-wider font-bold text-gray-700" placeholder="TRXX XXXX..." maxlength="32">
-                </div>
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Tarih (gg.aa.yyyy)</label>
-                    <input type="text" id="con-date" class="w-full border p-2 rounded-lg text-xs" placeholder="Örn: 28.10.2026">
-                </div>
-            </div>
 
-            <!-- FORMÜL HESAPLAMASI -->
-            <div class="grid grid-cols-4 gap-3 bg-teal-50/60 p-3 rounded-lg border border-teal-100">
-                <div>
-                    <label class="block font-bold text-teal-950 mb-1">KDV Dahil (₺)</label>
-                    <input type="number" id="con-gross" class="w-full border p-2 rounded-lg text-xs font-bold text-teal-700" placeholder="12000" oninput="calculateConsultantAmounts()">
-                </div>
-                <div>
-                    <label class="block font-semibold text-indigo-900 mb-1">%20 KDV Hariç (₺)</label>
-                    <input type="number" id="con-net-excl" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-indigo-700" readonly>
-                </div>
-                <div>
-                    <label class="block font-semibold text-amber-900 mb-1">T.Park %15 (₺)</label>
-                    <input type="number" id="con-tax-tpark" class="w-full border p-2 rounded-lg text-xs bg-gray-100 font-bold text-amber-700" readonly>
-                </div>
-                <div>
-                    <label class="block font-bold text-emerald-900 mb-1">Net Ödenen (₺)</label>
-                    <input type="number" id="con-net-payable" class="w-full border p-2 rounded-lg text-xs bg-emerald-100 border-emerald-300 font-black text-emerald-800" readonly>
-                </div>
-            </div>
-
-            <div>
-                <label class="block font-semibold text-gray-600 mb-1">Açıklama</label>
-                <input type="text" id="con-desc" class="w-full border p-2 rounded-lg text-xs" placeholder="Proje / Danışmanlık Açıklaması">
-            </div>
-
-            <div class="pt-2 border-t flex items-center space-x-2">
-                <input type="checkbox" id="con-is-paid" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500">
-                <label for="con-is-paid" class="font-bold text-teal-900">Ödeme Yapıldı (Ödendi İşaretle)</label>
-            </div>
-        </div>
-        <div class="flex justify-end space-x-2 mt-6">
-            <button onclick="closeModal('consultant-modal')" class="px-4 py-2 bg-gray-200 rounded-lg text-xs font-semibold">İptal</button>
-            <button onclick="saveConsultantPayment()" class="px-4 py-2 bg-teal-600 text-white rounded-lg text-xs font-semibold hover:bg-teal-700">Kaydet</button>
-        </div>
-    </div>
-</div>
     <!-- YEDEK GERİ YÜKLEME MODALI -->
     <div id="restore-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-xl p-6 w-full max-w-md">
@@ -1179,7 +1185,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">1. Bina / Yerleşke Seçimi</label>
-                    <select id="rent-campus-select" class="w-full border p-2 rounded-lg" onchange="()"></select>
+                    <select id="rent-campus-select" class="w-full border p-2 rounded-lg" onchange="onRentalCampusChange()"></select>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">2. Kiralanacak Ofis Seçimi</label>
@@ -1300,20 +1306,23 @@
                 }
             ],
             refereePayments: [],
+            consultantPayments: [],
             manualPayments: []
         };
 
         if (!data.refereePayments) data.refereePayments = [];
+        if (!data.consultantPayments) data.consultantPayments = [];
         if (!data.manualPayments) data.manualPayments = [];
 
         let userNotes = JSON.parse(localStorage.getItem('teknoparkUserNotes')) || [];
         let currentUser = null;
         let isSyncing = false;
+        
         // Silinen verilerin buluttan hortlamasını engelleyen kalıcı kara liste
         let persistentDeletedIds = new Set(JSON.parse(localStorage.getItem('teknoparkDeletedIds') || '[]'));
 
         function markAsDeleted(uniqueKey) {
-            persistentDeletedIds.add(String(uniqueKey));
+            persistentDeletedIds.add(String(uniqueKey).trim());
             localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
         }
 
@@ -1336,6 +1345,7 @@
 
         let currentPaymentFilter = 'pending';
         let currentRefereeFilter = 'pending';
+        let currentConsultantFilter = 'pending';
 
         function toggleSidebar() {
             const sidebar = document.getElementById('main-sidebar');
@@ -1393,6 +1403,7 @@
                         else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
                         else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
                         else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
+                        else if (currentUser.permissions && currentUser.permissions.consultants) switchTab('consultants');
                         else if (currentUser.role === 'admin') switchTab('payments');
                         else if (currentUser.role === 'admin') switchTab('users');
                         else switchTab('dashboard');
@@ -1401,7 +1412,7 @@
             }
         };
 
-async function fetchCentralData() {
+        async function fetchCentralData() {
             const statusEl = document.getElementById('cloud-sync-status');
             if (statusEl && !currentUser) {
                 statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
@@ -1409,8 +1420,6 @@ async function fetchCentralData() {
             }
 
             if (!APPS_SCRIPT_URL) return;
-
-            // Eğer şu an bir kaydetme işlemi sürüyorsa buluttan çekip yereli ezme!
             if (isSyncing) return;
 
             try {
@@ -1426,13 +1435,12 @@ async function fetchCentralData() {
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
                 if (targetData) {
-                    // 1. ÖDENME DURUMLARINI VE TARİHLERİ YERELDE KORU
                     const localPaidStatus = new Map();
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
                     (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
                     (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
-                    // 2. YERLEŞKELER
+                    // Yerleşkeler
                     data.campuses = (targetData.campuses || data.campuses || [])
                         .filter(c => !persistentDeletedIds.has('cam_' + String(c.id)))
                         .map(c => ({
@@ -1440,11 +1448,11 @@ async function fetchCentralData() {
                             offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
                         }));
 
-                    // 3. KİRALAMALAR (Kalıcı kara liste korumalı senkronizasyon)
+                    // Kiralamalar (Kara liste korumalı senkron)
                     data.rentals = (targetData.rentals || [])
                         .filter(rent => !persistentDeletedIds.has('rent_' + String(rent.id)));
                     
-                    // 4. HAKEM ÖDEMELERİ (Yerelde olup henüz buluta gitmemiş olanları kaybetme)
+                    // Hakem Ödemeleri
                     const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
                     const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
                     data.refereePayments = [...cloudRef, ...localOnlyRef].map(r => {
@@ -1452,7 +1460,7 @@ async function fetchCentralData() {
                         return local ? { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate } : r;
                     });
 
-                    // 5. DANIŞMANLIK ÖDEMELERİ (Yerelde yeni eklenenleri koru)
+                    // Danışmanlık Ödemeleri
                     const cloudCon = (targetData.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)));
                     const localOnlyCon = (data.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !cloudCon.some(cc => String(cc.id) === String(c.id)));
                     data.consultantPayments = [...cloudCon, ...localOnlyCon].map(c => {
@@ -1460,7 +1468,7 @@ async function fetchCentralData() {
                         return local ? { ...c, isPaid: local.isPaid, paymentDate: local.paymentDate } : c;
                     });
 
-                    // 6. MANUEL FATURA / GİDERLER (Yerelde yeni eklenen faturaları koru)
+                    // Manuel Faturalar
                     const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)));
                     const localOnlyMan = (data.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !cloudMan.some(cm => String(cm.id) === String(m.id)));
                     data.manualPayments = [...cloudMan, ...localOnlyMan].map(m => {
@@ -1468,11 +1476,9 @@ async function fetchCentralData() {
                         return local ? { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate } : m;
                     });
 
-                    // 7. KULLANICILAR
                     users = (parsedPayload.users || users).filter(u => !persistentDeletedIds.has('user_' + String(u.id)));
                     userNotes = parsedPayload.userNotes || userNotes;
 
-                    // Yerel depoyu güncelle
                     localStorage.setItem('teknoparkData', JSON.stringify(data));
                     localStorage.setItem('teknoparkUsers', JSON.stringify(users));
                     localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
@@ -1487,17 +1493,16 @@ async function fetchCentralData() {
                 console.warn("Bulut eşitleme yerel modda devam ediyor:", e);
             }
         }
-async function saveData() {
+
+        async function saveData() {
             isSyncing = true;
 
-            // 1. Önce doğrudan yerel depoya yaz (Kayıp asla yaşanmaz)
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
             renderAll();
 
-            // 2. Ardından buluta gönder
             if (APPS_SCRIPT_URL) {
                 try {
                     const payload = JSON.stringify({ data: data, users: users, userNotes: userNotes });
@@ -1510,7 +1515,6 @@ async function saveData() {
                 } catch(err) {
                     console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
                 } finally {
-                    // Bulutun veriyi yazması için 4 saniye güvenli bekleme
                     setTimeout(() => {
                         isSyncing = false;
                     }, 4000);
@@ -1519,6 +1523,7 @@ async function saveData() {
                 isSyncing = false;
             }
         }
+
         function exportSystemJSON() {
             const systemBackup = { data: data, users: users, userNotes: userNotes, exportDate: new Date().toISOString() };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(systemBackup, null, 2));
@@ -1583,6 +1588,7 @@ async function saveData() {
                 else if (currentUser.permissions && currentUser.permissions.campuses) switchTab('campuses');
                 else if (currentUser.permissions && currentUser.permissions.rentals) switchTab('rentals');
                 else if (currentUser.permissions && currentUser.permissions.referees) switchTab('referees');
+                else if (currentUser.permissions && currentUser.permissions.consultants) switchTab('consultants');
                 else if (currentUser.role === 'admin') switchTab('payments');
                 else if (currentUser.role === 'admin') switchTab('users');
                 else switchTab('dashboard');
@@ -1641,6 +1647,7 @@ async function saveData() {
             document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
             document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
             document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
+            document.getElementById('nav-consultants').style.display = (isUserAdmin || currentUser.permissions.consultants !== false) ? 'flex' : 'none';
             document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
 
             const backupContainer = document.getElementById('backup-buttons-container');
@@ -1672,7 +1679,7 @@ async function saveData() {
         }
 
         function switchTab(tab) {
-            ['dashboard', 'campuses', 'rentals', 'referees', 'consultants','payments', 'users'].forEach(t => {
+            ['dashboard', 'campuses', 'rentals', 'referees', 'consultants', 'payments', 'users'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
 
@@ -1725,7 +1732,6 @@ async function saveData() {
                 if (foundCampus) currentCampusName = foundCampus.name;
             }
 
-            // 1. DOLULUK ORANI HALKA GRAFİĞİ
             const ctx1 = canvasOcc.getContext('2d');
             if (occupancyChartInstance) occupancyChartInstance.destroy();
 
@@ -1764,21 +1770,11 @@ async function saveData() {
                     cutout: '72%',
                     plugins: {
                         legend: { display: false },
-                        datalabels: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const val = context.raw || 0;
-                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : "0.0";
-                                    return ` ${context.label}: ${val.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m² (%${pct})`;
-                                }
-                            }
-                        }
+                        datalabels: { display: false }
                     }
                 }
             });
 
-            // 2. GELİR DAĞILIMI BAR GRAFİĞİ
             const campusLabels = [];
             const campusRevenues = [];
             const targetCampuses = selectedCampus === 'all' 
@@ -1788,7 +1784,7 @@ async function saveData() {
             targetCampuses.forEach(c => {
                 let campusRevExcl = 0;
                 (c.offices || []).forEach(o => {
-                    data.rentals.filter(r => String(r.officeId) === String(o.id) && r.status === 'active').forEach(r => {
+                    data.rentals.filter(r => String(r.officeId).trim() === String(o.id).trim() && r.status === 'active').forEach(r => {
                         const area = parseFloat(r.allocatedArea || 0);
                         campusRevExcl += (area * (parseFloat(r.unitPrice) || 0)) + (area * (parseFloat(r.commonCostPerM2) || 0)) + parseFloat(r.otherCost || 0);
                     });
@@ -1820,7 +1816,6 @@ async function saveData() {
                 }
             });
 
-            // 3. DOLULUK VE ALAN KARŞILAŞTIRMA GRAFİĞİ
             const totalStats = getStats('all');
             const ctx3 = canvasComp.getContext('2d');
             if (comparisonChartInstance) comparisonChartInstance.destroy();
@@ -1859,877 +1854,436 @@ async function saveData() {
             });
         }
 
-        // ==================== ÖDEMELER TAKİBİ MODÜLÜ ====================
-        function populatePaymentsYearFilter() {
-            const yearSelect = document.getElementById('payments-year-filter');
-            if (!yearSelect) return;
-            const currentYear = new Date().getFullYear();
-            yearSelect.innerHTML = '';
-            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
-                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
-            }
-            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-            const monthSelect = document.getElementById('payments-month-filter');
-            if (monthSelect) monthSelect.value = currentMonth;
+        // ==================== OFİS VE KİRALAMA ALAN HESAPLAMA MOTORU ====================
+        function getOfficeRentedArea(officeId, excludeRentalId = null) {
+            const targetOfficeId = String(officeId || '').trim();
+            if (!targetOfficeId) return 0;
+            const excludeIdStr = excludeRentalId ? String(excludeRentalId).trim() : null;
+
+            return (data.rentals || [])
+                .filter(r => {
+                    const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
+                    const isActive = r.status === 'active';
+                    const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
+                    const notDeleted = !persistentDeletedIds.has('rent_' + String(r.id));
+                    return matchOffice && isActive && notExcluded && notDeleted;
+                })
+                .reduce((acc, r) => acc + (parseFloat(r.allocatedArea) || 0), 0);
         }
 
-        function extractYearMonth(dateStr) {
-            if (!dateStr) return { year: "", month: "" };
-            const clean = String(dateStr).trim().replace(/[/]/g, '-').replace(/[.]/g, '-');
-            const parts = clean.split('-');
-            if (parts.length === 3) {
-                if (parts[2].length === 4) {
-                    return { year: parts[2], month: String(parts[1]).padStart(2, '0') };
-                } else if (parts[0].length === 4) {
-                    return { year: parts[0], month: String(parts[1]).padStart(2, '0') };
+        function getOfficeAvailableArea(officeId, excludeRentalId = null) {
+            const targetOfficeId = String(officeId || '').trim();
+            if (!targetOfficeId) return 0;
+
+            let totalArea = 0;
+            (data.campuses || []).forEach(c => {
+                (c.offices || []).forEach(o => {
+                    if (String(o.id || '').trim() === targetOfficeId) {
+                        totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
+                    }
+                });
+            });
+
+            const rentedArea = getOfficeRentedArea(targetOfficeId, excludeRentalId);
+            return Math.max(0, totalArea - rentedArea);
+        }
+
+        function onRentalCampusChange(selectedOfficeId = null) {
+            const campusId = document.getElementById('rent-campus-select').value;
+            const officeSelect = document.getElementById('rent-office-select');
+            const editRentalIdInput = document.getElementById('editing-rental-id');
+            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
+
+            if (!campusId) {
+                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+                officeSelect.disabled = true;
+                const hint = document.getElementById('office-available-hint');
+                if (hint) hint.innerText = '';
+                return;
+            }
+
+            const campus = data.campuses.find(c => String(c.id).trim() === String(campusId).trim());
+            if (!campus || !campus.offices || campus.offices.length === 0) {
+                officeSelect.innerHTML = '<option value="">Bu yerleşkede henüz kayıtlı ofis yok</option>';
+                officeSelect.disabled = true;
+                return;
+            }
+
+            officeSelect.disabled = false;
+            officeSelect.innerHTML = '<option value="">Ofis Seçiniz...</option>';
+
+            campus.offices.forEach(o => {
+                const totalCap = parseFloat(String(o.area || 0).replace(',', '.'));
+                const availArea = getOfficeAvailableArea(o.id, editRentalId);
+                const isSelected = selectedOfficeId && String(o.id).trim() === String(selectedOfficeId).trim();
+
+                let statusText = `Boş: ${availArea.toFixed(2)} m²`;
+                if (availArea <= 0 && !isSelected) {
+                    statusText = 'Dolu';
                 }
-            }
-            return { year: "", month: "" };
-        }
 
-        const selectedPaymentKeys = new Set();
+                officeSelect.innerHTML += `<option value="${o.id}">${o.name} (Toplam: ${totalCap.toFixed(2)} m² | ${statusText})</option>`;
+            });
 
-        function setPaymentStatusFilter(status) {
-            selectedPaymentKeys.clear();
-            currentPaymentFilter = status;
-            const btnPending = document.getElementById('btn-pay-filter-pending');
-            const btnPaid = document.getElementById('btn-pay-filter-paid');
-
-            if (status === 'pending') {
-                btnPending.className = "px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition";
-                btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-                document.getElementById('pay-total-amount-label').innerText = "Ödenecek Toplam Tutar";
+            if (selectedOfficeId) {
+                officeSelect.value = String(selectedOfficeId);
+                onRentalOfficeChange();
             } else {
-                btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
-                btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-                document.getElementById('pay-total-amount-label').innerText = "Ödenen Toplam Tutar";
+                const hint = document.getElementById('office-available-hint');
+                if (hint) hint.innerText = '';
             }
-            renderPayments();
         }
 
-        function toISODate(dateStr) {
-            if (!dateStr) return '';
-            const clean = String(dateStr).trim();
-            if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
-            const cleanNorm = clean.replace(/[/]/g, '-').replace(/[.]/g, '-');
-            const parts = cleanNorm.split('-');
-            if (parts.length === 3) {
-                if (parts[2].length === 4) {
-                    return `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
-                }
+        function onRentalOfficeChange() {
+            const officeId = document.getElementById('rent-office-select').value;
+            const editRentalIdInput = document.getElementById('editing-rental-id');
+            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
+            const hint = document.getElementById('office-available-hint');
+
+            if (!officeId) {
+                if (hint) hint.innerText = '';
+                return;
             }
-            return '';
-        }
 
-        function toTRDate(isoStr) {
-            if (!isoStr) return '-';
-            const clean = String(isoStr).trim();
-            const cleanNorm = clean.replace(/[/]/g, '-').replace(/[.]/g, '-');
-            const parts = cleanNorm.split('-');
-            if (parts.length === 3) {
-                if (parts[0].length === 4) {
-                    return `${String(parts[2]).padStart(2, '0')}/${String(parts[1]).padStart(2, '0')}/${parts[0]}`;
-                }
-                return `${String(parts[0]).padStart(2, '0')}/${String(parts[1]).padStart(2, '0')}/${parts[2]}`;
-            }
-            return clean;
-        }
-
-        function formatCurrency(amount) {
-            const formatted = (parseFloat(amount) || 0).toLocaleString('tr-TR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-            return `${formatted} ₺`;
-        }
-
-        function getAllPaymentsList() {
-            let list = [];
-
-            (data.refereePayments || []).forEach(r => {
-                list.push({
-                    id: r.id,
-                    source: 'referee',
-                    sourceLabel: 'Hakem Ödemesi',
-                    name: `${r.firstName || ''} ${r.lastName || ''}`.trim() || 'İsimsiz Hakem',
-                    iban: r.iban || '-',
-                    desc: [r.company, r.project].filter(Boolean).join(" / ") || "-",
-                    amount: parseFloat(r.gross) || 0,
-                    isPaid: !!r.isPaid,
-                    date: r.docDate || '',
-                    dueDate: '',
-                    paymentDate: r.paymentDate || ''
+            let totalCap = 0;
+            (data.campuses || []).forEach(c => {
+                (c.offices || []).forEach(o => {
+                    if (String(o.id).trim() === String(officeId).trim()) {
+                        totalCap = parseFloat(String(o.area || 0).replace(',', '.'));
+                    }
                 });
             });
 
-            (data.manualPayments || []).forEach(m => {
-                list.push({
-                    id: m.id,
-                    source: 'manual',
-                    sourceLabel: 'Fatura / Gider',
-                    name: m.name || '-',
-                    iban: m.iban || '-',
-                    desc: m.desc || '-',
-                    amount: parseFloat(m.amount) || 0,
-                    isPaid: !!m.isPaid,
-                    date: m.date || '',
-                    dueDate: m.dueDate ? toISODate(m.dueDate) : '',
-                    paymentDate: m.paymentDate || ''
-                });
-            });
-(data.consultantPayments || []).forEach(c => {
-    list.push({
-        id: c.id,
-        source: 'consultant',
-        sourceLabel: 'Danışmanlık Ödemesi',
-        name: c.name || 'İsimsiz Danışman',
-        iban: c.iban || '-',
-        desc: c.desc || '-',
-        amount: parseFloat(c.netPayable) || 0, // Excel'deki 'Net Ödenen'
-        isPaid: !!c.isPaid,
-        date: c.date || '',
-        dueDate: '',
-        paymentDate: c.paymentDate || ''
-    });
-});
-            return list;
+            const availArea = getOfficeAvailableArea(officeId, editRentalId);
+
+            if (hint) {
+                hint.innerHTML = `<span class="text-blue-700 font-semibold">Ofis Kapasitesi: <strong>${totalCap.toFixed(2)} m²</strong> | Bu sözleşme için kullanılabilecek alan: <strong>${availArea.toFixed(2)} m²</strong></span>`;
+            }
         }
 
-        function renderPayments() {
-            const tbody = document.getElementById('payments-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+        function openRentalModal(editRentalId = null) {
+            const campusSelect = document.getElementById('rent-campus-select');
+            campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
 
-            const selYearEl = document.getElementById('payments-year-filter');
-            const selMonthEl = document.getElementById('payments-month-filter');
-            const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
-            const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
-            const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
+            data.campuses.forEach(c => { campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
+            
+            document.getElementById('editing-rental-id').value = editRentalId ? String(editRentalId) : '';
+            document.getElementById('rent-user-note').value = '';
 
-            const allList = getAllPaymentsList();
-            const isPending = currentPaymentFilter === 'pending';
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const perm = currentUser ? (currentUser.permissions || {}) : {};
 
-            const filtered = allList.filter(item => {
-                if (isPending ? item.isPaid : !item.isPaid) return false;
-                if (selectedType !== 'all' && item.source !== selectedType) return false;
+            document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
+            document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
+            document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
+            document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
+            document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
+            document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
 
-                const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
-                const { year, month } = extractYearMonth(targetDate);
-                
-                if (year && month) {
-                    return year === selYear && month === selMonth;
+            const historySection = document.getElementById('rental-history-section');
+            const historyList = document.getElementById('rental-history-list');
+
+            if(editRentalId !== null && editRentalId !== undefined && String(editRentalId) !== '') {
+                const r = data.rentals.find(item => String(item.id).trim() === String(editRentalId).trim());
+                if(!r) return;
+
+                document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
+                document.getElementById('save-rental-btn').innerText = "Güncelle";
+
+                let currentCampusId = null;
+                data.campuses.forEach(c => { 
+                    if((c.offices || []).some(o => String(o.id).trim() === String(r.officeId).trim())) currentCampusId = c.id; 
+                });
+
+                if (currentCampusId) {
+                    campusSelect.value = String(currentCampusId);
+                    onRentalCampusChange(r.officeId);
                 }
-                return true;
-            });
 
-            filtered.sort((a, b) => {
-                const hasDueA = !a.isPaid && Boolean(a.dueDate);
-                const hasDueB = !b.isPaid && Boolean(b.dueDate);
+                document.getElementById('rent-company-name').value = r.company || '';
+                document.getElementById('rent-start-date').value = r.startDate || '';
+                document.getElementById('rent-target-end-date').value = r.endDate || '';
+                document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
+                document.getElementById('rent-unit-price').value = r.unitPrice !== undefined ? r.unitPrice : 0;
+                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 !== undefined ? r.commonCostPerM2 : 0;
+                document.getElementById('rent-other-cost').value = r.otherCost !== undefined ? r.otherCost : 0;
 
-                if (hasDueA && hasDueB) return a.dueDate.localeCompare(b.dueDate);
-                if (hasDueA && !hasDueB) return -1;
-                if (!hasDueA && hasDueB) return 1;
+                historyList.innerHTML = '';
+                const hList = r.history || [];
+                if (hList.length > 0) {
+                    hList.forEach(h => {
+                        historyList.innerHTML += `
+                            <div class="border-b pb-1 border-gray-200 last:border-0">
+                                <span class="font-bold text-indigo-900">${h.username}</span> 
+                                <span class="text-[10px] text-gray-400">(${h.date}):</span> 
+                                <p class="text-gray-700 font-medium">${h.note}</p>
+                            </div>
+                        `;
+                    });
+                    historySection.classList.remove('hidden');
+                } else {
+                    historyList.innerHTML = '<p class="text-gray-400 italic text-[11px]">Gelişmiş değişiklik notu bulunmuyor.</p>';
+                    historySection.classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
+                document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
 
-                return Number(b.id || 0) - Number(a.id || 0);
-            });
+                campusSelect.value = '';
+                const officeSelect = document.getElementById('rent-office-select');
+                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
+                officeSelect.disabled = true;
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+                document.getElementById('rent-company-name').value = '';
+                document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('rent-target-end-date').value = '';
+                document.getElementById('rent-allocated-area').value = '';
+                document.getElementById('rent-unit-price').value = '';
+                document.getElementById('rent-common-cost-per-m2').value = '';
+                document.getElementById('rent-other-cost').value = '';
+                document.getElementById('office-available-hint').innerText = '';
 
-filtered.forEach(item => {
-                const isReferee = item.source === 'referee';
-                const isConsultant = item.source === 'consultant';
-                const uniqueKey = `${item.source}_${item.id}`;
-                const isSelected = selectedPaymentKeys.has(uniqueKey);
+                historySection.classList.add('hidden');
+            }
 
-                let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
-                if (isReferee) badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200';
-                if (isConsultant) badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200 font-bold';
+            document.getElementById('rental-modal').classList.remove('hidden');
+        }
 
-                let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
-                if (!isReferee && !isConsultant && item.dueDate) {
-                    const due = new Date(item.dueDate);
-                    due.setHours(0, 0, 0, 0);
-                    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+        function saveRental() {
+            const editRentalIdInput = document.getElementById('editing-rental-id');
+            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
 
-                    if (!item.isPaid) {
-                        if (diffDays < 0) {
-                            dueHtml = `<span class="text-rose-700 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-circle-exclamation mr-1"></i>${toTRDate(item.dueDate)} (${Math.abs(diffDays)}g gecikti)</span>`;
-                        } else if (diffDays === 0) {
-                            dueHtml = `<span class="text-white font-bold bg-red-600 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-bell mr-1"></i>Bugün Son Gün!</span>`;
-                        } else if (diffDays <= 3) {
-                            dueHtml = `<span class="text-amber-800 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px] whitespace-nowrap"><i class="fa-solid fa-clock mr-1"></i>${toTRDate(item.dueDate)} (${diffDays}g kaldı)</span>`;
-                        } else {
-                            dueHtml = `<span class="text-gray-700 font-semibold text-[11px]">${toTRDate(item.dueDate)}</span>`;
+            const company = document.getElementById('rent-company-name').value.trim();
+            const officeId = document.getElementById('rent-office-select').value;
+            const startDate = document.getElementById('rent-start-date').value;
+            const endDate = document.getElementById('rent-target-end-date').value;
+            const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
+            const unitPrice = parseFloat(document.getElementById('rent-unit-price').value) || 0;
+            const commonCostPerM2 = parseFloat(document.getElementById('rent-common-cost-per-m2').value) || 0;
+            const otherCost = parseFloat(document.getElementById('rent-other-cost').value) || 0;
+            const noteText = document.getElementById('rent-user-note').value.trim();
+
+            if (!company || !officeId || !startDate || isNaN(allocatedArea) || allocatedArea <= 0) { 
+                alert("Lütfen gerekli tüm alanları eksiksiz ve geçerli değerlerle doldurun."); 
+                return; 
+            }
+
+            // Düzenleme kontrolü: Eğer mevcut sözleşme düzenleniyorsa
+            let isReducingArea = false;
+            if (editRentalId) {
+                const currentRental = (data.rentals || []).find(r => String(r.id || '').trim() === editRentalId);
+                if (currentRental) {
+                    const currentAllocated = parseFloat(currentRental.allocatedArea || 0);
+                    if (allocatedArea <= currentAllocated) {
+                        isReducingArea = true;
+                    }
+                }
+            }
+
+            if (!isReducingArea) {
+                const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
+                if (allocatedArea > (maxAvail + 0.01)) {
+                    alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin bu sözleşme için kullanılabilecek maksimum alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
+                    return;
+                }
+            }
+
+            const currentTimestamp = new Date().toLocaleString('tr-TR');
+            const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
+
+            if (editRentalId) {
+                const rental = data.rentals.find(r => String(r.id || '').trim() === editRentalId);
+                if (rental) {
+                    rental.company = company; 
+                    rental.officeId = officeId; 
+                    rental.startDate = startDate;
+                    rental.endDate = endDate || null; 
+                    rental.allocatedArea = allocatedArea;
+                    rental.unitPrice = unitPrice; 
+                    rental.commonCostPerM2 = commonCostPerM2; 
+                    rental.otherCost = otherCost;
+
+                    if (!rental.history) rental.history = [];
+                    if (noteText) {
+                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: noteText });
+                        if (currentUser && currentUser.role !== 'admin') {
+                            userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[${company}] ${noteText}` });
                         }
                     } else {
-                        dueHtml = `<span class="text-gray-500 text-[11px] line-through">${toTRDate(item.dueDate)}</span>`;
+                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
                     }
                 }
-
-                const paymentDateISO = item.paymentDate ? toISODate(item.paymentDate) : '';
-
-                const safeName = (item.name || '').replace(/'/g, "\\'");
-                const safeIban = (item.iban || '').replace(/'/g, "\\'");
-                const safeDesc = (item.desc || '').replace(/'/g, "\\'");
-
-                // İŞLEM BUTONLARI AYRIMI (HAKEM vs DANIŞMAN vs FATURA)
-                let actionButtonsHtml = '';
-                if (isReferee) {
-                    actionButtonsHtml = `
-                        <button onclick="openRefereeModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
-                        <button onclick="deleteRefereePayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
-                    `;
-                } else if (isConsultant) {
-                    actionButtonsHtml = `
-                        <button onclick="openConsultantModal('${item.id}')" class="text-teal-600 hover:text-teal-800 bg-teal-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
-                        <button onclick="deleteConsultantPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
-                    `;
-                } else {
-                    actionButtonsHtml = `
-                        <button onclick="openManualPaymentModal('${item.id}')" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-1 rounded text-xs font-semibold transition">Düzenle</button>
-                        <button onclick="deleteManualPayment('${item.id}')" class="text-rose-600 hover:text-rose-800 bg-rose-50 px-2 py-1 rounded text-xs font-semibold transition">Sil</button>
-                    `;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
-                        <td class="p-3 text-center">
-                            <input type="checkbox" ${isSelected ? 'checked' : ''} 
-                                data-key="${uniqueKey}"
-                                onchange="togglePaymentSelection('${uniqueKey}', this.checked)"
-                                class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
-                                title="Bu ödemeyi toplama dahil etmek için seç">
-                        </td>
-                        <td class="p-3">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] ${badgeClass}">
-                                ${item.sourceLabel}
-                            </span>
-                        </td>
-                        <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
-                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
-                                <span>${item.name}</span>
-                                <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>
-                            </div>
-                        </td>
-                        <td class="p-3 font-semibold text-gray-700 text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')" title="Kopyalamak için tıklayın (boşluksuz)">
-                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
-                                <span>${item.iban}</span>
-                                ${item.iban !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
-                            </div>
-                        </td>
-                        <td class="p-3 text-gray-600 font-medium cursor-pointer group" onclick="copyToClipboard('${safeDesc}', 'Açıklama')" title="Kopyalamak için tıklayın">
-                            <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
-                                <span>${item.desc}</span>
-                                ${item.desc !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 group-hover:text-blue-600 text-xs transition-opacity"></i>' : ''}
-                            </div>
-                        </td>
-                        <td class="p-3">${dueHtml}</td>
-                        <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(item.amount)}</td>
-                        <td class="p-3 text-center">
-                            <div class="inline-flex items-center space-x-2 justify-center">
-                                <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
-                                    onchange="togglePaymentPaidStatus('${item.source}', '${item.id}', this.checked)"
-                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500"
-                                    title="${item.isPaid ? 'Ödenmedi olarak geri al' : 'Ödendi olarak işaretle'}">
-                                ${item.isPaid ? `
-                                    <div class="inline-flex items-center space-x-1">
-                                        <input type="date" value="${paymentDateISO}" 
-                                            onchange="updateCustomPaymentDate('${item.source}', '${item.id}', this.value)"
-                                            class="border border-emerald-300 rounded px-1.5 py-0.5 text-[11px] font-bold text-emerald-800 bg-emerald-50/60 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                                            title="Ödeme tarihini değiştirmek için tıklayın">
-                                    </div>
-                                ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
-                            </div>
-                        </td>
-                        <td class="p-3 text-center">
-                            <div class="flex items-center justify-center space-x-1.5">
-                                ${actionButtonsHtml}
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
-            }
-
-            updatePaymentSelectionSummary();
-        }
-
-        async function updateCustomPaymentDate(source, id, newISODate) {
-            if (!newISODate) return;
-            const trDate = toTRDate(newISODate);
-
-            if (source === 'referee') {
-                const refItem = data.refereePayments.find(r => String(r.id) === String(id));
-                if (refItem) refItem.paymentDate = trDate;
-            } else if (source === 'manual') {
-                const manItem = data.manualPayments.find(m => String(m.id) === String(id));
-                if (manItem) manItem.paymentDate = trDate;
-            }
-            renderPayments();
-            renderReferees();
-            await saveData();
-        }
-
-        async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = null) {
-            let assignedDate = '';
-            if (isChecked) {
-                if (customDateISO) {
-                    assignedDate = toTRDate(customDateISO);
-                } else {
-                    assignedDate = new Date().toLocaleDateString('tr-TR');
-                }
-            }
-
-            if (source === 'referee') {
-                const refItem = data.refereePayments.find(r => String(r.id) === String(id));
-                if (refItem) {
-                    refItem.isPaid = isChecked;
-                    refItem.paymentDate = assignedDate;
-                }
-            } else if (source === 'manual') {
-                const manItem = data.manualPayments.find(m => String(m.id) === String(id));
-                if (manItem) {
-                    manItem.isPaid = isChecked;
-                    manItem.paymentDate = assignedDate;
-                }
-            }
-
-            renderPayments();
-            renderReferees();
-            await saveData();
-        }
-
-        function openManualPaymentModal(editId = null) {
-            document.getElementById('editing-manual-payment-id').value = editId || '';
-            const modalTitle = document.getElementById('manual-payment-modal-title');
-
-            if (editId) {
-                const m = data.manualPayments.find(item => String(item.id) === String(editId));
-                if (m) {
-                    modalTitle.innerText = "Fatura / Gider Ödemesini Düzenle";
-                    document.getElementById('manual-pay-name').value = m.name || '';
-                    document.getElementById('manual-pay-iban').value = m.iban || '';
-                    document.getElementById('manual-pay-amount').value = m.amount || '';
-                    document.getElementById('manual-pay-due-date').value = m.dueDate ? toISODate(m.dueDate) : '';
-                    document.getElementById('manual-pay-desc').value = m.desc || '';
-                }
             } else {
-                modalTitle.innerText = "Yeni Fatura / Gider Ödemesi Ekle";
-                document.getElementById('manual-pay-name').value = '';
-                document.getElementById('manual-pay-iban').value = '';
-                document.getElementById('manual-pay-amount').value = '';
-                document.getElementById('manual-pay-due-date').value = '';
-                document.getElementById('manual-pay-desc').value = '';
+                const newHistory = [];
+                const initialNote = noteText || "Sözleşme oluşturuldu.";
+                newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
+
+                data.rentals.unshift({ 
+                    id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
+                    startDate, endDate: endDate || null, status: 'active', history: newHistory
+                });
+
+                if (currentUser && currentUser.role !== 'admin' && noteText) {
+                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[Yeni Sözleşme - ${company}] ${noteText}` });
+                }
             }
-            
-            const ibanInput = document.getElementById('manual-pay-iban');
-            if (ibanInput) {
-                ibanInput.oninput = function() { this.value = formatIBAN(this.value); };
-            }
-            document.getElementById('manual-payment-modal').classList.remove('hidden');
+
+            closeModal('rental-modal'); 
+            saveData();
         }
 
-        async function saveManualPayment() {
-            const editId = document.getElementById('editing-manual-payment-id').value;
-            const name = document.getElementById('manual-pay-name').value.trim();
-            const iban = document.getElementById('manual-pay-iban').value.trim();
-            const amount = parseFloat(document.getElementById('manual-pay-amount').value) || 0;
-            const dueDate = document.getElementById('manual-pay-due-date').value;
-            const desc = document.getElementById('manual-pay-desc').value.trim();
+        async function deleteContractDirectly(rentalId) {
+            if (!currentUser || currentUser.role !== 'admin') {
+                alert("Yalnızca sistem yöneticisi sözleşme silebilir.");
+                return;
+            }
+            const targetId = String(rentalId).trim();
+            const r = (data.rentals || []).find(item => String(item.id).trim() === targetId);
+            if (!r) return;
 
-            if (!name || amount <= 0) {
-                alert("Lütfen Firma/Alıcı Adı ve geçerli bir Tutar girin.");
+            if (confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi kalıcı olarak SİLMEK istediğinize emin misiniz?`)) {
+                markAsDeleted('rent_' + targetId);
+                data.rentals = (data.rentals || []).filter(item => String(item.id).trim() !== targetId);
+
+                renderRentals();
+                renderCampuses();
+                renderDashboard();
+                renderExpiringAlerts();
+
+                await saveData();
+            }
+        }
+
+        function confirmEndRental() {
+            const rentalId = document.getElementById('end-rental-id').value;
+            const endDate = document.getElementById('rent-end-date').value;
+            const noteText = document.getElementById('rent-end-user-note').value.trim();
+
+            if(!endDate) return;
+
+            const rental = data.rentals.find(r => String(r.id) === String(rentalId));
+            if(rental) {
+                rental.status = 'completed'; rental.endDate = endDate;
+                const currentTimestamp = new Date().toLocaleString('tr-TR');
+                const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
+
+                if (!rental.history) rental.history = [];
+                const endNote = noteText ? `[Sözleşme Sonlandırıldı]: ${noteText}` : "Sözleşme sonlandırıldı.";
+                rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: endNote });
+
+                if (currentUser && currentUser.role !== 'admin' && noteText) {
+                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[FESİH - ${rental.company}] ${noteText}` });
+                }
+            }
+
+            closeModal('end-rental-modal'); saveData();
+        }
+
+        function openCampusModal() {
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const perm = currentUser ? (currentUser.permissions || {}) : {};
+            if (!isUserAdmin && perm.campusAdd === false) { alert("Yeni yerleşke ekleme yetkiniz bulunmamaktadır!"); return; }
+            document.getElementById('campus-modal').classList.remove('hidden');
+        }
+
+        function openOfficeModal(campusId) {
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const perm = currentUser ? (currentUser.permissions || {}) : {};
+            if (!isUserAdmin && perm.officeAdd === false) { alert("Yeni ofis ekleme yetkiniz bulunmamaktadır!"); return; }
+            document.getElementById('office-campus-id').value = campusId;
+            document.getElementById('office-modal').classList.remove('hidden');
+        }
+
+        function openEndRentalModal(rentalId) {
+            const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
+            if(!canEnd) { alert("Sözleşme feshetme / bitirme yetkiniz bulunmamaktadır!"); return; }
+
+            document.getElementById('end-rental-id').value = String(rentalId);
+            document.getElementById('rent-end-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('rent-end-user-note').value = '';
+            document.getElementById('end-rental-modal').classList.remove('hidden');
+        }
+
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function saveCampus() {
+            const name = document.getElementById('new-campus-name').value;
+            if(!name) return;
+            data.campuses.push({ id: Date.now(), name, offices: [] });
+            document.getElementById('new-campus-name').value = '';
+            closeModal('campus-modal'); saveData();
+        }
+
+        function saveOffice() {
+            const campusId = document.getElementById('office-campus-id').value;
+            const name = document.getElementById('new-office-name').value;
+            const floor = document.getElementById('new-office-floor').value;
+            const area = parseFloat(document.getElementById('new-office-area').value);
+
+            if(!name || !area) return;
+            const campus = data.campuses.find(c => String(c.id) === String(campusId));
+            if(campus) {
+                if(!campus.offices) campus.offices = [];
+                campus.offices.push({ id: Date.now(), name, area, floor });
+            }
+
+            document.getElementById('new-office-name').value = '';
+            document.getElementById('new-office-floor').value = '';
+            document.getElementById('new-office-area').value = '';
+            closeModal('office-modal'); saveData();
+        }
+
+        async function deleteOffice(campusId, officeId) {
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const perm = currentUser ? (currentUser.permissions || {}) : {};
+
+            if (!isUserAdmin && perm.officeDelete === false) { alert("Ofis silme yetkiniz bulunmamaktadır!"); return; }
+
+            const activeRentals = data.rentals.filter(r => String(r.officeId) === String(officeId) && r.status === 'active');
+            if (activeRentals.length > 0) {
+                const companies = activeRentals.map(r => r.company).join(", ");
+                alert(`GÜVENLİK UYARISI: Bu ofiste aktif kira sözleşmesi devam eden firma/firmalar bulunmaktadır (${companies}).\n\nAktif kiralama bitirilmeden bu ofis SİLİNEMEZ!`);
                 return;
             }
 
-            if (editId) {
-                const m = data.manualPayments.find(item => String(item.id) === String(editId));
-                if (m) {
-                    m.name = name;
-                    m.iban = iban;
-                    m.amount = amount;
-                    m.dueDate = dueDate;
-                    m.desc = desc;
+            if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
+                markAsDeleted('off_' + String(officeId));
+                const campus = data.campuses.find(c => String(c.id) === String(campusId));
+                if(campus && campus.offices) {
+                    campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
+                    data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
                 }
-            } else {
-                data.manualPayments.unshift({
-                    id: Date.now(),
-                    name, iban, amount, dueDate, desc,
-                    isPaid: false,
-                    date: new Date().toLocaleDateString('tr-TR'),
-                    paymentDate: ''
-                });
-            }
-
-            closeModal('manual-payment-modal');
-            renderPayments();
-            await saveData();
-        }
-
-        async function deleteManualPayment(id) {
-            if (confirm("Bu fatura/gider ödemesini silmek istediğinize emin misiniz?")) {
-                markAsDeleted('man_' + String(id));
-                data.manualPayments = (data.manualPayments || []).filter(m => String(m.id) !== String(id));
-                selectedPaymentKeys.delete('manual_' + String(id));
-                renderPayments();
+                renderCampuses();
                 await saveData();
             }
         }
 
-        function exportPaymentsToExcel() {
-            try {
-                const selYear = document.getElementById('payments-year-filter').value;
-                const selMonth = document.getElementById('payments-month-filter').value;
-                const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
-
-                const allList = getAllPaymentsList();
-                const isPending = currentPaymentFilter === 'pending';
-
-                const filtered = allList.filter(item => {
-                    if (isPending ? item.isPaid : !item.isPaid) return false;
-                    if (selectedType !== 'all' && item.source !== selectedType) return false;
-                    const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : item.date;
-                    const { year, month } = extractYearMonth(targetDate);
-                    if (year && month) return year === selYear && month === selMonth;
-                    return true;
-                });
-
-                filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-
-                if (filtered.length === 0) {
-                    alert(`Seçilen ${selMonth}/${selYear} dönemine ait indirilecek kayıt bulunamadı.`);
-                    return;
-                }
-
-                const exportList = filtered.map(item => ({
-                    "Durum": item.isPaid ? 'Ödendi' : 'Ödenecek',
-                    "Ödeme Tarihi": item.paymentDate || '-',
-                    "Tür": item.sourceLabel,
-                    "Firma Adı / Hakem Ad Soyad": item.name,
-                    "IBAN Bilgisi": item.iban,
-                    "Açıklama / Proje": item.desc,
-                    "Tutar (₺)": Number(parseFloat(item.amount || 0).toFixed(2))
-                }));
-
-                if (typeof XLSX !== 'undefined') {
-                    const ws = XLSX.utils.json_to_sheet(exportList);
-
-                    const range = XLSX.utils.decode_range(ws['!ref']);
-                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                        const cellRef = XLSX.utils.encode_cell({ r: R, c: 6 });
-                        if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
-                            ws[cellRef].z = '#,##0.00';
-                        }
-                    }
-
-                    const wb = XLSX.utils.book_new();
-                    const sheetName = isPending ? "Odenecekler" : "Odenenler";
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                    
-                    const fileName = `${sheetName}_${selMonth}_${selYear}.xlsx`;
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 200);
-                }
-            } catch (err) {
-                console.error("Excel İndirme Hatası:", err);
-                alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
-            }
-        }
-
-        // ==================== HAKEM ÖDEMELERİ MODÜLÜ ====================
-        function populateRefereeYearFilter() {
-            const yearSelect = document.getElementById('referee-year-filter');
-            if (!yearSelect) return;
-            const currentYear = new Date().getFullYear();
-            yearSelect.innerHTML = '';
-            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
-                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
-            }
-            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-            const monthSelect = document.getElementById('referee-month-filter');
-            if (monthSelect) monthSelect.value = currentMonth;
-        }
-
-        function setRefereeStatusFilter(status) {
-            currentRefereeFilter = status;
-            const btnPending = document.getElementById('btn-ref-filter-pending');
-            const btnPaid = document.getElementById('btn-ref-filter-paid');
-            const grossLabel = document.getElementById('ref-total-gross-label');
-
-            if (status === 'pending') {
-                btnPending.className = "px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition";
-                btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-                if(grossLabel) grossLabel.innerText = "Seçili Dönem Net Ödenecek Toplam";
-            } else {
-                btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
-                btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-                if(grossLabel) grossLabel.innerText = "Seçili Dönem Net Ödenen Toplam";
-            }
-            renderReferees();
-        }
-
-        function calculateRefereeTax() {
-            const grossInput = parseFloat(document.getElementById('ref-gross').value) || 0;
-            const netVal = grossInput / 0.90;
-            const taxVal = netVal * 0.10;
-
-            document.getElementById('ref-net').value = netVal.toFixed(2);
-            document.getElementById('ref-tax').value = taxVal.toFixed(2);
-        }
-
-        async function toggleRefereePaidStatus(id, isChecked) {
-            const todayStr = new Date().toLocaleDateString('tr-TR');
-            const item = data.refereePayments.find(r => String(r.id) === String(id));
-            if (item) {
-                item.isPaid = isChecked;
-                item.paymentDate = isChecked ? todayStr : '';
-                renderReferees();
-                renderPayments();
-                await saveData();
-            }
-        }
-
-        function formatIBAN(value) {
-            if (!value) return '';
-            let clean = String(value).toUpperCase().replace(/[^A-Z0-9]/g, '');
-
-            if (!clean.startsWith('TR')) {
-                clean = 'TR' + clean;
-            }
-
-            let trPart = clean.substring(0, 2);
-            let digitsPart = clean.substring(2).replace(/[^0-9]/g, '').substring(0, 24);
-
-            let result = trPart;
-            if (digitsPart.length > 0) {
-                result += digitsPart.substring(0, 2);
-            }
-            for (let i = 2; i < digitsPart.length; i += 4) {
-                result += ' ' + digitsPart.substring(i, i + 4);
-            }
-
-            return result;
-        }
-
-        function openRefereeModal(editId = null) {
-            document.getElementById('editing-referee-id').value = editId || '';
-
+        async function deleteCampus(campusId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
-            
-            const restrictedInputs = [
-                'ref-type', 'ref-gross', 'ref-doc-type', 'ref-doc-date', 
-                'ref-doc-no', 'ref-vat', 'ref-country', 'ref-address', 
-                'ref-address-no', 'ref-is-paid'
-            ];
+            const perm = currentUser ? (currentUser.permissions || {}) : {};
 
-            restrictedInputs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.disabled = !isUserAdmin;
-            });
+            if (!isUserAdmin && perm.campusDelete === false) { alert("Yerleşke silme yetkiniz bulunmamaktadır!"); return; }
 
-            const ibanInput = document.getElementById('ref-iban');
-            if (ibanInput) {
-                ibanInput.oninput = function() {
-                    this.value = formatIBAN(this.value);
-                };
-            }
+            const campus = data.campuses.find(c => String(c.id) === String(campusId));
+            if (!campus) return;
 
-            if (editId) {
-                const item = data.refereePayments.find(r => String(r.id) === String(editId));
-                if (!item) return;
+            const officeIds = (campus.offices || []).map(o => String(o.id));
+            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(String(r.officeId)) && r.status === 'active');
 
-                document.getElementById('referee-modal-title').innerText = "Hakem Ödemesini Düzenle";
-                document.getElementById('ref-firstname').value = item.firstName || '';
-                document.getElementById('ref-lastname').value = item.lastName || '';
-                document.getElementById('ref-iban').value = formatIBAN(item.iban || '');
-                document.getElementById('ref-vkn').value = item.vkn || '';
-                document.getElementById('ref-tckn').value = item.tckn || '';
-                document.getElementById('ref-type').value = item.type || '156';
-                document.getElementById('ref-gross').value = item.gross || '';
-                document.getElementById('ref-net').value = item.net || '';
-                document.getElementById('ref-tax').value = item.tax || '';
-                document.getElementById('ref-doc-type').value = item.docType || 'Diğer';
-                document.getElementById('ref-doc-date').value = item.docDate || '';
-                document.getElementById('ref-doc-no').value = item.docNo || '';
-                document.getElementById('ref-vat').value = item.vat || '0';
-                document.getElementById('ref-country').value = item.country || 'TR';
-                document.getElementById('ref-company').value = item.company || '';
-                document.getElementById('ref-project').value = item.project || '';
-                document.getElementById('ref-address').value = item.address || '';
-                document.getElementById('ref-address-no').value = item.addressNo || '';
-                document.getElementById('ref-is-paid').checked = !!item.isPaid;
-            } else {
-                document.getElementById('referee-modal-title').innerText = "Yeni Hakem Ödemesi Ekle";
-                document.getElementById('ref-firstname').value = '';
-                document.getElementById('ref-lastname').value = '';
-                document.getElementById('ref-iban').value = '';
-                document.getElementById('ref-vkn').value = '';
-                document.getElementById('ref-tckn').value = '';
-                document.getElementById('ref-type').value = '156';
-                document.getElementById('ref-gross').value = '';
-                document.getElementById('ref-net').value = '';
-                document.getElementById('ref-tax').value = '';
-                document.getElementById('ref-doc-type').value = 'Diğer';
-                document.getElementById('ref-doc-date').value = new Date().toLocaleDateString('tr-TR');
-                document.getElementById('ref-doc-no').value = '';
-                document.getElementById('ref-vat').value = '0';
-                document.getElementById('ref-country').value = 'TR';
-                document.getElementById('ref-company').value = '';
-                document.getElementById('ref-project').value = '';
-                document.getElementById('ref-address').value = '';
-                document.getElementById('ref-address-no').value = '';
-                document.getElementById('ref-is-paid').checked = false;
-            }
-
-            document.getElementById('referee-modal').classList.remove('hidden');
-        }
-
-        async function saveRefereePayment() {
-            const editId = document.getElementById('editing-referee-id').value;
-            const firstName = document.getElementById('ref-firstname').value.trim();
-            const lastName = document.getElementById('ref-lastname').value.trim();
-            const gross = parseFloat(document.getElementById('ref-gross').value) || 0;
-            const docDate = document.getElementById('ref-doc-date').value.trim();
-
-            if (!firstName || !lastName) {
-                alert("Lütfen Hakem Adı ve Soyadını girin.");
+            if (activeRentalsInCampus.length > 0) {
+                const companies = activeRentalsInCampus.map(r => r.company).join(", ");
+                alert(`GÜVENLİK UYARISI: Bu yerleşke altındaki ofislerde aktif kira sözleşmesi devam eden firma/firmalar bulunmaktadır (${companies}).\n\nAktif sözleşmeler sonlandırılmadan bu yerleşke SİLİNEMEZ!`);
                 return;
             }
 
-            const net = gross > 0 ? (gross / 0.90) : 0;
-            const tax = net * 0.10;
-            const isPaid = document.getElementById('ref-is-paid').checked;
-
-            const payload = {
-                id: editId ? Number(editId) : Date.now(),
-                firstName, lastName,
-                iban: document.getElementById('ref-iban').value.trim(),
-                vkn: document.getElementById('ref-vkn').value.trim(),
-                tckn: document.getElementById('ref-tckn').value.trim(),
-                type: document.getElementById('ref-type').value.trim() || '156',
-                gross, net, tax,
-                docType: document.getElementById('ref-doc-type').value.trim() || 'Diğer',
-                docDate: docDate || new Date().toLocaleDateString('tr-TR'),
-                docNo: document.getElementById('ref-doc-no').value.trim(),
-                vat: document.getElementById('ref-vat').value.trim(),
-                country: document.getElementById('ref-country').value.trim() || 'TR',
-                company: document.getElementById('ref-company').value.trim(),
-                project: document.getElementById('ref-project').value.trim(),
-                address: document.getElementById('ref-address').value.trim(),
-                addressNo: document.getElementById('ref-address-no').value.trim(),
-                isPaid: isPaid,
-                paymentDate: isPaid ? (editId ? (data.refereePayments.find(r => String(r.id) === String(editId))?.paymentDate || new Date().toLocaleDateString('tr-TR')) : new Date().toLocaleDateString('tr-TR')) : ''
-            };
-
-            if (editId) {
-                const idx = data.refereePayments.findIndex(r => String(r.id) === String(editId));
-                if (idx !== -1) data.refereePayments[idx] = payload;
-            } else {
-                data.refereePayments.unshift(payload);
-            }
-
-            closeModal('referee-modal');
-            renderReferees();
-            renderPayments();
-            await saveData();
-        }
-
-        async function deleteRefereePayment(id) {
-            if (confirm("Bu hakem ödemesini silmek istediğinize emin misiniz?")) {
-                markAsDeleted('ref_' + String(id));
-                data.refereePayments = (data.refereePayments || []).filter(r => String(r.id) !== String(id));
-                selectedPaymentKeys.delete('referee_' + String(id));
-                renderReferees();
-                renderPayments();
+            if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
+                markAsDeleted('cam_' + String(campusId));
+                data.campuses = data.campuses.filter(c => String(c.id) !== String(campusId));
+                renderCampuses();
                 await saveData();
             }
         }
 
-        function renderReferees() {
-            const tbody = document.getElementById('referee-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            const selYear = document.getElementById('referee-year-filter') ? document.getElementById('referee-year-filter').value : String(new Date().getFullYear());
-            const selMonth = document.getElementById('referee-month-filter') ? document.getElementById('referee-month-filter').value : String(new Date().getMonth() + 1).padStart(2, '0');
-
-            let totalGross = 0, totalNet = 0, totalTax = 0;
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
-            const isPending = currentRefereeFilter === 'pending';
-
-            const filteredReferees = data.refereePayments.filter(r => {
-                const isPaid = !!r.isPaid;
-                if (isPending ? isPaid : !isPaid) return false;
-
-                const targetDate = (!isPending && r.paymentDate) ? r.paymentDate : r.docDate;
-                const { year, month } = extractYearMonth(targetDate);
-                
-                if (year && month) {
-                    return year === selYear && month === selMonth;
-                }
-                return true;
-            });
-
-            filteredReferees.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-
-            filteredReferees.forEach(r => {
-                totalGross += parseFloat(r.gross || 0);
-                totalNet += parseFloat(r.net || 0);
-                totalTax += parseFloat(r.tax || 0);
-
-                const isPaidChecked = !!r.isPaid;
-                const ibanDisplay = (r.iban && r.iban.trim() !== '') ? r.iban.trim() : '-';
-
-                tbody.innerHTML += `
-                    <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
-                        <td class="p-3 text-center">
-                            <div class="inline-flex items-center space-x-1.5 justify-center">
-                                <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
-                                    ${isUserAdmin ? '' : 'disabled'}
-                                    onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
-                                    class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
-                                    title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin ödeme durumunu değiştirebilir'}">
-                                ${r.paymentDate ? `
-                                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
-                                        <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${r.paymentDate}
-                                    </span>
-                                ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
-                            </div>
-                        </td>
-                        <td class="p-3 font-bold text-gray-800">${r.firstName || ''} ${r.lastName || ''}</td>
-                        <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
-                        <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
-                        <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
-                        <td class="p-3 text-right font-bold text-blue-600 tabular-nums">${formatCurrency(r.gross)}</td>
-                        <td class="p-3 font-semibold text-gray-600">${r.docDate || '-'}</td>
-                        <td class="p-3 text-center">
-                            ${canEdit ? `
-                                <button onclick="openRefereeModal('${r.id}')" class="text-blue-600 hover:text-blue-800 font-semibold bg-blue-50 px-2 py-1 rounded mr-1">Düzenle</button>
-                                <button onclick="deleteRefereePayment('${r.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
-                            ` : '-'}
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('referee-total-gross').innerText = totalGross.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('referee-total-net').innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-            if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} hakem kaydı bulunamadı.</td></tr>`;
-            }
-        }
-
-        function exportRefereesToExcel() {
-            try {
-                if (!data || !data.refereePayments || data.refereePayments.length === 0) {
-                    alert("Sistemde henüz kayıtlı hakem ödemesi bulunmuyor.");
-                    return;
-                }
-
-                const selYear = String(document.getElementById('referee-year-filter').value).trim();
-                const selMonth = String(document.getElementById('referee-month-filter').value).trim().padStart(2, '0');
-                const isPending = currentRefereeFilter === 'pending';
-
-                const filtered = data.refereePayments.filter(r => {
-                    const isPaid = !!r.isPaid;
-                    if (isPending ? isPaid : !isPaid) return false;
-
-                    const targetDate = (!isPending && r.paymentDate) ? r.paymentDate : r.docDate;
-                    const { year, month } = extractYearMonth(targetDate);
-                    
-                    if (year && month) return year === selYear && month === selMonth;
-                    return true;
-                });
-
-                filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-
-                if (filtered.length === 0) {
-                    alert(`Seçilen (${selMonth}/${selYear}) dönemine ait ${isPending ? 'ödenecek' : 'ödenmiş'} hakem ödeme kaydı bulunamadı.`);
-                    return;
-                }
-
-                const exportList = filtered.map(r => {
-                    const grossNum = parseFloat(r.gross) || 0;
-                    const netNum = grossNum > 0 ? (grossNum / 0.90) : (parseFloat(r.net) || 0);
-                    const taxNum = netNum * 0.10;
-
-                    return {
-                        "Durum": r.isPaid ? 'Ödendi' : 'Ödenecek',
-                        "Soyad": r.lastName || '',
-                        "Ad": r.firstName || '',
-                        "VKN": r.vkn || '',
-                        "TC Kimlik No": r.tckn || '',
-                        "Tür": r.type || '156',
-                        "Net Tutar (₺)": Number(grossNum.toFixed(2)),
-                        "Gayri Safi Tutar (₺)": Number(netNum.toFixed(2)),
-                        "Kesinti Tutarı (₺ %10)": Number(taxNum.toFixed(2)),
-                        "Belge Türü": r.docType || 'Diğer',
-                        "Ödeme Tarihi": r.paymentDate || r.docDate || '-',
-                        "Belge Sıra No": r.docNo || '',
-                        "Adres": r.address || '',
-                        "KDV Tevkifat": r.vat || '0',
-                        "Adres No": r.addressNo || '',
-                        "Ülke Kodu": r.country || 'TR'
-                    };
-                });
-
-                if (typeof XLSX !== 'undefined') {
-                    const ws = XLSX.utils.json_to_sheet(exportList);
-
-                    const range = XLSX.utils.decode_range(ws['!ref']);
-                    for (let R = range.s.r + 1; R <= range.e.r; ++R) {
-                        [6, 7, 8].forEach(C => {
-                            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-                            if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
-                                ws[cellRef].z = '#,##0.00';
-                            }
-                        });
-                    }
-
-                    const wb = XLSX.utils.book_new();
-                    const sheetName = isPending ? "Hakem_Odenecekler" : "Hakem_Odenenler";
-                    XLSX.utils.book_append_sheet(wb, ws, sheetName);
-
-                    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                    
-                    const fileName = `${sheetName}_${selMonth}_${selYear}.xlsx`;
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = fileName;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    }, 200);
-                }
-            } catch (err) {
-                console.error("Excel İndirme Hatası:", err);
-                alert("Excel dosyası indirilirken bir hata oluştu: " + err.message);
-            }
-        }
-
-        // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
         function populateCampusFilters() {
             const dashSelect = document.getElementById('dash-campus-filter');
             const rentalsSelect = document.getElementById('rentals-campus-filter');
@@ -2770,40 +2324,6 @@ filtered.forEach(item => {
             renderCampuses();
         }
 
-// ==================== OFİS VE ALAN HESAPLAMA MOTORU ====================
-function getOfficeRentedArea(officeId, excludeRentalId = null) {
-            const targetOfficeId = String(officeId || '').trim();
-            if (!targetOfficeId) return 0;
-            const excludeIdStr = excludeRentalId ? String(excludeRentalId).trim() : null;
-
-            return (data.rentals || [])
-                .filter(r => {
-                    const matchOffice = String(r.officeId || '').trim() === targetOfficeId;
-                    const isActive = r.status === 'active';
-                    const notExcluded = excludeIdStr ? String(r.id || '').trim() !== excludeIdStr : true;
-                    const notDeleted = !persistentDeletedIds.has('rent_' + String(r.id));
-                    return matchOffice && isActive && notExcluded && notDeleted;
-                })
-                .reduce((acc, r) => acc + (parseFloat(r.allocatedArea) || 0), 0);
-        }
-
-        function getOfficeAvailableArea(officeId, excludeRentalId = null) {
-            const targetOfficeId = String(officeId || '').trim();
-            if (!targetOfficeId) return 0;
-
-            let totalArea = 0;
-            (data.campuses || []).forEach(c => {
-                (c.offices || []).forEach(o => {
-                    if (String(o.id || '').trim() === targetOfficeId) {
-                        totalArea = parseFloat(String(o.area || 0).replace(',', '.'));
-                    }
-                });
-            });
-
-            const rentedArea = getOfficeRentedArea(targetOfficeId, excludeRentalId);
-            return Math.max(0, totalArea - rentedArea);
-        }
-        
         function getStats(selectedCampusId = 'all') {
             let totalArea = 0, rentedArea = 0, rentRevenueExcl = 0, commonRevenueExcl = 0, otherRevenueExcl = 0;
 
@@ -2883,7 +2403,6 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
         function deleteUserNote(index) { userNotes.splice(index, 1); saveData(); }
         function clearAllUserNotes() { if(confirm("Tüm bildirim notlarını temizlemek istediğinize emin misiniz?")) { userNotes = []; saveData(); } }
 
-        // ==================== DASHBOARD & GRAFİK BAŞLIK SENKRONİZASYONU ====================
         function renderDashboard() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
@@ -2896,14 +2415,10 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
             }
 
             const occTitleEl = document.getElementById('dash-occupancy-chart-title');
-            if (occTitleEl) {
-                occTitleEl.innerText = `${currentCampusName} Doluluk Oranı`;
-            }
+            if (occTitleEl) occTitleEl.innerText = `${currentCampusName} Doluluk Oranı`;
 
             const badgeLabelEl = document.getElementById('dash-filter-label-badge');
-            if (badgeLabelEl) {
-                badgeLabelEl.innerText = `${currentCampusName} Doluluk:`;
-            }
+            if (badgeLabelEl) badgeLabelEl.innerText = `${currentCampusName} Doluluk:`;
 
             const elTotalArea = document.getElementById('dash-total-area');
             const elRentedArea = document.getElementById('dash-rented-area');
@@ -2941,7 +2456,6 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
             updateCharts();
         }
 
-        // ==================== AKILLI OFİS ÖNERİ & GELİŞMİŞ FİLTRELEME MOTORU ====================
         function onPersonCountInput() {
             const countInput = parseFloat(document.getElementById('filter-person-count').value);
             const hint = document.getElementById('person-m2-calc-hint');
@@ -3031,56 +2545,7 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
                             }
                         }
                     }
-
-                    if (availOffices.length >= 3) {
-                        const totalCampusAvail = availOffices.reduce((acc, o) => acc + o.avail, 0);
-                        if (totalCampusAvail >= targetM2) {
-                            const sorted = [...availOffices].sort((a, b) => b.avail - a.avail);
-                            let runningTotal = 0;
-                            let picked = [];
-                            for (let o of sorted) {
-                                picked.push(o.name);
-                                runningTotal += o.avail;
-                                if (runningTotal >= targetM2) break;
-                            }
-                            if (picked.length > 2) {
-                                suggestions.push({
-                                    type: 'combo',
-                                    title: `${c.name} (${picked.join(" + ")})`,
-                                    totalAvail: runningTotal,
-                                    badge: `${picked.length}'li Ofis Paketi`
-                                });
-                            }
-                        }
-                    }
                 });
-
-                const allAvailableGlobalOffices = [];
-                data.campuses.forEach(c => {
-                    (c.offices || []).forEach(o => {
-                        const av = parseFloat(o.area || 0) - getOfficeRentedArea(o.id);
-                        if (av > 0) allAvailableGlobalOffices.push({ name: o.name, campusName: c.name, avail: av });
-                    });
-                });
-
-                if (suggestions.length === 0 && allAvailableGlobalOffices.length > 1) {
-                    const sortedGlobal = [...allAvailableGlobalOffices].sort((a, b) => b.avail - a.avail);
-                    let runningTotal = 0;
-                    let picked = [];
-                    for (let o of sortedGlobal) {
-                        picked.push(`${o.campusName}: ${o.name}`);
-                        runningTotal += o.avail;
-                        if (runningTotal >= targetM2) break;
-                    }
-                    if (runningTotal >= targetM2) {
-                        suggestions.push({
-                            type: 'cross',
-                            title: `Çapraz Yerleşke Paketi: ${picked.join(" + ")}`,
-                            totalAvail: runningTotal,
-                            badge: 'Çapraz Yerleşke Çözümü'
-                        });
-                    }
-                }
 
                 suggestions.sort((a, b) => a.totalAvail - b.totalAvail);
 
@@ -3097,10 +2562,9 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
                 if (uniqueSuggestions.length > 0) {
                     suggestionCards.innerHTML = '';
                     uniqueSuggestions.forEach(item => {
-                        const isCross = item.type === 'cross';
                         const isCombo = item.type === 'combo';
-                        const badgeColor = isCross ? 'bg-purple-600' : (isCombo ? 'bg-indigo-600' : 'bg-emerald-600');
-                        const boxBg = isCross ? 'bg-purple-50 border-purple-200' : (isCombo ? 'bg-indigo-50 border-indigo-200' : 'bg-emerald-50 border-emerald-200');
+                        const badgeColor = isCombo ? 'bg-indigo-600' : 'bg-emerald-600';
+                        const boxBg = isCombo ? 'bg-indigo-50 border-indigo-200' : 'bg-emerald-50 border-emerald-200';
 
                         suggestionCards.innerHTML += `
                             <div class="${boxBg} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
@@ -3331,7 +2795,7 @@ function getOfficeRentedArea(officeId, excludeRentalId = null) {
             }
         }
 
-async function deleteContractDirectly(rentalId) {
+        async function deleteContractDirectly(rentalId) {
             if (!currentUser || currentUser.role !== 'admin') {
                 alert("Yalnızca sistem yöneticisi sözleşme silebilir.");
                 return;
@@ -3341,23 +2805,18 @@ async function deleteContractDirectly(rentalId) {
             if (!r) return;
 
             if (confirm(`YÖNETİCİ ONAYI: "${r.company}" firmasına ait sözleşmeyi kalıcı olarak SİLMEK istediğinize emin misiniz?`)) {
-                // 1. Kalıcı kara listeye al (buluttan geri gelmesini engeller)
                 markAsDeleted('rent_' + targetId);
-
-                // 2. data.rentals listesinden temizle
                 data.rentals = (data.rentals || []).filter(item => String(item.id).trim() !== targetId);
 
-                // 3. İlgili tüm ekranları yeniden çiz
                 renderRentals();
                 renderCampuses();
                 renderDashboard();
                 renderExpiringAlerts();
 
-                // 4. Buluta ve yerel depoya kaydet
                 await saveData();
             }
         }
-        
+
         function renderUsers() {
             const tbody = document.getElementById('user-table-body');
             if (!tbody) return;
@@ -3496,394 +2955,15 @@ async function deleteContractDirectly(rentalId) {
 
         async function deleteUser(id) {
             if(confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('user_' + String(id));
+                markAsDeleted('user_' + String(id));
                 users = users.filter(u => String(u.id) !== String(id));
                 renderUsers();
                 await saveData();
             }
         }
 
-function openRentalModal(editRentalId = null) {
-            const campusSelect = document.getElementById('rent-campus-select');
-            campusSelect.innerHTML = '<option value="">Bina / Yerleşke Seçiniz...</option>';
-
-            data.campuses.forEach(c => { campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`; });
-            
-            // 1. Önce düzenleme ID'sini ata
-            document.getElementById('editing-rental-id').value = editRentalId ? String(editRentalId) : '';
-            document.getElementById('rent-user-note').value = '';
-
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? (currentUser.permissions || {}) : {};
-
-            document.getElementById('rent-unit-price').disabled = !(isUserAdmin || perm.rentalPriceEdit);
-            document.getElementById('rent-common-cost-per-m2').disabled = !(isUserAdmin || perm.rentalCommonCostEdit);
-            document.getElementById('rent-other-cost').disabled = !(isUserAdmin || perm.rentalOtherCostEdit);
-            document.getElementById('rent-allocated-area').disabled = !(isUserAdmin || perm.rentalAreaEdit);
-            document.getElementById('rent-start-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-            document.getElementById('rent-target-end-date').disabled = !(isUserAdmin || perm.rentalDatesEdit);
-
-            const historySection = document.getElementById('rental-history-section');
-            const historyList = document.getElementById('rental-history-list');
-
-            if(editRentalId !== null && editRentalId !== undefined && String(editRentalId) !== '') {
-                const r = data.rentals.find(item => String(item.id) === String(editRentalId));
-                if(!r) return;
-
-                document.getElementById('rental-modal-title').innerText = "Sözleşme Bilgilerini Güncelle";
-                document.getElementById('save-rental-btn').innerText = "Güncelle";
-
-                let currentCampusId = null;
-                data.campuses.forEach(c => { 
-                    if((c.offices || []).some(o => String(o.id) === String(r.officeId))) currentCampusId = c.id; 
-                });
-
-                if (currentCampusId) {
-                    campusSelect.value = String(currentCampusId);
-                    // 2. Ofisleri bu sözleşmeyi hariç tutarak doldur
-                    onRentalCampusChange(r.officeId);
-                }
-
-                document.getElementById('rent-company-name').value = r.company || '';
-                document.getElementById('rent-start-date').value = r.startDate || '';
-                document.getElementById('rent-target-end-date').value = r.endDate || '';
-                document.getElementById('rent-allocated-area').value = r.allocatedArea || '';
-                document.getElementById('rent-unit-price').value = r.unitPrice !== undefined ? r.unitPrice : 0;
-                document.getElementById('rent-common-cost-per-m2').value = r.commonCostPerM2 !== undefined ? r.commonCostPerM2 : 0;
-                document.getElementById('rent-other-cost').value = r.otherCost !== undefined ? r.otherCost : 0;
-
-                historyList.innerHTML = '';
-                const hList = r.history || [];
-                if (hList.length > 0) {
-                    hList.forEach(h => {
-                        historyList.innerHTML += `
-                            <div class="border-b pb-1 border-gray-200 last:border-0">
-                                <span class="font-bold text-indigo-900">${h.username}</span> 
-                                <span class="text-[10px] text-gray-400">(${h.date}):</span> 
-                                <p class="text-gray-700 font-medium">${h.note}</p>
-                            </div>
-                        `;
-                    });
-                    historySection.classList.remove('hidden');
-                } else {
-                    historyList.innerHTML = '<p class="text-gray-400 italic text-[11px]">Gelişmiş değişiklik notu bulunmuyor.</p>';
-                    historySection.classList.remove('hidden');
-                }
-            } else {
-                document.getElementById('rental-modal-title').innerText = "Ofis Kiralama Sözleşmesi";
-                document.getElementById('save-rental-btn').innerText = "Kiralama Tamamla";
-
-                campusSelect.value = '';
-                const officeSelect = document.getElementById('rent-office-select');
-                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-                officeSelect.disabled = true;
-
-                document.getElementById('rent-company-name').value = '';
-                document.getElementById('rent-start-date').value = new Date().toISOString().split('T')[0];
-                document.getElementById('rent-target-end-date').value = '';
-                document.getElementById('rent-allocated-area').value = '';
-                document.getElementById('rent-unit-price').value = '';
-                document.getElementById('rent-common-cost-per-m2').value = '';
-                document.getElementById('rent-other-cost').value = '';
-                document.getElementById('office-available-hint').innerText = '';
-
-                historySection.classList.add('hidden');
-            }
-
-            document.getElementById('rental-modal').classList.remove('hidden');
-        }
-
-function onRentalCampusChange(selectedOfficeId = null) {
-            const campusId = document.getElementById('rent-campus-select').value;
-            const officeSelect = document.getElementById('rent-office-select');
-            const editRentalIdInput = document.getElementById('editing-rental-id');
-            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
-
-            if (!campusId) {
-                officeSelect.innerHTML = '<option value="">Önce Yerleşke/Bina Seçiniz...</option>';
-                officeSelect.disabled = true;
-                const hint = document.getElementById('office-available-hint');
-                if (hint) hint.innerText = '';
-                return;
-            }
-
-            const campus = data.campuses.find(c => String(c.id).trim() === String(campusId).trim());
-            if (!campus || !campus.offices || campus.offices.length === 0) {
-                officeSelect.innerHTML = '<option value="">Bu yerleşkede henüz kayıtlı ofis yok</option>';
-                officeSelect.disabled = true;
-                return;
-            }
-
-            officeSelect.disabled = false;
-            officeSelect.innerHTML = '<option value="">Ofis Seçiniz...</option>';
-
-            campus.offices.forEach(o => {
-                const totalCap = parseFloat(String(o.area || 0).replace(',', '.'));
-                const availArea = getOfficeAvailableArea(o.id, editRentalId);
-                const isSelected = selectedOfficeId && String(o.id).trim() === String(selectedOfficeId).trim();
-
-                let statusText = `Boş: ${availArea.toFixed(2)} m²`;
-                if (availArea <= 0 && !isSelected) {
-                    statusText = 'Dolu';
-                }
-
-                officeSelect.innerHTML += `<option value="${o.id}">${o.name} (Toplam: ${totalCap.toFixed(2)} m² | ${statusText})</option>`;
-            });
-
-            if (selectedOfficeId) {
-                officeSelect.value = String(selectedOfficeId);
-                onRentalOfficeChange();
-            } else {
-                const hint = document.getElementById('office-available-hint');
-                if (hint) hint.innerText = '';
-            }
-        }
-        
-function onRentalOfficeChange() {
-            const officeId = document.getElementById('rent-office-select').value;
-            const editRentalIdInput = document.getElementById('editing-rental-id');
-            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
-            const hint = document.getElementById('office-available-hint');
-
-            if (!officeId) {
-                if (hint) hint.innerText = '';
-                return;
-            }
-
-            let totalCap = 0;
-            (data.campuses || []).forEach(c => {
-                (c.offices || []).forEach(o => {
-                    if (String(o.id).trim() === String(officeId).trim()) {
-                        totalCap = parseFloat(String(o.area || 0).replace(',', '.'));
-                    }
-                });
-            });
-
-            const availArea = getOfficeAvailableArea(officeId, editRentalId);
-
-            if (hint) {
-                hint.innerHTML = `<span class="text-blue-700 font-semibold">Ofis Kapasitesi: <strong>${totalCap.toFixed(2)} m²</strong> | Bu sözleşme için kullanılabilecek alan: <strong>${availArea.toFixed(2)} m²</strong></span>`;
-            }
-        }
-        
-        function openCampusModal() {
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? (currentUser.permissions || {}) : {};
-            if (!isUserAdmin && perm.campusAdd === false) { alert("Yeni yerleşke ekleme yetkiniz bulunmamaktadır!"); return; }
-            document.getElementById('campus-modal').classList.remove('hidden');
-        }
-
-        function openOfficeModal(campusId) {
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? (currentUser.permissions || {}) : {};
-            if (!isUserAdmin && perm.officeAdd === false) { alert("Yeni ofis ekleme yetkiniz bulunmamaktadır!"); return; }
-            document.getElementById('office-campus-id').value = campusId;
-            document.getElementById('office-modal').classList.remove('hidden');
-        }
-
-        function openEndRentalModal(rentalId) {
-            const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
-            if(!canEnd) { alert("Sözleşme feshetme / bitirme yetkiniz bulunmamaktadır!"); return; }
-
-            document.getElementById('end-rental-id').value = String(rentalId);
-            document.getElementById('rent-end-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('rent-end-user-note').value = '';
-            document.getElementById('end-rental-modal').classList.remove('hidden');
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        function saveCampus() {
-            const name = document.getElementById('new-campus-name').value;
-            if(!name) return;
-            data.campuses.push({ id: Date.now(), name, offices: [] });
-            document.getElementById('new-campus-name').value = '';
-            closeModal('campus-modal'); saveData();
-        }
-
-        function saveOffice() {
-            const campusId = document.getElementById('office-campus-id').value;
-            const name = document.getElementById('new-office-name').value;
-            const floor = document.getElementById('new-office-floor').value;
-            const area = parseFloat(document.getElementById('new-office-area').value);
-
-            if(!name || !area) return;
-            const campus = data.campuses.find(c => String(c.id) === String(campusId));
-            if(campus) {
-                if(!campus.offices) campus.offices = [];
-                campus.offices.push({ id: Date.now(), name, area, floor });
-            }
-
-            document.getElementById('new-office-name').value = '';
-            document.getElementById('new-office-floor').value = '';
-            document.getElementById('new-office-area').value = '';
-            closeModal('office-modal'); saveData();
-        }
-
-        function saveRental() {
-            const editRentalIdInput = document.getElementById('editing-rental-id');
-            const editRentalId = (editRentalIdInput && editRentalIdInput.value.trim() !== '') ? editRentalIdInput.value.trim() : null;
-
-            const company = document.getElementById('rent-company-name').value.trim();
-            const officeId = document.getElementById('rent-office-select').value;
-            const startDate = document.getElementById('rent-start-date').value;
-            const endDate = document.getElementById('rent-target-end-date').value;
-            const allocatedArea = parseFloat(document.getElementById('rent-allocated-area').value);
-            const unitPrice = parseFloat(document.getElementById('rent-unit-price').value) || 0;
-            const commonCostPerM2 = parseFloat(document.getElementById('rent-common-cost-per-m2').value) || 0;
-            const otherCost = parseFloat(document.getElementById('rent-other-cost').value) || 0;
-            const noteText = document.getElementById('rent-user-note').value.trim();
-
-            if (!company || !officeId || !startDate || isNaN(allocatedArea) || allocatedArea <= 0) { 
-                alert("Lütfen gerekli tüm alanları eksiksiz ve geçerli değerlerle doldurun."); 
-                return; 
-            }
-
-            // Düzenleme kontrolü: Eğer mevcut sözleşme düzenleniyorsa
-            let isReducingArea = false;
-            if (editRentalId) {
-                const currentRental = (data.rentals || []).find(r => String(r.id || '').trim() === editRentalId);
-                if (currentRental) {
-                    const currentAllocated = parseFloat(currentRental.allocatedArea || 0);
-                    // Kullanıcı mevcut alanı düşürüyorsa (örn: 13'ten 10'a), kapasite kontrolünü doğrudan geç
-                    if (allocatedArea <= currentAllocated) {
-                        isReducingArea = true;
-                    }
-                }
-            }
-
-            // Alan düşürülmüyorsa (yeni kiralama veya alan artırma ise) ofis kapasitesini denetle
-            if (!isReducingArea) {
-                const maxAvail = getOfficeAvailableArea(officeId, editRentalId);
-                if (allocatedArea > (maxAvail + 0.01)) {
-                    alert(`Kiralanmak istenen alan (${allocatedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²), ofisin bu sözleşme için kullanılabilecek maksimum alanından (${maxAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²) büyük olamaz!`);
-                    return;
-                }
-            }
-
-            const currentTimestamp = new Date().toLocaleString('tr-TR');
-            const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
-
-            if (editRentalId) {
-                const rental = data.rentals.find(r => String(r.id || '').trim() === editRentalId);
-                if (rental) {
-                    rental.company = company; 
-                    rental.officeId = officeId; 
-                    rental.startDate = startDate;
-                    rental.endDate = endDate || null; 
-                    rental.allocatedArea = allocatedArea;
-                    rental.unitPrice = unitPrice; 
-                    rental.commonCostPerM2 = commonCostPerM2; 
-                    rental.otherCost = otherCost;
-
-                    if (!rental.history) rental.history = [];
-                    if (noteText) {
-                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: noteText });
-                        if (currentUser && currentUser.role !== 'admin') {
-                            userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[${company}] ${noteText}` });
-                        }
-                    } else {
-                        rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: "Sözleşme bilgileri güncellendi." });
-                    }
-                }
-            } else {
-                const newHistory = [];
-                const initialNote = noteText || "Sözleşme oluşturuldu.";
-                newHistory.push({ username: currentUserLabel, date: currentTimestamp, note: initialNote });
-
-                data.rentals.unshift({ 
-                    id: Date.now(), company, officeId, allocatedArea, unitPrice, commonCostPerM2, otherCost,
-                    startDate, endDate: endDate || null, status: 'active', history: newHistory
-                });
-
-                if (currentUser && currentUser.role !== 'admin' && noteText) {
-                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[Yeni Sözleşme - ${company}] ${noteText}` });
-                }
-            }
-
-            closeModal('rental-modal'); 
-            saveData();
-        }
-
-        function confirmEndRental() {
-            const rentalId = document.getElementById('end-rental-id').value;
-            const endDate = document.getElementById('rent-end-date').value;
-            const noteText = document.getElementById('rent-end-user-note').value.trim();
-
-            if(!endDate) return;
-
-            const rental = data.rentals.find(r => String(r.id) === String(rentalId));
-            if(rental) {
-                rental.status = 'completed'; rental.endDate = endDate;
-                const currentTimestamp = new Date().toLocaleString('tr-TR');
-                const currentUserLabel = currentUser ? currentUser.username : "Bilinmeyen Kullanıcı";
-
-                if (!rental.history) rental.history = [];
-                const endNote = noteText ? `[Sözleşme Sonlandırıldı]: ${noteText}` : "Sözleşme sonlandırıldı.";
-                rental.history.unshift({ username: currentUserLabel, date: currentTimestamp, note: endNote });
-
-                if (currentUser && currentUser.role !== 'admin' && noteText) {
-                    userNotes.unshift({ username: currentUserLabel, date: currentTimestamp, note: `[FESİH - ${rental.company}] ${noteText}` });
-                }
-            }
-
-            closeModal('end-rental-modal'); saveData();
-        }
-
-        async function deleteOffice(campusId, officeId) {
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? (currentUser.permissions || {}) : {};
-
-            if (!isUserAdmin && perm.officeDelete === false) { alert("Ofis silme yetkiniz bulunmamaktadır!"); return; }
-
-            const activeRentals = data.rentals.filter(r => String(r.officeId) === String(officeId) && r.status === 'active');
-            if (activeRentals.length > 0) {
-                const companies = activeRentals.map(r => r.company).join(", ");
-                alert(`GÜVENLİK UYARISI: Bu ofiste aktif kira sözleşmesi devam eden firma/firmalar bulunmaktadır (${companies}).\n\nAktif kiralama bitirilmeden bu ofis SİLİNEMEZ!`);
-                return;
-            }
-
-            if(confirm("Bu ofisi silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('off_' + String(officeId));
-                const campus = data.campuses.find(c => String(c.id) === String(campusId));
-                if(campus && campus.offices) {
-                    campus.offices = campus.offices.filter(o => String(o.id) !== String(officeId));
-                    data.rentals = data.rentals.filter(r => String(r.officeId) !== String(officeId));
-                }
-                renderCampuses();
-                await saveData();
-            }
-        }
-
-        async function deleteCampus(campusId) {
-            const isUserAdmin = currentUser && currentUser.role === 'admin';
-            const perm = currentUser ? (currentUser.permissions || {}) : {};
-
-            if (!isUserAdmin && perm.campusDelete === false) { alert("Yerleşke silme yetkiniz bulunmamaktadır!"); return; }
-
-            const campus = data.campuses.find(c => String(c.id) === String(campusId));
-            if (!campus) return;
-
-            const officeIds = (campus.offices || []).map(o => String(o.id));
-            const activeRentalsInCampus = data.rentals.filter(r => officeIds.includes(String(r.officeId)) && r.status === 'active');
-
-            if (activeRentalsInCampus.length > 0) {
-                const companies = activeRentalsInCampus.map(r => r.company).join(", ");
-                alert(`GÜVENLİK UYARISI: Bu yerleşke altındaki ofislerde aktif kira sözleşmesi devam eden firma/firmalar bulunmaktadır (${companies}).\n\nAktif sözleşmeler sonlandırılmadan bu yerleşke SİLİNEMEZ!`);
-                return;
-            }
-
-            if(confirm("Yerleşkeyi ve bağlı tüm boş ofisleri silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('cam_' + String(campusId));
-                data.campuses = data.campuses.filter(c => String(c.id) !== String(campusId));
-                renderCampuses();
-                await saveData();
-            }
-        }
-
-        // ==================== YERLEŞKE & OFİSLER EXCEL İLE TOPLU YÜKLEME DÜZELTİLDİ ====================
         function openExcelUploadModal() {
-            populateCampusFilters(); // Yerleşke seçeneklerini doldur
+            populateCampusFilters();
             const fileInput = document.getElementById('excel-file-input');
             if (fileInput) fileInput.value = '';
             document.getElementById('excel-upload-modal').classList.remove('hidden');
@@ -3945,10 +3025,9 @@ function onRentalOfficeChange() {
                         closeModal('excel-upload-modal');
                         saveData();
                     } else {
-                        alert("Excel dosyasındaki sütunlar eşleştirilemedi. Dosyanızda 'Ofis Adı' ve 'Alan (m²)' sütun başlıklarının yer aldığından emin olun.");
+                        alert("Excel dosyasındaki sütunlar eşleştirilemedi.");
                     }
                 } catch (err) {
-                    console.error("Excel Okuma Hatası:", err);
                     alert("Excel dosyası okunurken hata oluştu: " + err.message);
                 }
             };
@@ -3960,15 +3039,10 @@ function onRentalOfficeChange() {
             }
         }
 
-        // ==================== DASHBOARD GÖRSEL PDF İNDİRME DÜZELTİLDİ ====================
         function exportDashboardVisualPDF() {
             const captureArea = document.getElementById('dashboard-capture-area');
-            if (!captureArea) {
-                alert("Raporlanacak dashboard alanı bulunamadı.");
-                return;
-            }
+            if (!captureArea) return;
 
-            // Görüntü yakalama öncesi sayfa kaydırmasını sıfırla ve arka planı sabitle
             const originalScroll = window.scrollY;
             window.scrollTo(0, 0);
 
@@ -3996,8 +3070,7 @@ function onRentalOfficeChange() {
                 pdf.save(`Teknopark_Dashboard_Gorsel_${new Date().toISOString().split('T')[0]}.pdf`);
             }).catch(err => {
                 window.scrollTo(0, originalScroll);
-                console.error("Dashboard PDF Hatası:", err);
-                alert("Dashboard PDF oluşturulurken bir hata meydana geldi: " + err.message);
+                alert("Dashboard PDF oluşturulurken hata: " + err.message);
             });
         }
 
@@ -4015,12 +3088,9 @@ function onRentalOfficeChange() {
                 if (!val) return null;
                 if (typeof val === 'number') {
                     const dateObj = XLSX.SSF.parse_date_code(val);
-                    if (dateObj) {
-                        return `${dateObj.y}-${String(dateObj.m).padStart(2, '0')}-${String(dateObj.d).padStart(2, '0')}`;
-                    }
+                    if (dateObj) return `${dateObj.y}-${String(dateObj.m).padStart(2, '0')}-${String(dateObj.d).padStart(2, '0')}`;
                 }
                 const str = String(val).trim();
-                if (str === "" || str.toLowerCase() === "nan" || str.toLowerCase() === "null") return null;
                 const cleanStr = str.replace(/[/]/g, '-').replace(/[.]/g, '-');
                 const parts = cleanStr.split('-');
                 if (parts.length === 3) {
@@ -4201,13 +3271,11 @@ function onRentalOfficeChange() {
             doc.save(`Teknopark_Kiralama_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
 
-        // Panoya Kopyalama ve Toast Gösterme
+        // ==================== PANAYA KOPYALAMA ====================
         let toastTimeout = null;
         function copyToClipboard(text, label = "Bilgi") {
             if (!text || text === '-' || text.trim() === '') return;
-            
             const cleanText = label.includes("IBAN") ? text.replace(/\s+/g, '') : text.trim();
-
             navigator.clipboard.writeText(cleanText).then(() => {
                 showToast(`✓ ${label} panoya kopyalandı!`);
             }).catch(err => {
@@ -4236,6 +3304,7 @@ function onRentalOfficeChange() {
             }, 1800);
         }
 
+        // ==================== ÖDEMELER SEÇİMİ VE TOPLU ÖDEME ====================
         function togglePaymentSelection(uniqueKey, isChecked) {
             if (isChecked) {
                 selectedPaymentKeys.add(uniqueKey);
@@ -4258,439 +3327,406 @@ function onRentalOfficeChange() {
             updatePaymentSelectionSummary();
         }
 
-function updatePaymentSelectionSummary() {
-    const countEl = document.getElementById('pay-total-count');
-    const amountEl = document.getElementById('pay-total-amount');
-    const amountLabelEl = document.getElementById('pay-total-amount-label');
-    const selectAllCb = document.getElementById('pay-select-all');
-    const bulkPayBtn = document.getElementById('btn-bulk-pay');
-    const bulkPayCount = document.getElementById('bulk-pay-count');
+        function updatePaymentSelectionSummary() {
+            const countEl = document.getElementById('pay-total-count');
+            const amountEl = document.getElementById('pay-total-amount');
+            const amountLabelEl = document.getElementById('pay-total-amount-label');
+            const selectAllCb = document.getElementById('pay-select-all');
+            const bulkPayBtn = document.getElementById('btn-bulk-pay');
+            const bulkPayCount = document.getElementById('bulk-pay-count');
 
-    const allList = getAllPaymentsList();
-    const isPending = currentPaymentFilter === 'pending';
+            const allList = getAllPaymentsList();
+            const isPending = currentPaymentFilter === 'pending';
 
-    if (selectedPaymentKeys.size > 0) {
-        let selTotal = 0;
-        let validCount = 0;
+            if (selectedPaymentKeys.size > 0) {
+                let selTotal = 0;
+                let validCount = 0;
 
-        selectedPaymentKeys.forEach(key => {
-            const [source, id] = key.split('_');
-            const found = allList.find(item => item.source === source && String(item.id) === String(id));
-            if (found) {
-                selTotal += found.amount;
-                validCount++;
+                selectedPaymentKeys.forEach(key => {
+                    const [source, id] = key.split('_');
+                    const found = allList.find(item => item.source === source && String(item.id) === String(id));
+                    if (found) {
+                        selTotal += found.amount;
+                        validCount++;
+                    }
+                });
+
+                if (countEl) countEl.innerHTML = `<span class="text-blue-600 font-black">${validCount}</span> <span class="text-xs font-normal text-gray-500">(Seçilen)</span>`;
+                if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
+
+                if (bulkPayBtn && isPending) {
+                    bulkPayBtn.classList.remove('hidden');
+                    if (bulkPayCount) bulkPayCount.innerText = validCount;
+                }
+            } else {
+                const selYearEl = document.getElementById('payments-year-filter');
+                const selMonthEl = document.getElementById('payments-month-filter');
+                const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
+                const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
+                const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
+
+                const filtered = allList.filter(item => {
+                    if (isPending ? item.isPaid : !item.isPaid) return false;
+                    if (selectedType !== 'all' && item.source !== selectedType) return false;
+                    const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
+                    const { year, month } = extractYearMonth(targetDate);
+                    if (year && month) return year === selYear && month === selMonth;
+                    return true;
+                });
+
+                const totalAmt = filtered.reduce((acc, it) => acc + it.amount, 0);
+
+                if (countEl) countEl.innerText = filtered.length;
+                if (amountEl) amountEl.innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                if (amountLabelEl) amountLabelEl.innerText = isPending ? "Ödenecek Toplam Tutar" : "Ödenen Toplam Tutar";
+                if (selectAllCb) selectAllCb.checked = false;
+
+                if (bulkPayBtn) bulkPayBtn.classList.add('hidden');
             }
-        });
-
-        if (countEl) countEl.innerHTML = `<span class="text-blue-600 font-black">${validCount}</span> <span class="text-xs font-normal text-gray-500">(Seçilen)</span>`;
-        if (amountEl) amountEl.innerText = selTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (amountLabelEl) amountLabelEl.innerHTML = `<span class="text-blue-600 font-bold">Seçilenlerin Toplam Tutarı</span>`;
-
-        // Bekleyenler (Ödenecekler) sekmesindeyken toplu ödeme butonunu göster
-        if (bulkPayBtn && isPending) {
-            bulkPayBtn.classList.remove('hidden');
-            if (bulkPayCount) bulkPayCount.innerText = validCount;
-        }
-    } else {
-        const selYearEl = document.getElementById('payments-year-filter');
-        const selMonthEl = document.getElementById('payments-month-filter');
-        const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
-        const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
-        const selectedType = document.getElementById('pay-type-filter') ? document.getElementById('pay-type-filter').value : 'all';
-
-        const filtered = allList.filter(item => {
-            if (isPending ? item.isPaid : !item.isPaid) return false;
-            if (selectedType !== 'all' && item.source !== selectedType) return false;
-            const targetDate = (!isPending && item.paymentDate) ? item.paymentDate : (item.dueDate || item.date);
-            const { year, month } = extractYearMonth(targetDate);
-            if (year && month) return year === selYear && month === selMonth;
-            return true;
-        });
-
-        const totalAmt = filtered.reduce((acc, it) => acc + it.amount, 0);
-
-        if (countEl) countEl.innerText = filtered.length;
-        if (amountEl) amountEl.innerText = totalAmt.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (amountLabelEl) amountLabelEl.innerText = isPending ? "Ödenecek Toplam Tutar" : "Ödenen Toplam Tutar";
-        if (selectAllCb) selectAllCb.checked = false;
-
-        // Seçim yoksa butonu gizle
-        if (bulkPayBtn) bulkPayBtn.classList.add('hidden');
-    }
-}
-function populateConsultantYearFilter() {
-    const yearSelect = document.getElementById('consultant-year-filter');
-    if (!yearSelect) return;
-    const currentYear = new Date().getFullYear();
-    yearSelect.innerHTML = '';
-    for (let y = currentYear - 2; y <= currentYear + 2; y++) {
-        yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
-    }
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-    const monthSelect = document.getElementById('consultant-month-filter');
-    if (monthSelect) monthSelect.value = currentMonth;
-}
-
-function setConsultantStatusFilter(status) {
-    currentConsultantFilter = status;
-    const btnPending = document.getElementById('btn-con-filter-pending');
-    const btnPaid = document.getElementById('btn-con-filter-paid');
-    const netLabel = document.getElementById('con-total-net-label');
-
-    if (status === 'pending') {
-        btnPending.className = "px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition";
-        btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-        if (netLabel) netLabel.innerText = "Danışmana Net Ödenecek Toplam";
-    } else {
-        btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
-        btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
-        if (netLabel) netLabel.innerText = "Danışmana Net Ödenen Toplam";
-    }
-    renderConsultants();
-}
-
-// Excel Formülleri: NetExcl = Gross / 1.20 | TPark = NetExcl * 0.15 | NetPayable = NetExcl - TPark
-function calculateConsultantAmounts() {
-    const grossVal = parseFloat(document.getElementById('con-gross').value) || 0;
-    const netExcl = grossVal / 1.20;
-    const tparkVal = netExcl * 0.15;
-    const netPayable = netExcl - tparkVal;
-
-    document.getElementById('con-net-excl').value = netExcl > 0 ? netExcl.toFixed(2) : '';
-    document.getElementById('con-tax-tpark').value = tparkVal > 0 ? tparkVal.toFixed(2) : '';
-    document.getElementById('con-net-payable').value = netPayable > 0 ? netPayable.toFixed(2) : '';
-}
-
-function openConsultantModal(editId = null) {
-    document.getElementById('editing-consultant-id').value = editId || '';
-    const modalTitle = document.getElementById('consultant-modal-title');
-    const ibanInput = document.getElementById('con-iban');
-    if (ibanInput) ibanInput.oninput = function() { this.value = formatIBAN(this.value); };
-
-    if (editId) {
-        const item = data.consultantPayments.find(c => String(c.id) === String(editId));
-        if (!item) return;
-        modalTitle.innerText = "Danışmanlık Ödemesini Düzenle";
-        document.getElementById('con-name').value = item.name || '';
-        document.getElementById('con-tc').value = item.tc || '';
-        document.getElementById('con-iban').value = formatIBAN(item.iban || '');
-        document.getElementById('con-date').value = item.date || '';
-        document.getElementById('con-gross').value = item.gross || '';
-        document.getElementById('con-desc').value = item.desc || '';
-        document.getElementById('con-is-paid').checked = !!item.isPaid;
-        calculateConsultantAmounts();
-    } else {
-        modalTitle.innerText = "Yeni Danışmanlık Ödemesi Ekle";
-        document.getElementById('con-name').value = '';
-        document.getElementById('con-tc').value = '';
-        document.getElementById('con-iban').value = '';
-        document.getElementById('con-date').value = new Date().toLocaleDateString('tr-TR');
-        document.getElementById('con-gross').value = '';
-        document.getElementById('con-net-excl').value = '';
-        document.getElementById('con-tax-tpark').value = '';
-        document.getElementById('con-net-payable').value = '';
-        document.getElementById('con-desc').value = '';
-        document.getElementById('con-is-paid').checked = false;
-    }
-    document.getElementById('consultant-modal').classList.remove('hidden');
-}
-
-async function saveConsultantPayment() {
-    const editId = document.getElementById('editing-consultant-id').value;
-    const name = document.getElementById('con-name').value.trim();
-    const tc = document.getElementById('con-tc').value.trim();
-    const iban = document.getElementById('con-iban').value.trim();
-    const date = document.getElementById('con-date').value.trim();
-    const gross = parseFloat(document.getElementById('con-gross').value) || 0;
-    const desc = document.getElementById('con-desc').value.trim();
-    const isPaid = document.getElementById('con-is-paid').checked;
-
-    if (!name || gross <= 0) {
-        alert("Lütfen Danışman Adı Soyadı ve geçerli bir KDV Dahil Tutar girin.");
-        return;
-    }
-
-    const netExcl = gross / 1.20;
-    const tpark = netExcl * 0.15;
-    const netPayable = netExcl - tpark;
-
-    const payload = {
-        id: editId ? Number(editId) : Date.now(),
-        name, tc, iban, desc,
-        date: date || new Date().toLocaleDateString('tr-TR'),
-        gross, netExcl, tpark, netPayable,
-        isPaid,
-        paymentDate: isPaid ? (editId ? (data.consultantPayments.find(c => String(c.id) === String(editId))?.paymentDate || new Date().toLocaleDateString('tr-TR')) : new Date().toLocaleDateString('tr-TR')) : ''
-    };
-
-    if (editId) {
-        const idx = data.consultantPayments.findIndex(c => String(c.id) === String(editId));
-        if (idx !== -1) data.consultantPayments[idx] = payload;
-    } else {
-        data.consultantPayments.unshift(payload);
-    }
-
-    closeModal('consultant-modal');
-    renderConsultants();
-    renderPayments();
-    await saveData();
-}
-
-async function toggleConsultantPaidStatus(id, isChecked) {
-    const todayStr = new Date().toLocaleDateString('tr-TR');
-    const item = data.consultantPayments.find(c => String(c.id) === String(id));
-    if (item) {
-        item.isPaid = isChecked;
-        item.paymentDate = isChecked ? todayStr : '';
-        renderConsultants();
-        renderPayments();
-        await saveData();
-    }
-}
-
-async function deleteConsultantPayment(id) {
-    if (!id && id !== 0) return;
-    
-    if (confirm("Bu danışmanlık ödemesini silmek istediğinize emin misiniz?")) {
-        const targetIdStr = String(id).trim();
-
-        // 1. Silinen ID'yi kara listeye ekle
-        if (typeof markAsDeleted === 'function') {
-            markAsDeleted('con_' + targetIdStr);
-        } else if (typeof persistentDeletedIds !== 'undefined') {
-            persistentDeletedIds.add('con_' + targetIdStr);
-            localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
         }
 
-        // 2. data.consultantPayments dizisinden hem Number hem String olarak temizle
-        data.consultantPayments = (data.consultantPayments || []).filter(c => String(c.id).trim() !== targetIdStr);
+        async function markSelectedPaymentsAsPaid() {
+            if (selectedPaymentKeys.size === 0) {
+                alert("Lütfen önce ödendi olarak işaretlemek istediğiniz kayıtları seçin.");
+                return;
+            }
 
-        // 3. Seçim listesinden çıkar
-        if (typeof selectedPaymentKeys !== 'undefined') {
-            selectedPaymentKeys.delete('consultant_' + targetIdStr);
-            selectedPaymentKeys.delete(targetIdStr);
+            const count = selectedPaymentKeys.size;
+            const confirmMsg = `Seçilen ${count} adet ödeme kaydını 'Ödendi' olarak işaretlemek istiyor musunuz?`;
+            if (!confirm(confirmMsg)) return;
+
+            const todayStr = new Date().toLocaleDateString('tr-TR');
+            let updatedCount = 0;
+
+            selectedPaymentKeys.forEach(key => {
+                const [source, id] = key.split('_');
+
+                if (source === 'referee') {
+                    const item = data.refereePayments.find(r => String(r.id) === String(id));
+                    if (item) {
+                        item.isPaid = true;
+                        item.paymentDate = todayStr;
+                        updatedCount++;
+                    }
+                } else if (source === 'consultant') {
+                    const item = (data.consultantPayments || []).find(c => String(c.id) === String(id));
+                    if (item) {
+                        item.isPaid = true;
+                        item.paymentDate = todayStr;
+                        updatedCount++;
+                    }
+                } else if (source === 'manual') {
+                    const item = data.manualPayments.find(m => String(m.id) === String(id));
+                    if (item) {
+                        item.isPaid = true;
+                        item.paymentDate = todayStr;
+                        updatedCount++;
+                    }
+                }
+            });
+
+            selectedPaymentKeys.clear();
+
+            renderPayments();
+            renderReferees();
+            renderConsultants();
+
+            await saveData();
+
+            showToast(`✓ ${updatedCount} adet ödeme başarıyla ödendi işaretlendi!`);
         }
 
-        // 4. İki tabloyu da hemen sıfırdan çiz
-        renderConsultants();
-        renderPayments();
-
-        // 5. Yerel depoya ve buluta kaydet
-        await saveData();
-    }
-}
-
-function renderConsultants() {
-    const tbody = document.getElementById('consultant-table-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    const yearSelect = document.getElementById('consultant-year-filter');
-    const monthSelect = document.getElementById('consultant-month-filter');
-
-    // Filtre değerlerini al, boşsa güncel yılı/ayı varsayılan yap
-    const now = new Date();
-    const currentYear = String(now.getFullYear());
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-
-    const selYear = (yearSelect && yearSelect.value) ? String(yearSelect.value).trim() : currentYear;
-    const selMonth = (monthSelect && monthSelect.value) ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
-
-    let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
-    const isUserAdmin = currentUser && currentUser.role === 'admin';
-    const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
-    const isPending = currentConsultantFilter === 'pending';
-
-    const list = data.consultantPayments || [];
-
-    const filtered = list.filter(c => {
-        const isPaid = !!c.isPaid;
-        // 1. Ödenecekler / Ödenenler sekme kontrolü
-        if (isPending ? isPaid : !isPaid) return false;
-
-        // 2. Tarih filtresi kontrolü
-        const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
-        if (!targetDate) return true; // Tarih girilmemişse bile kaydı ekranda gizleme
-
-        const { year, month } = extractYearMonth(targetDate);
-        
-        // Eğer tarih ayrıştırılabildiyse yıl ve aya göre süz
-        if (year && month) {
-            return String(year).trim() === selYear && String(month).trim().padStart(2, '0') === selMonth;
-        }
-        
-        // Tarih formatı uyuşmuyorsa kaydı kaybetmek yerine listede göster
-        return true;
-    });
-
-    filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
-
-    filtered.forEach(c => {
-        totalIncl += parseFloat(c.gross || 0);
-        totalExcl += parseFloat(c.netExcl || 0);
-        totalTPark += parseFloat(c.tpark || 0);
-        totalNet += parseFloat(c.netPayable || 0);
-
-        const isPaidChecked = !!c.isPaid;
-        const ibanDisplay = (c.iban && c.iban.trim() !== '') ? c.iban.trim() : '-';
-
-        tbody.innerHTML += `
-            <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
-                <td class="p-3 text-center">
-                    <div class="inline-flex items-center space-x-1.5 justify-center">
-                        <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
-                            ${isUserAdmin ? '' : 'disabled'}
-                            onchange="toggleConsultantPaidStatus('${c.id}', this.checked)" 
-                            class="w-4 h-4 text-teal-600 rounded cursor-pointer focus:ring-teal-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
-                            title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin değiştirebilir'}">
-                        ${c.paymentDate ? `
-                            <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
-                                <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${c.paymentDate}
-                            </span>
-                        ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
-                    </div>
-                </td>
-                <td class="p-3 font-semibold text-gray-600">${c.date || '-'}</td>
-                <td class="p-3 font-bold text-gray-800">${c.name || '-'}</td>
-                <td class="p-3 text-gray-600 font-semibold">${c.tc || '-'}</td>
-                <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
-                <td class="p-3 text-right font-bold text-gray-800 tabular-nums">${formatCurrency(c.gross)}</td>
-                <td class="p-3 text-right font-semibold text-indigo-700 tabular-nums">${formatCurrency(c.netExcl)}</td>
-                <td class="p-3 text-right font-semibold text-amber-700 tabular-nums">${formatCurrency(c.tpark)}</td>
-                <td class="p-3 text-right font-bold text-teal-700 tabular-nums bg-teal-50/50">${formatCurrency(c.netPayable)}</td>
-                <td class="p-3 text-gray-600 font-medium">${c.desc || '-'}</td>
-                <td class="p-3 text-center">
-                    ${canEdit ? `
-                        <button onclick="openConsultantModal('${c.id}')" class="text-teal-600 hover:text-teal-800 font-semibold bg-teal-50 px-2 py-1 rounded mr-1">Düzenle</button>
-                        <button onclick="deleteConsultantPayment('${c.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
-                    ` : '-'}
-                </td>
-            </tr>
-        `;
-    });
-
-    // Kart toplamlarını güncelle
-    const conInclEl = document.getElementById('con-total-incl');
-    const conExclEl = document.getElementById('con-total-excl');
-    const conTparkEl = document.getElementById('con-total-tpark');
-    const conNetEl = document.getElementById('con-total-net');
-
-    if (conInclEl) conInclEl.innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conExclEl) conExclEl.innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conTparkEl) conTparkEl.innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conNetEl) conNetEl.innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} danışmanlık kaydı bulunamadı.</td></tr>`;
-    }
-}
-
-function exportConsultantsToExcel() {
-    try {
-        if (!data || !data.consultantPayments || data.consultantPayments.length === 0) {
-            alert("Sistemde henüz kayıtlı danışmanlık ödemesi bulunmuyor.");
-            return;
-        }
-        const selYear = String(document.getElementById('consultant-year-filter').value).trim();
-        const selMonth = String(document.getElementById('consultant-month-filter').value).trim().padStart(2, '0');
-        const isPending = currentConsultantFilter === 'pending';
-
-        const filtered = data.consultantPayments.filter(c => {
-            const isPaid = !!c.isPaid;
-            if (isPending ? isPaid : !isPaid) return false;
-            const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
-            const { year, month } = extractYearMonth(targetDate);
-            if (year && month) return year === selYear && month === selMonth;
-            return true;
-        });
-
-        if (filtered.length === 0) {
-            alert(`Seçilen dönemine ait danışmanlık kaydı bulunamadı.`);
-            return;
+        // ==================== DANIŞMANLIK MODÜLÜ ====================
+        function populateConsultantYearFilter() {
+            const yearSelect = document.getElementById('consultant-year-filter');
+            if (!yearSelect) return;
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+            }
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            const monthSelect = document.getElementById('consultant-month-filter');
+            if (monthSelect) monthSelect.value = currentMonth;
         }
 
-        const exportList = filtered.map((c, idx) => ({
-            "Sıra": idx + 1,
-            "Tarih": c.date || '-',
-            "TC": c.tc || '-',
-            "Ödeme Yapılan İban": c.iban || '-',
-            "Adı Soyadı": c.name || '',
-            "KDV Dahil": Number((parseFloat(c.gross) || 0).toFixed(2)),
-            "K%20 KDV Hariç": Number((parseFloat(c.netExcl) || 0).toFixed(2)),
-            "T.Park Kalan %15": Number((parseFloat(c.tpark) || 0).toFixed(2)),
-            "Net Ödenen": Number((parseFloat(c.netPayable) || 0).toFixed(2)),
-            "Açıklama": c.desc || '-',
-            "Durum": c.isPaid ? 'Ödendi' : 'Ödenecek',
-            "Ödeme Tarihi": c.paymentDate || '-'
-        }));
+        function setConsultantStatusFilter(status) {
+            currentConsultantFilter = status;
+            const btnPending = document.getElementById('btn-con-filter-pending');
+            const btnPaid = document.getElementById('btn-con-filter-paid');
+            const netLabel = document.getElementById('con-total-net-label');
 
-        const ws = XLSX.utils.json_to_sheet(exportList);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "AR-GE MUHASEBE");
-        XLSX.writeFile(wb, `Danismanlik_Odemeleri_${selMonth}_${selYear}.xlsx`);
-    } catch (err) {
-        alert("Excel indirilirken hata: " + err.message);
-    }
-}
-        // Seçilen tüm ödemeleri topluca 'Ödendi' durumuna geçiren fonksiyon
-async function markSelectedPaymentsAsPaid() {
-    if (selectedPaymentKeys.size === 0) {
-        alert("Lütfen önce ödendi olarak işaretlemek istediğiniz kayıtları seçin.");
-        return;
-    }
+            if (status === 'pending') {
+                btnPending.className = "px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition";
+                btnPaid.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+                if (netLabel) netLabel.innerText = "Danışmana Net Ödenecek Toplam";
+            } else {
+                btnPaid.className = "px-3 py-1.5 rounded-md bg-white text-emerald-600 shadow-sm transition";
+                btnPending.className = "px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition";
+                if (netLabel) netLabel.innerText = "Danışmana Net Ödenen Toplam";
+            }
+            renderConsultants();
+        }
 
-    const count = selectedPaymentKeys.size;
-    const confirmMsg = `Seçilen ${count} adet ödeme kaydını 'Ödendi' olarak işaretlemek istiyor musunuz?`;
-    if (!confirm(confirmMsg)) return;
+        function calculateConsultantAmounts() {
+            const grossVal = parseFloat(document.getElementById('con-gross').value) || 0;
+            const netExcl = grossVal / 1.20;
+            const tparkVal = netExcl * 0.15;
+            const netPayable = netExcl - tparkVal;
 
-    const todayStr = new Date().toLocaleDateString('tr-TR');
-    let updatedCount = 0;
+            document.getElementById('con-net-excl').value = netExcl > 0 ? netExcl.toFixed(2) : '';
+            document.getElementById('con-tax-tpark').value = tparkVal > 0 ? tparkVal.toFixed(2) : '';
+            document.getElementById('con-net-payable').value = netPayable > 0 ? netPayable.toFixed(2) : '';
+        }
 
-    selectedPaymentKeys.forEach(key => {
-        const [source, id] = key.split('_');
+        function openConsultantModal(editId = null) {
+            document.getElementById('editing-consultant-id').value = editId || '';
+            const modalTitle = document.getElementById('consultant-modal-title');
+            const ibanInput = document.getElementById('con-iban');
+            if (ibanInput) ibanInput.oninput = function() { this.value = formatIBAN(this.value); };
 
-        if (source === 'referee') {
-            const item = data.refereePayments.find(r => String(r.id) === String(id));
+            if (editId) {
+                const item = data.consultantPayments.find(c => String(c.id) === String(editId));
+                if (!item) return;
+                modalTitle.innerText = "Danışmanlık Ödemesini Düzenle";
+                document.getElementById('con-name').value = item.name || '';
+                document.getElementById('con-tc').value = item.tc || '';
+                document.getElementById('con-iban').value = formatIBAN(item.iban || '');
+                document.getElementById('con-date').value = item.date || '';
+                document.getElementById('con-gross').value = item.gross || '';
+                document.getElementById('con-desc').value = item.desc || '';
+                document.getElementById('con-is-paid').checked = !!item.isPaid;
+                calculateConsultantAmounts();
+            } else {
+                modalTitle.innerText = "Yeni Danışmanlık Ödemesi Ekle";
+                document.getElementById('con-name').value = '';
+                document.getElementById('con-tc').value = '';
+                document.getElementById('con-iban').value = '';
+                document.getElementById('con-date').value = new Date().toLocaleDateString('tr-TR');
+                document.getElementById('con-gross').value = '';
+                document.getElementById('con-net-excl').value = '';
+                document.getElementById('con-tax-tpark').value = '';
+                document.getElementById('con-net-payable').value = '';
+                document.getElementById('con-desc').value = '';
+                document.getElementById('con-is-paid').checked = false;
+            }
+            document.getElementById('consultant-modal').classList.remove('hidden');
+        }
+
+        async function saveConsultantPayment() {
+            const editId = document.getElementById('editing-consultant-id').value;
+            const name = document.getElementById('con-name').value.trim();
+            const tc = document.getElementById('con-tc').value.trim();
+            const iban = document.getElementById('con-iban').value.trim();
+            const date = document.getElementById('con-date').value.trim();
+            const gross = parseFloat(document.getElementById('con-gross').value) || 0;
+            const desc = document.getElementById('con-desc').value.trim();
+            const isPaid = document.getElementById('con-is-paid').checked;
+
+            if (!name || gross <= 0) {
+                alert("Lütfen Danışman Adı Soyadı ve geçerli bir KDV Dahil Tutar girin.");
+                return;
+            }
+
+            const netExcl = gross / 1.20;
+            const tpark = netExcl * 0.15;
+            const netPayable = netExcl - tpark;
+
+            const payload = {
+                id: editId ? Number(editId) : Date.now(),
+                name, tc, iban, desc,
+                date: date || new Date().toLocaleDateString('tr-TR'),
+                gross, netExcl, tpark, netPayable,
+                isPaid,
+                paymentDate: isPaid ? (editId ? (data.consultantPayments.find(c => String(c.id) === String(editId))?.paymentDate || new Date().toLocaleDateString('tr-TR')) : new Date().toLocaleDateString('tr-TR')) : ''
+            };
+
+            if (editId) {
+                const idx = data.consultantPayments.findIndex(c => String(c.id) === String(editId));
+                if (idx !== -1) data.consultantPayments[idx] = payload;
+            } else {
+                data.consultantPayments.unshift(payload);
+            }
+
+            closeModal('consultant-modal');
+            renderConsultants();
+            renderPayments();
+            await saveData();
+        }
+
+        async function toggleConsultantPaidStatus(id, isChecked) {
+            const todayStr = new Date().toLocaleDateString('tr-TR');
+            const item = data.consultantPayments.find(c => String(c.id) === String(id));
             if (item) {
-                item.isPaid = true;
-                item.paymentDate = todayStr;
-                updatedCount++;
-            }
-        } else if (source === 'consultant') {
-            const item = (data.consultantPayments || []).find(c => String(c.id) === String(id));
-            if (item) {
-                item.isPaid = true;
-                item.paymentDate = todayStr;
-                updatedCount++;
-            }
-        } else if (source === 'manual') {
-            const item = data.manualPayments.find(m => String(m.id) === String(id));
-            if (item) {
-                item.isPaid = true;
-                item.paymentDate = todayStr;
-                updatedCount++;
+                item.isPaid = isChecked;
+                item.paymentDate = isChecked ? todayStr : '';
+                renderConsultants();
+                renderPayments();
+                await saveData();
             }
         }
-    });
 
-    // Seçim havuzunu sıfırla
-    selectedPaymentKeys.clear();
+        async function deleteConsultantPayment(id) {
+            if (!id && id !== 0) return;
+            
+            if (confirm("Bu danışmanlık ödemesini silmek istediğinize emin misiniz?")) {
+                const targetIdStr = String(id).trim();
 
-    // Tüm ilgili tabloları yeniden çizdir
-    renderPayments();
-    renderReferees();
-    if (typeof renderConsultants === 'function') renderConsultants();
+                markAsDeleted('con_' + targetIdStr);
+                data.consultantPayments = (data.consultantPayments || []).filter(c => String(c.id).trim() !== targetIdStr);
+                selectedPaymentKeys.delete('consultant_' + targetIdStr);
 
-    // Buluta ve yerel belleğe yaz
-    await saveData();
+                renderConsultants();
+                renderPayments();
+                await saveData();
+            }
+        }
 
-    // Kullanıcıya bildirim göster
-    if (typeof showToast === 'function') {
-        showToast(`✓ ${updatedCount} adet ödeme başarıyla ödendi işaretlendi!`);
-    } else {
-        alert(`${updatedCount} adet ödeme başarıyla 'Ödendi' durumuna geçirildi.`);
-    }
-}
+        function renderConsultants() {
+            const tbody = document.getElementById('consultant-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const yearSelect = document.getElementById('consultant-year-filter');
+            const monthSelect = document.getElementById('consultant-month-filter');
+
+            const now = new Date();
+            const currentYear = String(now.getFullYear());
+            const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+
+            const selYear = (yearSelect && yearSelect.value) ? String(yearSelect.value).trim() : currentYear;
+            const selMonth = (monthSelect && monthSelect.value) ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
+
+            let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
+            const isUserAdmin = currentUser && currentUser.role === 'admin';
+            const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
+            const isPending = currentConsultantFilter === 'pending';
+
+            const list = data.consultantPayments || [];
+
+            const filtered = list.filter(c => {
+                const isPaid = !!c.isPaid;
+                if (isPending ? isPaid : !isPaid) return false;
+
+                const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
+                if (!targetDate) return true;
+
+                const { year, month } = extractYearMonth(targetDate);
+                if (year && month) {
+                    return String(year).trim() === selYear && String(month).trim().padStart(2, '0') === selMonth;
+                }
+                return true;
+            });
+
+            filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+
+            filtered.forEach(c => {
+                totalIncl += parseFloat(c.gross || 0);
+                totalExcl += parseFloat(c.netExcl || 0);
+                totalTPark += parseFloat(c.tpark || 0);
+                totalNet += parseFloat(c.netPayable || 0);
+
+                const isPaidChecked = !!c.isPaid;
+                const ibanDisplay = (c.iban && c.iban.trim() !== '') ? c.iban.trim() : '-';
+
+                tbody.innerHTML += `
+                    <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
+                        <td class="p-3 text-center">
+                            <div class="inline-flex items-center space-x-1.5 justify-center">
+                                <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                    ${isUserAdmin ? '' : 'disabled'}
+                                    onchange="toggleConsultantPaidStatus('${c.id}', this.checked)" 
+                                    class="w-4 h-4 text-teal-600 rounded cursor-pointer focus:ring-teal-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
+                                    title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin değiştirebilir'}">
+                                ${c.paymentDate ? `
+                                    <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
+                                        <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${c.paymentDate}
+                                    </span>
+                                ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
+                            </div>
+                        </td>
+                        <td class="p-3 font-semibold text-gray-600">${c.date || '-'}</td>
+                        <td class="p-3 font-bold text-gray-800">${c.name || '-'}</td>
+                        <td class="p-3 text-gray-600 font-semibold">${c.tc || '-'}</td>
+                        <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
+                        <td class="p-3 text-right font-bold text-gray-800 tabular-nums">${formatCurrency(c.gross)}</td>
+                        <td class="p-3 text-right font-semibold text-indigo-700 tabular-nums">${formatCurrency(c.netExcl)}</td>
+                        <td class="p-3 text-right font-semibold text-amber-700 tabular-nums">${formatCurrency(c.tpark)}</td>
+                        <td class="p-3 text-right font-bold text-teal-700 tabular-nums bg-teal-50/50">${formatCurrency(c.netPayable)}</td>
+                        <td class="p-3 text-gray-600 font-medium">${c.desc || '-'}</td>
+                        <td class="p-3 text-center">
+                            ${canEdit ? `
+                                <button onclick="openConsultantModal('${c.id}')" class="text-teal-600 hover:text-teal-800 font-semibold bg-teal-50 px-2 py-1 rounded mr-1">Düzenle</button>
+                                <button onclick="deleteConsultantPayment('${c.id}')" class="text-rose-600 hover:text-rose-800 font-semibold bg-rose-50 px-2 py-1 rounded">Sil</button>
+                            ` : '-'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const conInclEl = document.getElementById('con-total-incl');
+            const conExclEl = document.getElementById('con-total-excl');
+            const conTparkEl = document.getElementById('con-total-tpark');
+            const conNetEl = document.getElementById('con-total-net');
+
+            if (conInclEl) conInclEl.innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (conExclEl) conExclEl.innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (conTparkEl) conTparkEl.innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (conNetEl) conNetEl.innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} danışmanlık kaydı bulunamadı.</td></tr>`;
+            }
+        }
+
+        function exportConsultantsToExcel() {
+            try {
+                if (!data || !data.consultantPayments || data.consultantPayments.length === 0) {
+                    alert("Sistemde henüz kayıtlı danışmanlık ödemesi bulunmuyor.");
+                    return;
+                }
+                const selYear = String(document.getElementById('consultant-year-filter').value).trim();
+                const selMonth = String(document.getElementById('consultant-month-filter').value).trim().padStart(2, '0');
+                const isPending = currentConsultantFilter === 'pending';
+
+                const filtered = data.consultantPayments.filter(c => {
+                    const isPaid = !!c.isPaid;
+                    if (isPending ? isPaid : !isPaid) return false;
+                    const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
+                    const { year, month } = extractYearMonth(targetDate);
+                    if (year && month) return year === selYear && month === selMonth;
+                    return true;
+                });
+
+                if (filtered.length === 0) {
+                    alert(`Seçilen döneme ait danışmanlık kaydı bulunamadı.`);
+                    return;
+                }
+
+                const exportList = filtered.map((c, idx) => ({
+                    "Sıra": idx + 1,
+                    "Tarih": c.date || '-',
+                    "TC": c.tc || '-',
+                    "Ödeme Yapılan İban": c.iban || '-',
+                    "Adı Soyadı": c.name || '',
+                    "KDV Dahil": Number((parseFloat(c.gross) || 0).toFixed(2)),
+                    "K%20 KDV Hariç": Number((parseFloat(c.netExcl) || 0).toFixed(2)),
+                    "T.Park Kalan %15": Number((parseFloat(c.tpark) || 0).toFixed(2)),
+                    "Net Ödenen": Number((parseFloat(c.netPayable) || 0).toFixed(2)),
+                    "Açıklama": c.desc || '-',
+                    "Durum": c.isPaid ? 'Ödendi' : 'Ödenecek',
+                    "Ödeme Tarihi": c.paymentDate || '-'
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportList);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "AR-GE MUHASEBE");
+                XLSX.writeFile(wb, `Danismanlik_Odemeleri_${selMonth}_${selYear}.xlsx`);
+            } catch (err) {
+                alert("Excel indirilirken hata: " + err.message);
+            }
+        }
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
