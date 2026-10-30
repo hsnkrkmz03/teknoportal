@@ -4288,7 +4288,7 @@ async function deleteContractDirectly(rentalId) {
             saveData();
         }
 
-        function renderUsers() {
+function renderUsers() {
             const tbody = document.getElementById('user-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -4297,7 +4297,7 @@ async function deleteContractDirectly(rentalId) {
                 const isAdmin = u.role === 'admin';
                 const p = u.permissions || {};
 
-                // Ekran rozetleri
+                // 1. Ekran rozetleri
                 const screens = [];
                 if (isAdmin || p.dashboard) screens.push('<span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Dashboard</span>');
                 if (isAdmin || p.campuses) screens.push('<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Yerleşkeler</span>');
@@ -4307,7 +4307,7 @@ async function deleteContractDirectly(rentalId) {
                 if (isAdmin || p.payments) screens.push('<span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Ödemeler</span>');
                 if (isAdmin || p.meters) screens.push('<span class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Sayaç</span>');
 
-                // Müdahale özeti
+                // 2. Müdahale yetkileri özeti
                 const permsSummary = [];
                 if (isAdmin) {
                     permsSummary.push('<span class="text-emerald-700 font-bold">Tam Yetkili Yönetici</span>');
@@ -4322,20 +4322,38 @@ async function deleteContractDirectly(rentalId) {
                     if (p.meterTariff) permsSummary.push('<span class="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px]">Birim Fiyat</span>');
                 }
 
+                // 3. Excel/PDF İndirme Yetkisi Durumu
+                const canExport = isAdmin || p.rentalExport !== false || p.canExport !== false;
+                const exportBadge = canExport 
+                    ? '<span class="px-2 py-0.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full inline-flex items-center"><i class="fa-solid fa-check mr-1 text-[10px]"></i>Açık</span>'
+                    : '<span class="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-100 border border-gray-200 rounded-full inline-flex items-center"><i class="fa-solid fa-lock mr-1 text-[10px]"></i>Kısıtlı</span>';
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="p-3.5 font-bold text-gray-800">${u.username}</td>
-                        <td class="p-3.5">
+                        <!-- 1. Kullanıcı Adı -->
+                        <td class="p-4 font-bold text-gray-800">${u.username}</td>
+
+                        <!-- 2. Rol -->
+                        <td class="p-4">
                             <span class="px-2.5 py-1 text-xs rounded-full font-bold ${isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
                                 ${isAdmin ? 'Yönetici (Admin)' : 'Alt Kullanıcı'}
                             </span>
                         </td>
-                        <td class="p-3.5"><div class="flex flex-wrap gap-1 max-w-xs">${screens.join(' ')}</div></td>
-                        <td class="p-3.5"><div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div></td>
-                        <td class="p-3.5 text-center">
+
+                        <!-- 3. Erişebildiği Ekranlar -->
+                        <td class="p-4"><div class="flex flex-wrap gap-1 max-w-xs">${screens.join(' ')}</div></td>
+
+                        <!-- 4. İnce Tanımlı Müdahale Yetkileri -->
+                        <td class="p-4"><div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div></td>
+
+                        <!-- 5. Excel / PDF İndirme Durumu (Eksik Olan Sütun) -->
+                        <td class="p-4 text-center">${exportBadge}</td>
+
+                        <!-- 6. İşlem Butonları -->
+                        <td class="p-4 text-center">
                             ${u.username === 'admin' ? '<span class="text-xs text-gray-400 italic">Ana Admin (Kilitli)</span>' : `
-                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2.5 py-1 rounded-md mr-1">Yetkileri Düzenle</button>
-                                <button onclick="deleteUser('${u.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold bg-rose-50 px-2.5 py-1 rounded-md">Sil</button>
+                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2.5 py-1 rounded-md mr-1 transition">Yetkileri Düzenle</button>
+                                <button onclick="deleteUser('${u.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold bg-rose-50 px-2.5 py-1 rounded-md transition">Sil</button>
                             `}
                         </td>
                     </tr>
