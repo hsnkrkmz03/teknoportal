@@ -2294,9 +2294,10 @@ filtered.forEach(item => {
                 const uniqueKey = `${item.source}_${item.id}`;
                 const isSelected = selectedPaymentKeys.has(uniqueKey);
 
-                let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200';
-                if (isReferee) badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200';
-                if (isConsultant) badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200 font-bold';
+                // YENİ KOD:
+                let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap inline-block font-semibold';
+                if (isReferee) badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200 whitespace-nowrap inline-block font-semibold';
+                if (isConsultant) badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200 whitespace-nowrap inline-block font-bold';
 
                 let dueHtml = '<span class="text-gray-400 italic text-[11px]">-</span>';
                 if (!isReferee && !isConsultant && item.dueDate) {
@@ -2353,10 +2354,10 @@ filtered.forEach(item => {
                                 class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" 
                                 title="Bu ödemeyi toplama dahil etmek için seç">
                         </td>
-                        <td class="p-3">
-                            <span class="px-2 py-0.5 rounded-full text-[10px] ${badgeClass}">
+                        <td class="p-3 whitespace-nowrap min-w-[150px]">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] ${badgeClass}">
                                 ${item.sourceLabel}
-                            </span>
+                             </span>
                         </td>
                         <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
