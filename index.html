@@ -4392,7 +4392,7 @@ async function deleteOffice(campusId, officeId) {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(13);
             doc.setTextColor(255, 255, 255);
-            doc.text(fixTRForPDF("Kira Durum Raporu"), margin + 6, y + 8);
+            doc.text(fixTRForPDF("TEKNOPARK YONETIM PANELI"), margin + 6, y + 8);
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(8.5);
@@ -4519,7 +4519,7 @@ async function deleteOffice(campusId, officeId) {
 
             y += 13;
 
-            // 5. YERLEŞKE BAZLI DETAY VE GENEL TOPLAM TABLOSU (MİLİMETRİK HİZALAMA)
+            // 5. YERLEŞKE BAZLI DETAY VE GENEL TOPLAM TABLOSU
             doc.setFont("helvetica", "bold");
             doc.setFontSize(9.5);
             doc.setTextColor(30, 41, 59);
@@ -4582,7 +4582,16 @@ async function deleteOffice(campusId, officeId) {
 
             doc.autoTable({
                 startY: y,
-                head: [["Yerleske Adi", "Toplam (m2)", "Dolu (m2)", "Bos (m2)", "Doluluk", "KDV Haric (TL)", "KDV Dahil (TL)"]],
+                // TÜM BAŞLIKLAR ORTALI HALE GETİRİLDİ
+                head: [[
+                    { content: 'Yerleske Adi', styles: { halign: 'center' } },
+                    { content: 'Toplam (m2)', styles: { halign: 'center' } },
+                    { content: 'Dolu (m2)', styles: { halign: 'center' } },
+                    { content: 'Bos (m2)', styles: { halign: 'center' } },
+                    { content: 'Doluluk', styles: { halign: 'center' } },
+                    { content: 'KDV Haric (TL)', styles: { halign: 'center' } },
+                    { content: 'KDV Dahil (TL)', styles: { halign: 'center' } }
+                ]],
                 body: campusTableData,
                 foot: tableFooter,
                 showFoot: 'lastPage',
@@ -4613,15 +4622,15 @@ async function deleteOffice(campusId, officeId) {
                 alternateRowStyles: {
                     fillColor: [248, 250, 252]
                 },
-                // TOPLAM 182 mm GENİŞLİK SABİT SÜTUN PAYLAŞIMI VE HİZALARI:
+                // VERİ HÜCRELERİNİN NİZAMİ HİZALARI:
                 columnStyles: {
-                    0: { cellWidth: 44, halign: 'left' },                                     // Yerleşke Adı
-                    1: { cellWidth: 22, halign: 'right' },                                    // Toplam m2
-                    2: { cellWidth: 22, halign: 'right' },                                    // Dolu m2
-                    3: { cellWidth: 22, halign: 'right' },                                    // Boş m2
-                    4: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },                // Doluluk %
-                    5: { cellWidth: 26, halign: 'right' },                                    // KDV Hariç TL
-                    6: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [5, 150, 105] } // KDV Dahil TL
+                    0: { cellWidth: 44, halign: 'left' },                                     // Yerleşke Adı (Sola yaslı)
+                    1: { cellWidth: 22, halign: 'right' },                                    // Toplam m2 (Sağa yaslı)
+                    2: { cellWidth: 22, halign: 'right' },                                    // Dolu m2 (Sağa yaslı)
+                    3: { cellWidth: 22, halign: 'right' },                                    // Boş m2 (Sağa yaslı)
+                    4: { cellWidth: 18, halign: 'center', fontStyle: 'bold' },                // Doluluk % (Ortalı)
+                    5: { cellWidth: 26, halign: 'right' },                                    // KDV Hariç TL (Sağa yaslı)
+                    6: { cellWidth: 28, halign: 'right', fontStyle: 'bold', textColor: [5, 150, 105] } // KDV Dahil TL (Sağa yaslı)
                 }
             });
 
