@@ -810,19 +810,31 @@
                     <table class="w-full text-left border-collapse min-w-[1150px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
-                                <th class="p-3 text-center w-10">
-                                    <input type="checkbox" id="pay-select-all" onchange="toggleSelectAllPayments(this.checked)" class="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" title="Tümünü Seç / Kaldır">
-                                </th>
-                                <th class="p-3">
-                                    <div class="flex items-center space-x-1">
-                                        <span>Tür</span>
-                                        <select id="pay-type-filter" onchange="renderPayments()" class="border border-gray-300 rounded px-1.5 py-0.5 text-[10px] font-semibold bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                            <option value="all">Tümü</option>
-                                            <option value="referee">Hakem Ödemesi</option>
-                                            <option value="manual">Fatura / Gider</option>
-                                        </select>
-                                    </div>
-                                </th>
+<!-- TÜR BAŞLIĞI: İKON İLE AÇILIR MİNİ AÇILIR KUTU (DROPDOWN) -->
+<th class="p-3 relative">
+    <div class="flex items-center space-x-1.5">
+        <span>Tür</span>
+        <button type="button" onclick="togglePaymentTypeFilter(event)" class="text-gray-400 hover:text-blue-600 transition p-1" title="Türe Göre Filtrele">
+            <i class="fa-solid fa-filter text-xs"></i>
+        </button>
+        <!-- Aktif filtre varsa görsel nokta gösterir -->
+        <span id="pay-type-filter-indicator" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
+    </div>
+    <div id="payment-type-filter-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 min-w-[200px]" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+            <span class="text-[11px] font-bold text-gray-700">Ödeme Türü Seçin</span>
+            <button type="button" onclick="resetPaymentTypeFilter()" class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold underline">
+                Sıfırla
+            </button>
+        </div>
+        <select id="pay-type-filter" onchange="onPaymentTypeChange()" class="w-full border border-gray-200 rounded-md p-1.5 text-xs bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium">
+            <option value="all">Tüm Ödemeler</option>
+            <option value="referee">Hakem Ödemesi</option>
+            <option value="consultant">Danışmanlık Ödemesi</option>
+            <option value="manual">Fatura / Gider</option>
+        </select>
+    </div>
+</th>
                                 <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
                                 <th class="p-3">IBAN Bilgisi</th>
                                 <th class="p-3">Açıklama</th>
@@ -1479,9 +1491,16 @@ function normalizeOfficeName(str) {
         }
 
         window.addEventListener('click', function(e) {
+            // Kiralama firma arama kutusunu kapat
             const searchBox = document.getElementById('rental-company-search-box');
             if (searchBox && !searchBox.classList.contains('hidden')) {
                 searchBox.classList.add('hidden');
+            }
+
+            // Ödemeler tür filtresi kutusunu kapat
+            const payTypeBox = document.getElementById('payment-type-filter-box');
+            if (payTypeBox && !payTypeBox.classList.contains('hidden')) {
+                payTypeBox.classList.add('hidden');
             }
         });
 
@@ -2135,7 +2154,40 @@ async function saveData() {
 });
             return list;
         }
+// ==================== ÖDEMELER TÜR FİLTRESİ POP-UP KONTROLÜ ====================
+        function togglePaymentTypeFilter(e) {
+            e.stopPropagation();
+            const box = document.getElementById('payment-type-filter-box');
+            if (!box) return;
+            box.classList.toggle('hidden');
+        }
 
+        function onPaymentTypeChange() {
+            const selectEl = document.getElementById('pay-type-filter');
+            const indicator = document.getElementById('pay-type-filter-indicator');
+            const val = selectEl ? selectEl.value : 'all';
+
+            // Eğer tümü dışında bir filtre seçildiyse başlıkta mavi nokta göster
+            if (indicator) {
+                if (val !== 'all') indicator.classList.remove('hidden');
+                else indicator.classList.add('hidden');
+            }
+
+            renderPayments();
+        }
+
+        function resetPaymentTypeFilter() {
+            const selectEl = document.getElementById('pay-type-filter');
+            if (selectEl) selectEl.value = 'all';
+            
+            const indicator = document.getElementById('pay-type-filter-indicator');
+            if (indicator) indicator.classList.add('hidden');
+
+            const box = document.getElementById('payment-type-filter-box');
+            if (box) box.classList.add('hidden');
+
+            renderPayments();
+        }
         function renderPayments() {
             const tbody = document.getElementById('payments-table-body');
             if (!tbody) return;
