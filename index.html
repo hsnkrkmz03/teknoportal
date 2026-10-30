@@ -4366,102 +4366,253 @@ async function deleteOffice(campusId, officeId) {
             }
         }
         // ==================== DASHBOARD GÖRSEL PDF İNDİRME DÜZELTİLDİ ====================
-        function exportDashboardVisualPDF() {
-            const captureArea = document.getElementById('dashboard-capture-area');
-            if (!captureArea) {
-                alert("Raporlanacak dashboard alanı bulunamadı.");
-                return;
+function exportDashboardVisualPDF() {
+            const campusFilterEl = document.getElementById('dash-campus-filter');
+            const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
+            const stats = getStats(selectedCampus);
+            const totalStats = getStats('all');
+
+            let campusName = "Tum Yerleskeler";
+            if (selectedCampus !== 'all') {
+                const found = data.campuses.find(c => String(c.id) === String(selectedCampus));
+                if (found) campusName = found.name;
             }
 
-            // Yakalama öncesi kaydırmayı sıfırla
-            const originalScroll = window.scrollY;
-            window.scrollTo(0, 0);
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-            // Masaüstü tam genişliğini sabitle (kartların daralıp metinlerin kırpılmasını engeller)
-            const originalWidth = captureArea.style.width;
-            const originalMaxWidth = captureArea.style.maxWidth;
-            captureArea.style.width = '1150px';
-            captureArea.style.maxWidth = '1150px';
+            const pageWidth = 210;
+            const margin = 14;
+            const contentWidth = pageWidth - (margin * 2); // 182 mm
+            let y = 16;
 
-            html2canvas(captureArea, {
-                scale: 2,               // Yüksek çözünürlük (Retina kalitesi)
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#f3f4f6',
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 1200
-            }).then(canvas => {
-                // Genişlik ve kaydırma durumunu anında eski haline getir
-                captureArea.style.width = originalWidth;
-                captureArea.style.maxWidth = originalMaxWidth;
-                window.scrollTo(0, originalScroll);
+            // 1. ÜST BAŞLIK ALANI
+            doc.setFillColor(30, 41, 59); // Koyu Slate zemin
+            doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
 
-                const { jsPDF } = window.jspdf;
-                // DİKEY (PORTRAIT) A4: 210mm x 297mm
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            doc.setTextColor(255, 255, 255);
+            doc.text(fixTRForPDF("TEKNOPARK YONETIM PANELI"), margin + 6, y + 8);
 
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const margin = 10;
-                const printWidth = pageWidth - (margin * 2); // 190 mm
-                
-                // Canvas'ın PDF üzerindeki toplam yüksekliği
-                const totalPdfHeight = (canvas.height * printWidth) / canvas.width;
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(8.5);
+            doc.setTextColor(203, 213, 225);
+            doc.text(fixTRForPDF(`Dashboard Analiz ve Doluluk Raporu | Kapsam: ${campusName}`), margin + 6, y + 14);
 
-                const firstPageHeaderHeight = 20; // Başlık ve tarih alanı
-                const firstPageAvailableHeight = pageHeight - firstPageHeaderHeight - margin; // ~267 mm
-                const regularPageAvailableHeight = pageHeight - (margin * 2); // ~277 mm
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(8);
+            doc.setTextColor(255, 255, 255);
+            doc.text(fixTRForPDF(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`), pageWidth - margin - 35, y + 11);
 
-                // Üst Başlık Fonksiyonu
-                function drawHeader(doc, pageNum, totalPages) {
-                    doc.setFont("helvetica", "bold");
-                    doc.setFontSize(13);
-                    doc.setTextColor(30, 41, 59);
-                    doc.text(fixTRForPDF("Teknopark Dashboard ve Analiz Raporu"), margin, 11);
+            y += 26;
 
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(8);
-                    doc.setTextColor(100, 116, 139);
-                    const campusText = document.getElementById('dash-occupancy-chart-title')?.innerText || "Genel Gorunum";
-                    doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} | Kapsam: ${campusText} | Sayfa ${pageNum}/${totalPages}`), margin, 16);
-                }
+            // 2. KAPASİTE KARTLARI (3'LÜ YATAY DÜZEN)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(30, 41, 59);
+            doc.text(fixTRForPDF("1. Alan ve Kapasite Durumu"), margin, y);
+            y += 4;
 
-                // Sayfa dilimleme hesabı
-                const totalPages = Math.ceil(totalPdfHeight / regularPageAvailableHeight);
+            const cardWidth3 = (contentWidth - 6) / 3; // ~59.3 mm
+            const cardHeight = 18;
 
-                let heightLeft = totalPdfHeight;
-                let position = 0;
-                let pageNumber = 1;
+            // Kart 1: Toplam Alan
+            doc.setFillColor(248, 250, 252);
+            doc.setDrawColor(226, 232, 240);
+            doc.roundedRect(margin, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text(fixTRForPDF("Toplam Kapasite"), margin + 4, y + 6);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10.5);
+            doc.setTextColor(30, 41, 59);
+            doc.text(`${stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, margin + 4, y + 13);
 
-                // 1. SAYFA
-                drawHeader(pdf, 1, totalPages);
-                
-                // İlk sayfaya resmi üst başlıktan sonrasına yerleştir
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                pdf.addImage(imgData, 'JPEG', margin, firstPageHeaderHeight, printWidth, totalPdfHeight);
-                heightLeft -= firstPageAvailableHeight;
-                position -= firstPageAvailableHeight;
+            // Kart 2: Kiralanan Alan
+            const x2 = margin + cardWidth3 + 3;
+            doc.setFillColor(236, 253, 245);
+            doc.setDrawColor(167, 243, 208);
+            doc.roundedRect(x2, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(4, 120, 87);
+            doc.text(fixTRForPDF("Kiralanan Alan (Dolu)"), x2 + 4, y + 6);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10.5);
+            doc.setTextColor(5, 150, 105);
+            doc.text(`${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, x2 + 4, y + 13);
 
-                // GEREKİRSE 2. VE DİĞER SAYFALAR (Hiçbir kart kesilmeden otomatik sonraki sayfaya geçer)
-                while (heightLeft > 0) {
-                    pageNumber++;
-                    pdf.addPage();
-                    drawHeader(pdf, pageNumber, totalPages);
-                    // Başlıktan sonra kalan kısmı sayfaya hizala
-                    pdf.addImage(imgData, 'JPEG', margin, position + firstPageHeaderHeight, printWidth, totalPdfHeight);
-                    heightLeft -= regularPageAvailableHeight;
-                    position -= regularPageAvailableHeight;
-                }
+            // Kart 3: Boş Alan
+            const x3 = x2 + cardWidth3 + 3;
+            doc.setFillColor(255, 251, 235);
+            doc.setDrawColor(253, 230, 138);
+            doc.roundedRect(x3, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(7.5);
+            doc.setTextColor(180, 83, 9);
+            doc.text(fixTRForPDF("Bos Alan (Kiralanabilir)"), x3 + 4, y + 6);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10.5);
+            doc.setTextColor(217, 119, 6);
+            doc.text(`${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, x3 + 4, y + 13);
 
-                pdf.save(`Teknopark_Dashboard_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
-            }).catch(err => {
-                captureArea.style.width = originalWidth;
-                captureArea.style.maxWidth = originalMaxWidth;
-                window.scrollTo(0, originalScroll);
-                console.error("Dashboard PDF Hatası:", err);
-                alert("Dashboard PDF oluşturulurken hata oluştu: " + err.message);
+            y += cardHeight + 8;
+
+            // 3. AYLIK CİRO VE GELİR KARTLARI (4'LÜ YATAY DÜZEN)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(30, 41, 59);
+            doc.text(fixTRForPDF("2. Aylik Finansal Ciro Ozeti"), margin, y);
+            y += 4;
+
+            const cardWidth4 = (contentWidth - 9) / 4; // ~43.7 mm
+            const finCards = [
+                { title: "Net Kira Bedeli", excl: stats.rentRevenueExcl, incl: stats.rentRevenueIncl, color: [79, 70, 229] },
+                { title: "Ortak Gider", excl: stats.commonRevenueExcl, incl: stats.commonRevenueIncl, color: [2, 132, 199] },
+                { title: "Katilim Paylari", excl: stats.otherRevenueExcl, incl: stats.otherRevenueIncl, color: [13, 148, 136] },
+                { title: "Toplam Ciro", excl: stats.totalRevenueExcl, incl: stats.totalRevenueIncl, color: [37, 99, 235], bold: true }
+            ];
+
+            finCards.forEach((c, idx) => {
+                const cx = margin + (idx * (cardWidth4 + 3));
+                doc.setFillColor(c.bold ? 239 : 248, c.bold ? 246 : 250, c.bold ? 255 : 252);
+                doc.setDrawColor(c.color[0], c.color[1], c.color[2]);
+                doc.roundedRect(cx, y, cardWidth4, 22, 1.5, 1.5, 'FD');
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7);
+                doc.setTextColor(c.color[0], c.color[1], c.color[2]);
+                doc.text(fixTRForPDF(c.title), cx + 3, y + 5);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8.5);
+                doc.setTextColor(30, 41, 59);
+                doc.text(`${c.excl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 3, y + 11);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(6.5);
+                doc.setTextColor(100, 116, 139);
+                doc.text(fixTRForPDF("(KDV Haric)"), cx + 3, y + 15);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7.5);
+                doc.setTextColor(5, 150, 105);
+                doc.text(`${c.incl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 3, y + 19);
             });
+
+            y += 29;
+
+            // 4. CANLI DOLULUK GÖSTERGESİ (PROGRESS BAR)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(30, 41, 59);
+            doc.text(fixTRForPDF(`3. Doluluk Analizi: %${stats.occupancyRate}`), margin, y);
+            y += 4;
+
+            // Arka plan çubuğu (Boş alan rengi)
+            doc.setFillColor(245, 158, 11); // Amber
+            doc.roundedRect(margin, y, contentWidth, 7, 1.5, 1.5, 'F');
+
+            // Dolu alan çubuğu (Yeşil)
+            const occRatio = stats.totalArea > 0 ? (stats.rentedArea / stats.totalArea) : 0;
+            const rentedBarWidth = Math.min(contentWidth, Math.max(0, contentWidth * occRatio));
+            if (rentedBarWidth > 0) {
+                doc.setFillColor(16, 185, 129); // Emerald
+                doc.roundedRect(margin, y, rentedBarWidth, 7, 1.5, 1.5, 'F');
+            }
+
+            // Çubuk içi metin
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(7);
+            doc.setTextColor(255, 255, 255);
+            if (rentedBarWidth > 25) {
+                doc.text(fixTRForPDF(`Dolu: %${stats.occupancyRate}`), margin + 3, y + 5);
+            }
+            const availRate = stats.totalArea > 0 ? ((stats.availableArea / stats.totalArea) * 100).toFixed(1) : 0;
+            doc.text(fixTRForPDF(`Bos: %${availRate}`), pageWidth - margin - 22, y + 5);
+
+            y += 13;
+
+            // 5. YERLEŞKE BAZLI GELİR VE DOLULUK TABLOSU (GRAFİK YERİNE NİZAMİ TABLO)
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            doc.setTextColor(30, 41, 59);
+            doc.text(fixTRForPDF("4. Yerleske Bazli Doluluk ve Finansal Detay Tablosu"), margin, y);
+            y += 3;
+
+            const campusTableData = [];
+            const targetCampuses = selectedCampus === 'all' 
+                ? data.campuses 
+                : data.campuses.filter(c => String(c.id) === String(selectedCampus));
+
+            targetCampuses.forEach(c => {
+                let cTotal = 0, cRented = 0, cRevExcl = 0;
+                (c.offices || []).forEach(o => {
+                    const oArea = parseFloat(o.area || 0);
+                    cTotal += oArea;
+                    const rList = (data.rentals || []).filter(r => String(r.officeId) === String(o.id) && r.status === 'active');
+                    rList.forEach(r => {
+                        const rArea = parseFloat(r.allocatedArea || 0);
+                        cRented += rArea;
+                        cRevExcl += (rArea * (parseFloat(r.unitPrice) || 0)) + (rArea * (parseFloat(r.commonCostPerM2) || 0)) + parseFloat(r.otherCost || 0);
+                    });
+                });
+
+                const cAvail = Math.max(0, cTotal - cRented);
+                const cOcc = cTotal > 0 ? ((cRented / cTotal) * 100).toFixed(1) : "0.0";
+                const cRevIncl = cRevExcl * (1 + VAT_RATE);
+
+                campusTableData.push([
+                    fixTRForPDF(c.name),
+                    `${cTotal.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                    `${cRented.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                    `${cAvail.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                    `%${cOcc}`,
+                    cRevExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
+                    cRevIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })
+                ]);
+            });
+
+            doc.autoTable({
+                startY: y,
+                head: [["Yerleske Adi", "Toplam Kap.", "Dolu Alan", "Bos Alan", "Doluluk", "KDV Haric (TL)", "KDV Dahil (TL)"]],
+                body: campusTableData,
+                theme: 'striped',
+                margin: { left: margin, right: margin },
+                styles: { 
+                    font: "helvetica", 
+                    fontSize: 7.5, 
+                    cellPadding: 2, 
+                    textColor: [30, 41, 59] 
+                },
+                headStyles: { 
+                    fillColor: [37, 99, 235], 
+                    textColor: [255, 255, 255], 
+                    fontStyle: 'bold', 
+                    fontSize: 8 
+                },
+                columnStyles: {
+                    1: { halign: 'right' },
+                    2: { halign: 'right' },
+                    3: { halign: 'right' },
+                    4: { halign: 'center', fontStyle: 'bold' },
+                    5: { halign: 'right' },
+                    6: { halign: 'right', fontStyle: 'bold', textColor: [5, 150, 105] }
+                }
+            });
+
+            // Alt Bilgi Notu
+            const finalY = doc.lastAutoTable.finalY + 8;
+            if (finalY < 285) {
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(7);
+                doc.setTextColor(148, 163, 184);
+                doc.text(fixTRForPDF("* Bu rapor Zafer Teknopark Yonetim Paneli uzerinden otomatik ve canli verilerle olusturulmustur."), margin, finalY);
+            }
+
+            doc.save(`Teknopark_Dashboard_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
 
         function openRentalExcelUploadModal() {
@@ -4469,7 +4620,7 @@ async function deleteOffice(campusId, officeId) {
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-function processRentalExcelUpload() {
+        function processRentalExcelUpload() {
             const fileInput = document.getElementById('rental-excel-file-input');
             const file = fileInput.files[0];
             if (!file) { alert("Lütfen yüklenecek bir Excel dosyası seçin."); return; }
