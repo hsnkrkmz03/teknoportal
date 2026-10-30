@@ -1572,7 +1572,7 @@ async function fetchCentralData() {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
         const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
@@ -1587,7 +1587,7 @@ async function fetchCentralData() {
         let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
         if (targetData) {
-            // Güvenli Boolean Dönüştürücü (Buluttan "true", "TRUE", 1, true gelse de yakalar)
+            // Güvenli Boolean Dönüştürücü
             const parseBool = (val) => val === true || String(val).toLowerCase() === 'true' || val === 1 || String(val) === '1';
 
             // 1. YERLEŞKELER
@@ -1600,22 +1600,39 @@ async function fetchCentralData() {
                     }));
             }
 
-            // 2. KİRALAMALAR
-            const cloudRentals = (targetData.rentals || []).filter(rent => 
+            // 2. KİRALAMALAR (MÜKERRER BİRLEŞMEYİ KESİN ÖNLEYEN BLOK)
+            // Buluttan gelen veri esastır (Single Source of Truth).
+            const rawCloudRentals = (targetData.rentals || []).filter(rent => 
                 !persistentDeletedIds.has('rent_' + String(rent.id)) && 
                 !persistentDeletedIds.has(String(rent.id))
             );
-            const rentalMap = new Map();
-            cloudRentals.forEach(r => rentalMap.set(String(r.id).trim(), r));
-            (data.rentals || []).forEach(lr => {
-                const lrId = String(lr.id).trim();
-                if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
-                    rentalMap.set(lrId, lr);
+
+            // Hem ID bazında hem de "Firma + Ofis" bazında tam tekilleştirme yapıyoruz:
+            const uniqueRentals = [];
+            const seenRentalKeys = new Set();
+
+            rawCloudRentals.forEach(r => {
+                const rId = String(r.id || '').trim();
+                // Firma adı ve ofis bilgisinden benzersiz imza oluştur
+                const companyNorm = String(r.company || '').trim().toLocaleLowerCase('tr-TR');
+                const officeNorm = String(r.officeId || '').trim().toLocaleLowerCase('tr-TR');
+                const sig = `${companyNorm}___${officeNorm}`;
+
+                if (rId && !seenRentalKeys.has(rId) && !seenRentalKeys.has(sig)) {
+                    seenRentalKeys.add(rId);
+                    if (companyNorm && officeNorm) seenRentalKeys.add(sig);
+                    uniqueRentals.push(r);
                 }
             });
-            data.rentals = Array.from(rentalMap.values());
 
-            // 3. HAKEM ÖDEMELERİ (Buluttaki veya yereldeki Ödendi durumunu birleştirerek koru)
+            // Bulutta sözleşmeler varsa yereli tamamen bulutun temiz listesine eşitliyoruz
+            if (uniqueRentals.length > 0) {
+                data.rentals = uniqueRentals;
+            } else if (rawCloudRentals.length === 0 && (!data.rentals || data.rentals.length === 0)) {
+                data.rentals = [];
+            }
+
+            // 3. HAKEM ÖDEMELERİ
             const localRefMap = new Map((data.refereePayments || []).map(r => [String(r.id), r]));
             const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !persistentDeletedIds.has(String(r.id)));
             
@@ -1624,12 +1641,6 @@ async function fetchCentralData() {
                 const isPaid = parseBool(cr.isPaid) || (lr && parseBool(lr.isPaid));
                 const paymentDate = cr.paymentDate || (lr ? lr.paymentDate : '') || '';
                 return { ...cr, isPaid, paymentDate };
-            });
-            // Sadece yerelde kalmış olanları ekle
-            (data.refereePayments || []).forEach(lr => {
-                if (!data.refereePayments.some(r => String(r.id) === String(lr.id))) {
-                    data.refereePayments.push(lr);
-                }
             });
 
             // 4. DANIŞMANLIK ÖDEMELERİ
@@ -1642,28 +1653,16 @@ async function fetchCentralData() {
                 const paymentDate = cc.paymentDate || (lc ? lc.paymentDate : '') || '';
                 return { ...cc, isPaid, paymentDate };
             });
-            (data.consultantPayments || []).forEach(lc => {
-                if (!data.consultantPayments.some(c => String(c.id) === String(lc.id))) {
-                    data.consultantPayments.push(lc);
-                }
-            });
 
-            // 5. MANUEL FATURA / GİDERLER (Asıl Çözülen Kısım)
+            // 5. MANUEL FATURA / GİDERLER
             const localManMap = new Map((data.manualPayments || []).map(m => [String(m.id), m]));
             const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !persistentDeletedIds.has(String(m.id)));
             
             data.manualPayments = cloudMan.map(cm => {
                 const lm = localManMap.get(String(cm.id));
-                // Bulutta ödendiyse kesinlikle ÖDENDİDİR; yerelde ödendiyse yine ÖDENDİDİR
                 const isPaid = parseBool(cm.isPaid) || (lm && parseBool(lm.isPaid));
                 const paymentDate = cm.paymentDate || (lm ? lm.paymentDate : '') || '';
                 return { ...cm, isPaid, paymentDate };
-            });
-            // Sadece yerelde olan yeni faturaları koru
-            (data.manualPayments || []).forEach(lm => {
-                if (!data.manualPayments.some(m => String(m.id) === String(lm.id))) {
-                    data.manualPayments.push(lm);
-                }
             });
 
             // 6. KULLANICILAR VE NOTLAR
