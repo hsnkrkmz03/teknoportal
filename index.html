@@ -5886,6 +5886,261 @@ async function markSelectedPaymentsAsPaid() {
                 alert("Sayaç endeksleri ve yerleşke tarifesi kaydedildi.");
             }
         }
+        // ==================== ELEKTRİK SAYAÇ EXCEL VE PDF RAPORLAMA ====================
+
+        // 1. Sayaç Verilerini Toplayan Ortak Yardımcı Fonksiyon
+        function getMeterExportData() {
+            const campusId = document.getElementById('meter-campus-filter')?.value;
+            const year = document.getElementById('meter-year-filter')?.value || String(new Date().getFullYear());
+            const month = document.getElementById('meter-month-filter')?.value || String(new Date().getMonth() + 1).padStart(2, '0');
+            const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+
+            const campus = (data.campuses || []).find(c => String(c.id) === String(campusId));
+            const campusName = campus ? campus.name : "Bilinmeyen Yerleske";
+            const offices = campus ? (campus.offices || []) : [];
+
+            const rows = [];
+            const tableRows = document.querySelectorAll('#meter-table-body tr[data-office-id]');
+
+            tableRows.forEach(tr => {
+                const offId = tr.getAttribute('data-office-id');
+                const office = offices.find(o => String(o.id) === String(offId));
+                const officeName = office ? `${office.name} (${office.floor || '1. Kat'})` : `Ofis ${offId}`;
+
+                // Aktif kiracı
+                const activeRental = (data.rentals || []).find(r => String(r.officeId) === String(offId) && r.status === 'active');
+                const companyName = activeRental ? activeRental.company : 'Bos Ofis (Teknopark Payi)';
+
+                const prevIndex = parseFloat(document.getElementById(`meter-prev-${offId}`)?.value) || 0;
+                const currIndex = parseFloat(document.getElementById(`meter-curr-${offId}`)?.value) || 0;
+                const consumption = Math.max(0, currIndex - prevIndex);
+                const totalExcl = consumption * unitPrice;
+                const totalIncl = totalExcl * (1 + VAT_RATE);
+
+                rows.push({
+                    campusName,
+                    officeName,
+                    companyName,
+                    prevIndex,
+                    currIndex,
+                    consumption,
+                    unitPrice,
+                    totalExcl,
+                    totalIncl,
+                    year,
+                    month
+                });
+            });
+
+            return { campusName, year, month, unitPrice, rows };
+        }
+
+        // 2. Excel İndirme Fonksiyonu
+        function exportMetersToExcel() {
+            try {
+                const { campusName, year, month, rows } = getMeterExportData();
+
+                if (!rows || rows.length === 0) {
+                    alert("Excel'e aktarılacak sayaç kaydı bulunamadı.");
+                    return;
+                }
+
+                const exportList = rows.map(r => ({
+                    "Yerleşke": r.campusName,
+                    "Ofis": r.officeName,
+                    "Kiracı Firma": r.companyName,
+                    "İlk Endeks (kWh)": Number(r.prevIndex.toFixed(2)),
+                    "Son Endeks (kWh)": Number(r.currIndex.toFixed(2)),
+                    "Tüketim (kWh)": Number(r.consumption.toFixed(2)),
+                    "Birim Fiyat (TL)": Number(r.unitPrice.toFixed(4)),
+                    "Tutar (KDV Hariç TL)": Number(r.totalExcl.toFixed(2)),
+                    "Tahakkuk (KDV Dahil TL)": Number(r.totalIncl.toFixed(2)),
+                    "Durum": r.consumption > 0 ? "Okundu" : "Bekliyor"
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(exportList);
+
+                // Sayısal formatlama (Currency & Decimals)
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for (let R = range.s.r + 1; R <= range.e.r; ++R) {
+                    [3, 4, 5, 7, 8].forEach(C => {
+                        const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                        if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
+                            ws[cellRef].z = '#,##0.00';
+                        }
+                    });
+                    // Birim fiyat (4 basamak)
+                    const unitPriceCell = XLSX.utils.encode_cell({ r: R, c: 6 });
+                    if (ws[unitPriceCell] && typeof ws[unitPriceCell].v === 'number') {
+                        ws[unitPriceCell].z = '#,##0.0000';
+                    }
+                }
+
+                // Sütun genişlikleri
+                ws['!cols'] = [
+                    { wch: 20 }, { wch: 18 }, { wch: 32 }, { wch: 15 },
+                    { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 20 },
+                    { wch: 22 }, { wch: 12 }
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Elektrik Tuketim");
+
+                const cleanCampus = campusName.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]/g, '_');
+                XLSX.writeFile(wb, `Elektrik_Tuketim_${cleanCampus}_${month}_${year}.xlsx`);
+            } catch (err) {
+                console.error("Sayaç Excel İndirme Hatası:", err);
+                alert("Excel dosyası oluşturulurken hata: " + err.message);
+            }
+        }
+
+        // 3. Vektörel Kurumsal PDF İndirme Fonksiyonu
+        function exportMetersToPDF() {
+            try {
+                const { campusName, year, month, unitPrice, rows } = getMeterExportData();
+
+                if (!rows || rows.length === 0) {
+                    alert("PDF raporu oluşturulacak sayaç kaydı bulunamadı.");
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                const pageWidth = 297;
+                const margin = 14;
+                const contentWidth = pageWidth - (margin * 2); // 269 mm
+                let y = 14;
+
+                // ÜST BAŞLIK ALANI (Kurumsal Lacivert Bant)
+                doc.setFillColor(30, 58, 138); // #1e3a8a
+                doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(13);
+                doc.setTextColor(255, 255, 255);
+                doc.text(fixTRForPDF("TEKNOPARK ELEKTRIK SAYAC VE TUKETIM DAGILIM CETVELI"), margin + 6, y + 8);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8.5);
+                doc.setTextColor(226, 232, 240);
+                doc.text(fixTRForPDF(`Yerleske: ${campusName} | Donem: ${month}/${year} | Birim Fiyat: ${unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 4 })} TL/kWh (KDV Haric)`), margin + 6, y + 14);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8);
+                doc.setTextColor(255, 255, 255);
+                doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`), pageWidth - margin - 40, y + 11);
+
+                y += 26;
+
+                // Tablo Başlıkları (Tamamı Ortalı)
+                const headers = [[
+                    { content: 'Ofis No / Adi', styles: { halign: 'center' } },
+                    { content: 'Kiraci Firma', styles: { halign: 'center' } },
+                    { content: 'Ilk Endeks (kWh)', styles: { halign: 'center' } },
+                    { content: 'Son Endeks (kWh)', styles: { halign: 'center' } },
+                    { content: 'Tuketim (kWh)', styles: { halign: 'center' } },
+                    { content: 'Birim Fiyat', styles: { halign: 'center' } },
+                    { content: 'Tutar (KDV Haric)', styles: { halign: 'center' } },
+                    { content: 'Tahakkuk (KDV Dahil)', styles: { halign: 'center' } },
+                    { content: 'Durum', styles: { halign: 'center' } }
+                ]];
+
+                let sumKwh = 0;
+                let sumExcl = 0;
+                let sumIncl = 0;
+
+                const bodyData = rows.map(r => {
+                    sumKwh += r.consumption;
+                    sumExcl += r.totalExcl;
+                    sumIncl += r.totalIncl;
+
+                    return [
+                        fixTRForPDF(r.officeName),
+                        fixTRForPDF(r.companyName),
+                        r.prevIndex.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        r.currIndex.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        r.consumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        `${r.unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} TL`,
+                        `${r.totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`,
+                        `${r.totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`,
+                        fixTRForPDF(r.consumption > 0 ? 'Okundu' : 'Bekliyor')
+                    ];
+                });
+
+                // Alt Toplam Satırı (GENEL TOPLAM)
+                const footers = [[
+                    { content: fixTRForPDF("GENEL TOPLAM"), colSpan: 4, styles: { halign: 'left', fontStyle: 'bold' } },
+                    { content: `${sumKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kWh`, styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: '-', styles: { halign: 'center' } },
+                    { content: `${sumExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`, styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: `${sumIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} TL`, styles: { halign: 'right', fontStyle: 'bold' } },
+                    { content: `${rows.length} Ofis`, styles: { halign: 'center', fontStyle: 'bold' } }
+                ]];
+
+                doc.autoTable({
+                    startY: y,
+                    head: headers,
+                    body: bodyData,
+                    foot: footers,
+                    showFoot: 'lastPage',
+                    theme: 'striped',
+                    margin: { left: margin, right: margin },
+                    styles: {
+                        font: "helvetica",
+                        fontSize: 7.5,
+                        cellPadding: 2.2,
+                        textColor: [30, 41, 59],
+                        lineColor: [226, 232, 240],
+                        lineWidth: 0.1
+                    },
+                    headStyles: {
+                        fillColor: [30, 58, 138], // Kurumsal Lacivert
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        fontSize: 7.5,
+                        valign: 'middle'
+                    },
+                    footStyles: {
+                        fillColor: [30, 58, 138], // Kurumsal Lacivert Alt Toplam
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        fontSize: 8,
+                        valign: 'middle'
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 250, 252]
+                    },
+                    // TOPLAM 269 mm SÜTUN PAYLAŞIMI VE HİZALARI:
+                    columnStyles: {
+                        0: { cellWidth: 32, halign: 'left' },                                     // Ofis No/Adı
+                        1: { cellWidth: 55, halign: 'left' },                                     // Kiracı Firma
+                        2: { cellWidth: 26, halign: 'right' },                                    // İlk Endeks
+                        3: { cellWidth: 26, halign: 'right' },                                    // Son Endeks
+                        4: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },                 // Tüketim kWh
+                        5: { cellWidth: 28, halign: 'right' },                                    // Birim Fiyat
+                        6: { cellWidth: 32, halign: 'right' },                                    // KDV Hariç TL
+                        7: { cellWidth: 32, halign: 'right', fontStyle: 'bold', textColor: [5, 150, 105] }, // KDV Dahil TL
+                        8: { cellWidth: 10, halign: 'center' }                                    // Durum
+                    }
+                });
+
+                // Alt Bilgi Notu
+                const finalY = doc.lastAutoTable.finalY + 7;
+                if (finalY < 195) {
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(7);
+                    doc.setTextColor(148, 163, 184);
+                    doc.text(fixTRForPDF("* Bu rapor Zafer Teknopark Yonetim Paneli Elektrik Sayac Modulu uzerinden olusturulmustur."), margin, finalY);
+                }
+
+                const cleanCampus = campusName.replace(/[^a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]/g, '_');
+                doc.save(`Elektrik_Tuketim_${cleanCampus}_${month}_${year}.pdf`);
+            } catch (err) {
+                console.error("Sayaç PDF İndirme Hatası:", err);
+                alert("PDF oluşturulurken bir hata meydana geldi: " + err.message);
+            }
+        }
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
