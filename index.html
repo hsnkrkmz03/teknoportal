@@ -4370,7 +4370,6 @@ function exportDashboardVisualPDF() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
-            const totalStats = getStats('all');
 
             let campusName = "Tum Yerleskeler";
             if (selectedCampus !== 'all') {
@@ -4384,160 +4383,145 @@ function exportDashboardVisualPDF() {
             const pageWidth = 210;
             const margin = 14;
             const contentWidth = pageWidth - (margin * 2); // 182 mm
-            let y = 16;
+            let y = 14;
 
-            // 1. ÜST BAŞLIK ALANI
-            doc.setFillColor(30, 41, 59); // Koyu Slate zemin
-            doc.roundedRect(margin, y, contentWidth, 20, 2, 2, 'F');
+            // 1. ÜST BAŞLIK ALANI (Kurumsal Lacivert)
+            doc.setFillColor(30, 58, 138); // Zafer Teknopark Lacivert (#1e3a8a)
+            doc.roundedRect(margin, y, contentWidth, 21, 2, 2, 'F');
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(13);
             doc.setTextColor(255, 255, 255);
-            doc.text(fixTRForPDF("KİRA DURUM RAPORU"), margin + 6, y + 8);
+            doc.text(fixTRForPDF("TEKNOPARK YONETIM PANELI"), margin + 6, y + 8);
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(8.5);
-            doc.setTextColor(203, 213, 225);
-            doc.text(fixTRForPDF(`Dashboard Analiz ve Doluluk Raporu | Kapsam: ${campusName}`), margin + 6, y + 14);
+            doc.setTextColor(226, 232, 240);
+            doc.text(fixTRForPDF(`Dashboard Analiz ve Doluluk Raporu | Kapsam: ${campusName}`), margin + 6, y + 15);
 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(8);
             doc.setTextColor(255, 255, 255);
-            doc.text(fixTRForPDF(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`), pageWidth - margin - 35, y + 11);
+            doc.text(fixTRForPDF(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`), pageWidth - margin - 35, y + 12);
 
-            y += 26;
+            y += 27;
 
-            // 2. KAPASİTE KARTLARI (3'LÜ YATAY DÜZEN)
+            // 2. KAPASİTE KARTLARI (3'lü Modern Kartlar)
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
+            doc.setFontSize(9.5);
             doc.setTextColor(30, 41, 59);
             doc.text(fixTRForPDF("1. Alan ve Kapasite Durumu"), margin, y);
             y += 4;
 
-            const cardWidth3 = (contentWidth - 6) / 3; // ~59.3 mm
+            const cardWidth3 = (contentWidth - 6) / 3;
             const cardHeight = 18;
 
-            // Kart 1: Toplam Alan
-            doc.setFillColor(248, 250, 252);
-            doc.setDrawColor(226, 232, 240);
-            doc.roundedRect(margin, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(7.5);
-            doc.setTextColor(100, 116, 139);
-            doc.text(fixTRForPDF("Toplam Kapasite"), margin + 4, y + 6);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10.5);
-            doc.setTextColor(30, 41, 59);
-            doc.text(`${stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, margin + 4, y + 13);
+            const capCards = [
+                { title: "Toplam Kapasite", val: `${stats.totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, bg: [248, 250, 252], border: [203, 213, 225], text: [30, 41, 59] },
+                { title: "Kiralanan Alan (Dolu)", val: `${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, bg: [240, 253, 244], border: [134, 239, 172], text: [21, 128, 61] },
+                { title: "Bos Alan (Kiralanabilir)", val: `${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, bg: [254, 252, 232], border: [253, 224, 71], text: [161, 98, 7] }
+            ];
 
-            // Kart 2: Kiralanan Alan
-            const x2 = margin + cardWidth3 + 3;
-            doc.setFillColor(236, 253, 245);
-            doc.setDrawColor(167, 243, 208);
-            doc.roundedRect(x2, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(7.5);
-            doc.setTextColor(4, 120, 87);
-            doc.text(fixTRForPDF("Kiralanan Alan (Dolu)"), x2 + 4, y + 6);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10.5);
-            doc.setTextColor(5, 150, 105);
-            doc.text(`${stats.rentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, x2 + 4, y + 13);
+            capCards.forEach((c, i) => {
+                const cx = margin + (i * (cardWidth3 + 3));
+                doc.setFillColor(c.bg[0], c.bg[1], c.bg[2]);
+                doc.setDrawColor(c.border[0], c.border[1], c.border[2]);
+                doc.roundedRect(cx, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
 
-            // Kart 3: Boş Alan
-            const x3 = x2 + cardWidth3 + 3;
-            doc.setFillColor(255, 251, 235);
-            doc.setDrawColor(253, 230, 138);
-            doc.roundedRect(x3, y, cardWidth3, cardHeight, 1.5, 1.5, 'FD');
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(7.5);
-            doc.setTextColor(180, 83, 9);
-            doc.text(fixTRForPDF("Bos Alan (Kiralanabilir)"), x3 + 4, y + 6);
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(10.5);
-            doc.setTextColor(217, 119, 6);
-            doc.text(`${stats.availableArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`, x3 + 4, y + 13);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(7.5);
+                doc.setTextColor(c.text[0], c.text[1], c.text[2]);
+                doc.text(fixTRForPDF(c.title), cx + 4, y + 6);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10.5);
+                doc.setTextColor(c.text[0], c.text[1], c.text[2]);
+                doc.text(c.val, cx + 4, y + 13.5);
+            });
 
             y += cardHeight + 8;
 
-            // 3. AYLIK CİRO VE GELİR KARTLARI (4'LÜ YATAY DÜZEN)
+            // 3. FİNANSAL CİRO KARTLARI (4'lü Yatay Düzen)
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
+            doc.setFontSize(9.5);
             doc.setTextColor(30, 41, 59);
-            doc.text(fixTRForPDF("2. Aylik Finansal Ciro Ozeti"), margin, y);
+            doc.text(fixTRForPDF("2. Aylik Finansal Ciro Dagilimi"), margin, y);
             y += 4;
 
-            const cardWidth4 = (contentWidth - 9) / 4; // ~43.7 mm
+            const cardWidth4 = (contentWidth - 9) / 4;
             const finCards = [
-                { title: "Net Kira Bedeli", excl: stats.rentRevenueExcl, incl: stats.rentRevenueIncl, color: [79, 70, 229] },
-                { title: "Ortak Gider", excl: stats.commonRevenueExcl, incl: stats.commonRevenueIncl, color: [2, 132, 199] },
-                { title: "Katilim Paylari", excl: stats.otherRevenueExcl, incl: stats.otherRevenueIncl, color: [13, 148, 136] },
-                { title: "Toplam Ciro", excl: stats.totalRevenueExcl, incl: stats.totalRevenueIncl, color: [37, 99, 235], bold: true }
+                { title: "Net Kira Bedeli", excl: stats.rentRevenueExcl, incl: stats.rentRevenueIncl, barColor: [79, 70, 229] },
+                { title: "Ortak Gider", excl: stats.commonRevenueExcl, incl: stats.commonRevenueIncl, barColor: [2, 132, 199] },
+                { title: "Katilim Payi", excl: stats.otherRevenueExcl, incl: stats.otherRevenueIncl, barColor: [13, 148, 136] },
+                { title: "Aktif Toplam Ciro", excl: stats.totalRevenueExcl, incl: stats.totalRevenueIncl, barColor: [37, 99, 235], highlight: true }
             ];
 
             finCards.forEach((c, idx) => {
                 const cx = margin + (idx * (cardWidth4 + 3));
-                doc.setFillColor(c.bold ? 239 : 248, c.bold ? 246 : 250, c.bold ? 255 : 252);
-                doc.setDrawColor(c.color[0], c.color[1], c.color[2]);
-                doc.roundedRect(cx, y, cardWidth4, 22, 1.5, 1.5, 'FD');
+                doc.setFillColor(c.highlight ? 239 : 255, c.highlight ? 246 : 255, c.highlight ? 255 : 255);
+                doc.setDrawColor(226, 232, 240);
+                doc.roundedRect(cx, y, cardWidth4, 23, 1.5, 1.5, 'FD');
 
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(7);
-                doc.setTextColor(c.color[0], c.color[1], c.color[2]);
-                doc.text(fixTRForPDF(c.title), cx + 3, y + 5);
-
-                doc.setFont("helvetica", "bold");
-                doc.setFontSize(8.5);
-                doc.setTextColor(30, 41, 59);
-                doc.text(`${c.excl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 3, y + 11);
-
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(6.5);
-                doc.setTextColor(100, 116, 139);
-                doc.text(fixTRForPDF("(KDV Haric)"), cx + 3, y + 15);
+                // Sol kenar şeridi
+                doc.setFillColor(c.barColor[0], c.barColor[1], c.barColor[2]);
+                doc.roundedRect(cx, y, 2.5, 23, 1, 1, 'F');
 
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(7.5);
+                doc.setTextColor(c.barColor[0], c.barColor[1], c.barColor[2]);
+                doc.text(fixTRForPDF(c.title), cx + 5, y + 5.5);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(9);
+                doc.setTextColor(30, 41, 59);
+                doc.text(`${c.excl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 5, y + 11.5);
+
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(6.5);
+                doc.setTextColor(148, 163, 184);
+                doc.text(fixTRForPDF("(KDV Haric)"), cx + 5, y + 15.5);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(8);
                 doc.setTextColor(5, 150, 105);
-                doc.text(`${c.incl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 3, y + 19);
+                doc.text(`${c.incl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL`, cx + 5, y + 20);
             });
 
-            y += 29;
+            y += 30;
 
-            // 4. CANLI DOLULUK GÖSTERGESİ (PROGRESS BAR)
+            // 4. CANLI DOLULUK GÖSTERGESİ (Modern Progress Bar)
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
+            doc.setFontSize(9.5);
             doc.setTextColor(30, 41, 59);
-            doc.text(fixTRForPDF(`3. Doluluk Analizi: %${stats.occupancyRate}`), margin, y);
+            doc.text(fixTRForPDF(`3. Doluluk Orani: %${stats.occupancyRate}`), margin, y);
             y += 4;
 
-            // Arka plan çubuğu (Boş alan rengi)
-            doc.setFillColor(245, 158, 11); // Amber
+            // Zemin çubuğu (Boş alan: Amber)
+            doc.setFillColor(245, 158, 11);
             doc.roundedRect(margin, y, contentWidth, 7, 1.5, 1.5, 'F');
 
-            // Dolu alan çubuğu (Yeşil)
+            // Dolu çubuk (Zümrüt Yeşil)
             const occRatio = stats.totalArea > 0 ? (stats.rentedArea / stats.totalArea) : 0;
             const rentedBarWidth = Math.min(contentWidth, Math.max(0, contentWidth * occRatio));
             if (rentedBarWidth > 0) {
-                doc.setFillColor(16, 185, 129); // Emerald
+                doc.setFillColor(16, 185, 129);
                 doc.roundedRect(margin, y, rentedBarWidth, 7, 1.5, 1.5, 'F');
             }
 
-            // Çubuk içi metin
             doc.setFont("helvetica", "bold");
             doc.setFontSize(7);
             doc.setTextColor(255, 255, 255);
-            if (rentedBarWidth > 25) {
-                doc.text(fixTRForPDF(`Dolu: %${stats.occupancyRate}`), margin + 3, y + 5);
+            if (rentedBarWidth > 26) {
+                doc.text(fixTRForPDF(`Dolu: %${stats.occupancyRate}`), margin + 3.5, y + 5);
             }
             const availRate = stats.totalArea > 0 ? ((stats.availableArea / stats.totalArea) * 100).toFixed(1) : 0;
             doc.text(fixTRForPDF(`Bos: %${availRate}`), pageWidth - margin - 22, y + 5);
 
             y += 13;
 
-            // 5. YERLEŞKE BAZLI GELİR VE DOLULUK TABLOSU (GRAFİK YERİNE NİZAMİ TABLO)
+            // 5. YERLEŞKE BAZLI DETAY VE GENEL TOPLAM TABLOSU
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(10);
+            doc.setFontSize(9.5);
             doc.setTextColor(30, 41, 59);
             doc.text(fixTRForPDF("4. Yerleske Bazli Doluluk ve Finansal Detay Tablosu"), margin, y);
             y += 3;
@@ -4546,6 +4530,8 @@ function exportDashboardVisualPDF() {
             const targetCampuses = selectedCampus === 'all' 
                 ? data.campuses 
                 : data.campuses.filter(c => String(c.id) === String(selectedCampus));
+
+            let sumTotalArea = 0, sumRentedArea = 0, sumAvailArea = 0, sumRevExcl = 0, sumRevIncl = 0;
 
             targetCampuses.forEach(c => {
                 let cTotal = 0, cRented = 0, cRevExcl = 0;
@@ -4564,6 +4550,12 @@ function exportDashboardVisualPDF() {
                 const cOcc = cTotal > 0 ? ((cRented / cTotal) * 100).toFixed(1) : "0.0";
                 const cRevIncl = cRevExcl * (1 + VAT_RATE);
 
+                sumTotalArea += cTotal;
+                sumRentedArea += cRented;
+                sumAvailArea += cAvail;
+                sumRevExcl += cRevExcl;
+                sumRevIncl += cRevIncl;
+
                 campusTableData.push([
                     fixTRForPDF(c.name),
                     `${cTotal.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
@@ -4575,23 +4567,47 @@ function exportDashboardVisualPDF() {
                 ]);
             });
 
+            const overallOcc = sumTotalArea > 0 ? ((sumRentedArea / sumTotalArea) * 100).toFixed(1) : "0.0";
+
+            // Tablo Alt Toplamı (Footer)
+            const tableFooter = [[
+                fixTRForPDF("GENEL TOPLAM"),
+                `${sumTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                `${sumRentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                `${sumAvailArea.toLocaleString('tr-TR', { minimumFractionDigits: 1 })} m2`,
+                `%${overallOcc}`,
+                sumRevExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
+                sumRevIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2 })
+            ]];
+
             doc.autoTable({
                 startY: y,
                 head: [["Yerleske Adi", "Toplam Kap.", "Dolu Alan", "Bos Alan", "Doluluk", "KDV Haric (TL)", "KDV Dahil (TL)"]],
                 body: campusTableData,
+                foot: tableFooter,
+                showFoot: 'lastPage',
                 theme: 'striped',
                 margin: { left: margin, right: margin },
                 styles: { 
                     font: "helvetica", 
                     fontSize: 7.5, 
-                    cellPadding: 2, 
+                    cellPadding: 2.2, 
                     textColor: [30, 41, 59] 
                 },
                 headStyles: { 
-                    fillColor: [37, 99, 235], 
+                    fillColor: [30, 58, 138], // Kurumsal Lacivert
                     textColor: [255, 255, 255], 
                     fontStyle: 'bold', 
                     fontSize: 8 
+                },
+                footStyles: {
+                    fillColor: [30, 58, 138], // Kurumsal Lacivert Alt Toplam
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
                 },
                 columnStyles: {
                     1: { halign: 'right' },
@@ -4604,17 +4620,16 @@ function exportDashboardVisualPDF() {
             });
 
             // Alt Bilgi Notu
-            const finalY = doc.lastAutoTable.finalY + 8;
-            if (finalY < 285) {
+            const finalY = doc.lastAutoTable.finalY + 7;
+            if (finalY < 287) {
                 doc.setFont("helvetica", "italic");
                 doc.setFontSize(7);
                 doc.setTextColor(148, 163, 184);
-                doc.text(fixTRForPDF("* Bu rapor Zafer Teknopark Yonetim Paneli uzerinden otomatik ve canli verilerle olusturulmustur."), margin, finalY);
+                doc.text(fixTRForPDF("* Bu rapor Zafer Teknopark Yonetim Paneli uzerinden anlik verilerle olusturulmustur."), margin, finalY);
             }
 
             doc.save(`Teknopark_Dashboard_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
-
         function openRentalExcelUploadModal() {
             document.getElementById('rental-excel-file-input').value = '';
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
