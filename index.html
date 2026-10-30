@@ -1330,73 +1330,187 @@
         </div>
     </div>
     
-    <!-- DETAYLI YETKİLENDİRME MODALI -->
+<!-- DETAYLI YETKİLENDİRME MODALI -->
     <div id="user-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-2xl overflow-y-auto max-h-[90vh]">
-            <h3 class="text-xl font-bold mb-4" id="user-modal-title">Yeni Kullanıcı Tanımla</h3>
+        <div class="bg-white rounded-xl p-6 w-full max-w-3xl overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2" id="user-modal-title">
+                    <i class="fa-solid fa-user-shield text-amber-600"></i>
+                    <span>Kullanıcı ve Detaylı Yetki Tanımı</span>
+                </h3>
+                <button onclick="closeModal('user-modal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            
             <input type="hidden" id="editing-user-id">
+            
             <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
+                <!-- Temel Bilgiler -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Kullanıcı Adı</label>
-                        <input type="text" id="user-input-username" class="w-full border p-2 rounded-lg text-sm" placeholder="örn: ahmet_personel">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Kullanıcı Adı</label>
+                        <input type="text" id="user-input-username" class="w-full border p-2 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-amber-500" placeholder="örn: ahmet_operasyon">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-600 mb-1">Giriş Şifresi</label>
-                        <input type="password" id="user-input-password" class="w-full border p-2 rounded-lg text-sm" placeholder="******">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Giriş Şifresi</label>
+                        <input type="password" id="user-input-password" class="w-full border p-2 rounded-lg text-xs focus:ring-1 focus:ring-amber-500" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Kullanıcı Rolü</label>
+                        <select id="user-input-role" class="w-full border p-2 rounded-lg text-xs font-bold text-gray-800" onchange="toggleUserPermInputs()">
+                            <option value="user">Alt Kullanıcı (Yetki Kısıtlı)</option>
+                            <option value="admin">Sistem Yöneticisi (Tam Yetkili)</option>
+                        </select>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kullanıcı Rolü</label>
-                    <select id="user-input-role" class="w-full border p-2 rounded-lg text-sm" onchange="toggleUserPermInputs()">
-                        <option value="user">Alt Kullanıcı (Personel)</option>
-                        <option value="admin">Sistem Yöneticisi (Tam Yetkili Admin)</option>
-                    </select>
-                </div>
-
-                <div id="user-permissions-box" class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 mb-2">1. Sayfa ve Ekran Erişim İzinleri:</label>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-dashboard" class="rounded text-blue-600" checked> <span>Dashboard & Analizler</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-campuses" class="rounded text-blue-600" checked> <span>Yerleşke & Ofis Yönetimi</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-rentals" class="rounded text-blue-600" checked> <span>Kiralama Takibi</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-referees" class="rounded text-blue-600" checked> <span>Hakem Ödemeleri</span></label>
+                <!-- Detaylı Yetki Matrisi -->
+                <div id="user-permissions-box" class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-700 uppercase tracking-wide">Modül Bazlı Ekran ve Müdahale İzinleri</span>
+                        <div class="space-x-2">
+                            <button type="button" onclick="setAllPermissions(true)" class="text-[11px] text-blue-600 hover:underline font-semibold">Tümünü Seç</button>
+                            <span class="text-gray-300">|</span>
+                            <button type="button" onclick="setAllPermissions(false)" class="text-[11px] text-rose-600 hover:underline font-semibold">Tümünü Kaldır</button>
                         </div>
                     </div>
 
-                    <div class="border-t pt-3">
-                        <label class="block text-xs font-bold text-indigo-900 mb-2">2. Kiralama Takibi Detaylı Müdahale Yetkileri (İsteğe Bağlı):</label>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-rent-price" class="rounded text-indigo-600" checked> <span>m² Birim Kira Değiştirme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-common-cost" class="rounded text-indigo-600" checked> <span>m² Ortak Gider Değiştirme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-other-cost" class="rounded text-indigo-600" checked> <span>Diğer Katılım Payı Değiştirme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-allocated-area" class="rounded text-indigo-600" checked> <span>Kiralanan Alan (m²) Değiştirme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-dates" class="rounded text-indigo-600" checked> <span>Başlangıç / Bitiş Tarihi Değiştirme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-end-contract" class="rounded text-red-600" checked> <span class="text-red-700 font-medium">Sözleşme Bitiş / Fesih Yapabilme</span></label>
+                    <!-- 1. DASHBOARD & ANALİZ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-blue-900 cursor-pointer">
+                                <input type="checkbox" id="perm-dashboard" class="rounded text-blue-600">
+                                <i class="fa-solid fa-chart-pie text-blue-600"></i>
+                                <span>1. Dashboard & Analizler Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Genel İzleme</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-dash-export" class="rounded text-blue-600"> <span>Görsel PDF İndirme</span></label>
                         </div>
                     </div>
 
-                    <div class="border-t pt-3">
-                        <label class="block text-xs font-bold text-blue-900 mb-2">3. Yerleşke & Ofis Detaylı Müdahale Yetkileri:</label>
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-campus-add" class="rounded text-blue-600" checked> <span>Yeni Yerleşke Ekleme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-campus-delete" class="rounded text-red-600" checked> <span class="text-red-700 font-medium">Yerleşke Silme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-office-add" class="rounded text-blue-600" checked> <span>Yeni Ofis Ekleme</span></label>
-                            <label class="flex items-center space-x-2"><input type="checkbox" id="perm-office-delete" class="rounded text-red-600" checked> <span class="text-red-700 font-medium">Ofis Silme</span></label>
+                    <!-- 2. YERLEŞKE & OFİSLER -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-indigo-900 cursor-pointer">
+                                <input type="checkbox" id="perm-campuses" class="rounded text-indigo-600">
+                                <i class="fa-solid fa-city text-indigo-600"></i>
+                                <span>2. Yerleşke & Ofis Yönetimi Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Kapasite Yönetimi</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-campus-add" class="rounded text-indigo-600"> <span>Yerleşke Ekleme</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-campus-delete" class="rounded text-rose-600"> <span>Yerleşke Silme</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-office-add" class="rounded text-indigo-600"> <span>Ofis Ekleme / Excel</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-office-delete" class="rounded text-rose-600"> <span>Ofis Silme</span></label>
                         </div>
                     </div>
 
-                    <div class="border-t pt-3 grid grid-cols-2 gap-2 text-xs">
-                        <label class="flex items-center space-x-2 text-blue-800 font-semibold"><input type="checkbox" id="perm-can-edit" class="rounded text-blue-600" checked> <span>Genel Ekleme/Düzenleme Yetkisi</span></label>
-                        <label class="flex items-center space-x-2 text-emerald-800 font-semibold"><input type="checkbox" id="perm-can-export" class="rounded text-emerald-600" checked> <span>Excel ve PDF İndirebilme</span></label>
+                    <!-- 3. KİRALAMA TAKİBİ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-blue-900 cursor-pointer">
+                                <input type="checkbox" id="perm-rentals" class="rounded text-blue-600">
+                                <i class="fa-solid fa-file-contract text-blue-600"></i>
+                                <span>3. Kiralama Takibi Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Sözleşmeler</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-rental-create" class="rounded text-blue-600"> <span>Yeni Sözleşme / Excel</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-rental-edit" class="rounded text-blue-600"> <span>Genel Düzenleme</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-rent-price" class="rounded text-blue-600"> <span>Birim Kira Değiştirme</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-common-cost" class="rounded text-blue-600"> <span>Ortak Gider / Katılım</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-allocated-area" class="rounded text-blue-600"> <span>Alan (m²) Değiştirme</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-dates" class="rounded text-blue-600"> <span>Tarih Değiştirme</span></label>
+                            <label class="flex items-center space-x-1.5 text-amber-700"><input type="checkbox" id="perm-end-contract" class="rounded text-amber-600"> <span>Sözleşme Fesih / Bitir</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-rental-delete" class="rounded text-rose-600"> <span>Sözleşme Silme</span></label>
+                            <label class="flex items-center space-x-1.5 text-emerald-700"><input type="checkbox" id="perm-rental-export" class="rounded text-emerald-600"> <span>Excel / PDF İndirme</span></label>
+                        </div>
+                    </div>
+
+                    <!-- 4. HAKEM ÖDEMELERİ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-blue-900 cursor-pointer">
+                                <input type="checkbox" id="perm-referees" class="rounded text-blue-600">
+                                <i class="fa-solid fa-user-check text-blue-600"></i>
+                                <span>4. Hakem Ödemeleri Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Ar-Ge Hakemleri</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-ref-create" class="rounded text-blue-600"> <span>Yeni Hakem Ekle</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-ref-edit" class="rounded text-blue-600"> <span>Kayıt Düzenle</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-ref-delete" class="rounded text-rose-600"> <span>Kayıt Sil</span></label>
+                            <label class="flex items-center space-x-1.5 text-emerald-700"><input type="checkbox" id="perm-ref-pay" class="rounded text-emerald-600"> <span>Ödendi İşaretle</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-ref-export" class="rounded text-blue-600"> <span>Excel İndirme</span></label>
+                        </div>
+                    </div>
+
+                    <!-- 5. DANIŞMANLIK ÖDEMELERİ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-teal-900 cursor-pointer">
+                                <input type="checkbox" id="perm-consultants" class="rounded text-teal-600">
+                                <i class="fa-solid fa-chalkboard-user text-teal-600"></i>
+                                <span>5. Danışmanlık Ödemeleri Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Akademisyen Danışman</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-con-create" class="rounded text-teal-600"> <span>Yeni Danışman Ekle</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-con-edit" class="rounded text-teal-600"> <span>Kayıt Düzenle</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-con-delete" class="rounded text-rose-600"> <span>Kayıt Sil</span></label>
+                            <label class="flex items-center space-x-1.5 text-emerald-700"><input type="checkbox" id="perm-con-pay" class="rounded text-emerald-600"> <span>Ödendi İşaretle</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-con-export" class="rounded text-teal-600"> <span>Excel İndirme</span></label>
+                        </div>
+                    </div>
+
+                    <!-- 6. ÖDEMELER TAKİBİ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-emerald-900 cursor-pointer">
+                                <input type="checkbox" id="perm-payments" class="rounded text-emerald-600">
+                                <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i>
+                                <span>6. Ödemeler Takibi Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Faturalar & Giderler</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-pay-create" class="rounded text-emerald-600"> <span>Manuel Fatura Ekle</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-pay-edit" class="rounded text-emerald-600"> <span>Fatura Düzenle</span></label>
+                            <label class="flex items-center space-x-1.5 text-rose-700"><input type="checkbox" id="perm-pay-delete" class="rounded text-rose-600"> <span>Fatura Sil</span></label>
+                            <label class="flex items-center space-x-1.5 text-emerald-700"><input type="checkbox" id="perm-pay-mark" class="rounded text-emerald-600"> <span>Toplu / Tekil Ödendi</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-pay-export" class="rounded text-emerald-600"> <span>Excel İndirme</span></label>
+                        </div>
+                    </div>
+
+                    <!-- 7. ELEKTRİK SAYAÇ TAKİBİ -->
+                    <div class="p-3 bg-white border border-gray-200 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between border-b pb-1.5">
+                            <label class="flex items-center space-x-2 font-bold text-xs text-amber-900 cursor-pointer">
+                                <input type="checkbox" id="perm-meters" class="rounded text-amber-600">
+                                <i class="fa-solid fa-bolt text-amber-600"></i>
+                                <span>7. Elektrik Sayaç Takibi Ekranı</span>
+                            </label>
+                            <span class="text-[10px] text-gray-400">Tüketim Dağılımı</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-700 pl-5">
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-meter-tariff" class="rounded text-amber-600"> <span>Birim Fiyat Girişi</span></label>
+                            <label class="flex items-center space-x-1.5"><input type="checkbox" id="perm-meter-input" class="rounded text-amber-600"> <span>Endeks Girişi & Kayıt</span></label>
+                            <label class="flex items-center space-x-1.5 text-emerald-700"><input type="checkbox" id="perm-meter-export" class="rounded text-emerald-600"> <span>Excel / PDF İndirme</span></label>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end space-x-2 mt-6">
-                <button onclick="closeModal('user-modal')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-medium">İptal</button>
-                <button onclick="saveUser()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition">Kullanıcıyı Kaydet</button>
+
+            <div class="flex justify-end space-x-2 mt-5 pt-3 border-t">
+                <button onclick="closeModal('user-modal')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-300 transition">İptal</button>
+                <button onclick="saveUser()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold transition flex items-center shadow-sm">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Kullanıcıyı Kaydet
+                </button>
             </div>
         </div>
     </div>
@@ -1998,50 +2112,62 @@ async function saveData() {
             alert("Hesap bilgileriniz güncellendi.");
         }
 
+// Kullanıcı yetkilerine göre sol menüyü ve ekran butonlarını kilitleyen fonksiyon
         function applyUserPermissionsUI() {
-            if(!currentUser) return;
+            if (!currentUser) return;
 
             document.getElementById('current-user-display').innerText = currentUser.username;
             const badge = document.getElementById('current-role-badge');
-            const isUserAdmin = currentUser.role === 'admin';
-            
-            if(isUserAdmin) {
+            const isAdmin = currentUser.role === 'admin';
+
+            if (isAdmin) {
                 badge.innerText = "Yönetici";
                 badge.className = "bg-amber-900 text-amber-300 text-[10px] px-2 py-0.5 rounded font-semibold";
                 document.getElementById('nav-users').classList.remove('hidden');
             } else {
-                badge.innerText = "Kullanıcı";
+                badge.innerText = "Alt Kullanıcı";
                 badge.className = "bg-blue-900 text-blue-300 text-[10px] px-2 py-0.5 rounded font-semibold";
                 document.getElementById('nav-users').classList.add('hidden');
             }
 
-            document.getElementById('nav-dashboard').style.display = (isUserAdmin || currentUser.permissions.dashboard) ? 'flex' : 'none';
-            document.getElementById('nav-campuses').style.display = (isUserAdmin || currentUser.permissions.campuses) ? 'flex' : 'none';
-            document.getElementById('nav-rentals').style.display = (isUserAdmin || currentUser.permissions.rentals) ? 'flex' : 'none';
-            document.getElementById('nav-referees').style.display = (isUserAdmin || currentUser.permissions.referees !== false) ? 'flex' : 'none';
-            document.getElementById('nav-payments').style.display = isUserAdmin ? 'flex' : 'none';
+            const p = currentUser.permissions || {};
 
+            // 1. SOL MENÜ GÖRÜNÜRLÜĞÜ (Tüm 8 Ekran)
+            const navDash = document.getElementById('nav-dashboard');
+            const navCamp = document.getElementById('nav-campuses');
+            const navRent = document.getElementById('nav-rentals');
+            const navRef = document.getElementById('nav-referees');
+            const navCon = document.getElementById('nav-consultants');
+            const navPay = document.getElementById('nav-payments');
+            const navMeters = document.getElementById('nav-meters');
+
+            if (navDash) navDash.style.display = (isAdmin || p.dashboard) ? 'flex' : 'none';
+            if (navCamp) navCamp.style.display = (isAdmin || p.campuses) ? 'flex' : 'none';
+            if (navRent) navRent.style.display = (isAdmin || p.rentals) ? 'flex' : 'none';
+            if (navRef) navRef.style.display = (isAdmin || p.referees) ? 'flex' : 'none';
+            if (navCon) navCon.style.display = (isAdmin || p.consultants) ? 'flex' : 'none';
+            if (navPay) navPay.style.display = (isAdmin || p.payments) ? 'flex' : 'none';
+            if (navMeters) navMeters.style.display = (isAdmin || p.meters) ? 'flex' : 'none';
+
+            // Yedekleme ve Buluttan Veri Çek Butonları Sadece Admin'e Açık
             const backupContainer = document.getElementById('backup-buttons-container');
-            if (backupContainer) backupContainer.style.display = isUserAdmin ? 'block' : 'none';
+            if (backupContainer) backupContainer.style.display = isAdmin ? 'block' : 'none';
 
-            const perm = currentUser.permissions || {};
-            const canEdit = isUserAdmin || perm.canEdit;
-            const canExport = isUserAdmin || perm.canExport;
-            const canCampusAdd = isUserAdmin || perm.campusAdd !== false;
-
-            document.querySelectorAll('.perm-edit').forEach(el => { el.style.display = canEdit ? 'inline-block' : 'none'; });
-            document.querySelectorAll('.perm-export').forEach(el => { el.style.display = canExport ? 'inline-block' : 'none'; });
-
+            // 2. YERLEŞKE & OFİS EKRANI BUTONLARI
             const btnAddCampus = document.getElementById('btn-add-campus');
-            if (btnAddCampus) btnAddCampus.style.display = (canEdit && canCampusAdd) ? 'inline-block' : 'none';
+            if (btnAddCampus) btnAddCampus.style.display = (isAdmin || p.campusAdd) ? 'inline-block' : 'none';
 
             const btnExcelOffice = document.getElementById('btn-excel-office');
-            if (btnExcelOffice) {
-                const canOfficeAdd = isUserAdmin || perm.officeAdd !== false;
-                btnExcelOffice.style.display = (canEdit && canOfficeAdd) ? 'inline-block' : 'none';
-            }
-        }
+            if (btnExcelOffice) btnExcelOffice.style.display = (isAdmin || p.officeAdd) ? 'inline-block' : 'none';
 
+            // 3. KİRALAMA EKRANI BUTONLARI
+            const btnNewRental = document.getElementById('btn-new-rental');
+            if (btnNewRental) btnNewRental.style.display = (isAdmin || p.rentalCreate) ? 'inline-block' : 'none';
+
+            // 4. SAYAÇ EKRANI BİRİM FİYAT MÜDAHALESİ
+            const meterPriceInput = document.getElementById('meter-campus-unit-price');
+            if (meterPriceInput) meterPriceInput.disabled = !(isAdmin || p.meterTariff);
+        }
         function logout() {
             currentUser = null;
             sessionStorage.removeItem('teknoparkActiveUser');
@@ -2050,6 +2176,19 @@ async function saveData() {
         }
 
         function switchTab(tab) {
+            // Güvenlik Duvarı: İzin Kontrolü
+            if (currentUser && currentUser.role !== 'admin') {
+                const p = currentUser.permissions || {};
+                if (tab === 'users') { alert("Kullanıcı Yönetimi ekranına yalnızca Sistem Yöneticisi erişebilir."); return; }
+                if (tab === 'dashboard' && !p.dashboard) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'campuses' && !p.campuses) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'rentals' && !p.rentals) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'referees' && !p.referees) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'consultants' && !p.consultants) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'payments' && !p.payments) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+                if (tab === 'meters' && !p.meters) { alert("Bu ekrana erişim yetkiniz bulunmamaktadır."); return; }
+            }
+
             ['dashboard', 'campuses', 'rentals', 'referees', 'consultants', 'payments', 'users', 'meters'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
@@ -2071,9 +2210,7 @@ async function saveData() {
             }
 
             if(tab === 'dashboard') {
-                setTimeout(() => {
-                    updateCharts();
-                }, 50);
+                setTimeout(() => { updateCharts(); }, 50);
             }
             if(tab === 'campuses') renderCampuses();
             if(tab === 'rentals') renderRentals();
@@ -3950,29 +4087,25 @@ async function deleteContractDirectly(rentalId) {
             }
         }
 
-        function renderUsers() {
-            const tbody = document.getElementById('user-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+// ==================== GELİŞMİŞ YETKİLENDİRME & KULLANICI YÖNETİMİ ====================
 
-            users.forEach(u => {
-                const isAdmin = u.role === 'admin';
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-4 font-bold text-gray-800">${u.username}</td>
-                        <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-bold ${isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${isAdmin ? 'Yönetici (Admin)' : 'Alt Kullanıcı'}</span></td>
-                        <td class="p-4 text-xs">${isAdmin ? 'Tüm Ekranlar' : 'Özel Erişim İzinleri'}</td>
-                        <td class="p-4 text-xs">${isAdmin ? 'Tam Yetki' : 'Tanımlı Yetkiler'}</td>
-                        <td class="p-4 text-xs font-bold text-green-600">Açık</td>
-                        <td class="p-4 text-center">
-                            ${u.username === 'admin' ? '<span class="text-xs text-gray-400">Ana Admin</span>' : `
-                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md mr-1">Düzenle</button>
-                                <button onclick="deleteUser('${u.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>
-                            `}
-                        </td>
-                    </tr>
-                `;
-            });
+        function setAllPermissions(val) {
+            const container = document.getElementById('user-permissions-box');
+            if (!container) return;
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = val; });
+        }
+
+        function toggleUserPermInputs() {
+            const role = document.getElementById('user-input-role').value;
+            const permBox = document.getElementById('user-permissions-box');
+            if (!permBox) return;
+
+            if (role === 'admin') {
+                permBox.classList.add('opacity-40', 'pointer-events-none');
+                setAllPermissions(true);
+            } else {
+                permBox.classList.remove('opacity-40', 'pointer-events-none');
+            }
         }
 
         function openUserModal(editUserId = null) {
@@ -3982,66 +4115,89 @@ async function deleteContractDirectly(rentalId) {
                 const u = users.find(item => String(item.id) === String(editUserId));
                 if (!u) return;
 
-                document.getElementById('user-modal-title').innerText = "Kullanıcı Düzenle";
+                document.getElementById('user-modal-title').innerHTML = `<i class="fa-solid fa-user-pen text-amber-600"></i><span>Kullanıcı Düzenle: ${u.username}</span>`;
                 document.getElementById('user-input-username').value = u.username;
                 document.getElementById('user-input-password').value = u.password;
                 document.getElementById('user-input-role').value = u.role;
 
                 const p = u.permissions || {};
+                
+                // Ekran Erişimleri
                 document.getElementById('perm-dashboard').checked = p.dashboard !== false;
                 document.getElementById('perm-campuses').checked = p.campuses !== false;
                 document.getElementById('perm-rentals').checked = p.rentals !== false;
                 document.getElementById('perm-referees').checked = p.referees !== false;
-                document.getElementById('perm-can-edit').checked = p.canEdit !== false;
-                document.getElementById('perm-can-export').checked = p.canExport !== false;
+                document.getElementById('perm-consultants').checked = p.consultants !== false;
+                document.getElementById('perm-payments').checked = p.payments === true || u.role === 'admin';
+                document.getElementById('perm-meters').checked = p.meters !== false;
 
+                // Dashboard
+                document.getElementById('perm-dash-export').checked = p.dashExport !== false;
+
+                // Yerleşke & Ofis
+                document.getElementById('perm-campus-add').checked = p.campusAdd !== false;
+                document.getElementById('perm-campus-delete').checked = p.campusDelete === true;
+                document.getElementById('perm-office-add').checked = p.officeAdd !== false;
+                document.getElementById('perm-office-delete').checked = p.officeDelete === true;
+
+                // Kiralama
+                document.getElementById('perm-rental-create').checked = p.rentalCreate !== false;
+                document.getElementById('perm-rental-edit').checked = p.rentalEdit !== false;
                 document.getElementById('perm-rent-price').checked = p.rentalPriceEdit !== false;
                 document.getElementById('perm-common-cost').checked = p.rentalCommonCostEdit !== false;
-                document.getElementById('perm-other-cost').checked = p.rentalOtherCostEdit !== false;
                 document.getElementById('perm-allocated-area').checked = p.rentalAreaEdit !== false;
                 document.getElementById('perm-dates').checked = p.rentalDatesEdit !== false;
                 document.getElementById('perm-end-contract').checked = p.rentalEndContract !== false;
+                document.getElementById('perm-rental-delete').checked = p.rentalDelete === true;
+                document.getElementById('perm-rental-export').checked = p.rentalExport !== false;
 
-                document.getElementById('perm-campus-add').checked = p.campusAdd !== false;
-                document.getElementById('perm-campus-delete').checked = p.campusDelete !== false;
-                document.getElementById('perm-office-add').checked = p.officeAdd !== false;
-                document.getElementById('perm-office-delete').checked = p.officeDelete !== false;
+                // Hakem
+                document.getElementById('perm-ref-create').checked = p.refCreate !== false;
+                document.getElementById('perm-ref-edit').checked = p.refEdit !== false;
+                document.getElementById('perm-ref-delete').checked = p.refDelete === true;
+                document.getElementById('perm-ref-pay').checked = p.refPay === true || u.role === 'admin';
+                document.getElementById('perm-ref-export').checked = p.refExport !== false;
+
+                // Danışmanlık
+                document.getElementById('perm-con-create').checked = p.conCreate !== false;
+                document.getElementById('perm-con-edit').checked = p.conEdit !== false;
+                document.getElementById('perm-con-delete').checked = p.conDelete === true;
+                document.getElementById('perm-con-pay').checked = p.conPay === true || u.role === 'admin';
+                document.getElementById('perm-con-export').checked = p.conExport !== false;
+
+                // Ödemeler
+                document.getElementById('perm-pay-create').checked = p.payCreate !== false;
+                document.getElementById('perm-pay-edit').checked = p.payEdit !== false;
+                document.getElementById('perm-pay-delete').checked = p.payDelete === true;
+                document.getElementById('perm-pay-mark').checked = p.payMark === true || u.role === 'admin';
+                document.getElementById('perm-pay-export').checked = p.payExport !== false;
+
+                // Sayaç
+                document.getElementById('perm-meter-tariff').checked = p.meterTariff !== false;
+                document.getElementById('perm-meter-input').checked = p.meterInput !== false;
+                document.getElementById('perm-meter-export').checked = p.meterExport !== false;
+
             } else {
-                document.getElementById('user-modal-title').innerText = "Yeni Kullanıcı Tanımla";
+                document.getElementById('user-modal-title').innerHTML = `<i class="fa-solid fa-user-plus text-amber-600"></i><span>Yeni Kullanıcı Tanımla</span>`;
                 document.getElementById('user-input-username').value = '';
                 document.getElementById('user-input-password').value = '';
                 document.getElementById('user-input-role').value = 'user';
-
-                document.getElementById('perm-dashboard').checked = true;
-                document.getElementById('perm-campuses').checked = true;
-                document.getElementById('perm-rentals').checked = true;
-                document.getElementById('perm-referees').checked = true;
-                document.getElementById('perm-can-edit').checked = true;
-                document.getElementById('perm-can-export').checked = true;
-
-                document.getElementById('perm-rent-price').checked = true;
-                document.getElementById('perm-common-cost').checked = true;
-                document.getElementById('perm-other-cost').checked = true;
-                document.getElementById('perm-allocated-area').checked = true;
-                document.getElementById('perm-dates').checked = true;
-                document.getElementById('perm-end-contract').checked = true;
-
-                document.getElementById('perm-campus-add').checked = true;
-                document.getElementById('perm-campus-delete').checked = true;
-                document.getElementById('perm-office-add').checked = true;
-                document.getElementById('perm-office-delete').checked = true;
+                setAllPermissions(true);
+                // Silme ve ödeme onaylarını alt kullanıcı için varsayılan kapalı bırak
+                document.getElementById('perm-campus-delete').checked = false;
+                document.getElementById('perm-office-delete').checked = false;
+                document.getElementById('perm-rental-delete').checked = false;
+                document.getElementById('perm-ref-delete').checked = false;
+                document.getElementById('perm-ref-pay').checked = false;
+                document.getElementById('perm-con-delete').checked = false;
+                document.getElementById('perm-con-pay').checked = false;
+                document.getElementById('perm-pay-delete').checked = false;
+                document.getElementById('perm-pay-mark').checked = false;
+                document.getElementById('perm-payments').checked = false;
             }
 
             toggleUserPermInputs();
             document.getElementById('user-modal').classList.remove('hidden');
-        }
-
-        function toggleUserPermInputs() {
-            const role = document.getElementById('user-input-role').value;
-            const permBox = document.getElementById('user-permissions-box');
-
-            if (role === 'admin') permBox.classList.add('opacity-40', 'pointer-events-none');
-            else permBox.classList.remove('opacity-40', 'pointer-events-none');
         }
 
         function saveUser() {
@@ -4050,40 +4206,141 @@ async function deleteContractDirectly(rentalId) {
             const password = document.getElementById('user-input-password').value.trim();
             const role = document.getElementById('user-input-role').value;
 
-            if(!username || !password) { alert("Lütfen kullanıcı adı ve şifre girin."); return; }
+            if (!username || !password) { alert("Lütfen kullanıcı adı ve şifre girin."); return; }
+
+            const isAdmin = role === 'admin';
 
             const permissions = {
-                dashboard: role === 'admin' ? true : document.getElementById('perm-dashboard').checked,
-                campuses: role === 'admin' ? true : document.getElementById('perm-campuses').checked,
-                rentals: role === 'admin' ? true : document.getElementById('perm-rentals').checked,
-                referees: role === 'admin' ? true : document.getElementById('perm-referees').checked,
-                payments: role === 'admin',
-                canEdit: role === 'admin' ? true : document.getElementById('perm-can-edit').checked,
-                canExport: role === 'admin' ? true : document.getElementById('perm-can-export').checked,
-                
-                rentalPriceEdit: role === 'admin' ? true : document.getElementById('perm-rent-price').checked,
-                rentalCommonCostEdit: role === 'admin' ? true : document.getElementById('perm-common-cost').checked,
-                rentalOtherCostEdit: role === 'admin' ? true : document.getElementById('perm-other-cost').checked,
-                rentalAreaEdit: role === 'admin' ? true : document.getElementById('perm-allocated-area').checked,
-                rentalDatesEdit: role === 'admin' ? true : document.getElementById('perm-dates').checked,
-                rentalEndContract: role === 'admin' ? true : document.getElementById('perm-end-contract').checked,
+                // 1. Ekranlar
+                dashboard: isAdmin ? true : document.getElementById('perm-dashboard').checked,
+                campuses: isAdmin ? true : document.getElementById('perm-campuses').checked,
+                rentals: isAdmin ? true : document.getElementById('perm-rentals').checked,
+                referees: isAdmin ? true : document.getElementById('perm-referees').checked,
+                consultants: isAdmin ? true : document.getElementById('perm-consultants').checked,
+                payments: isAdmin ? true : document.getElementById('perm-payments').checked,
+                meters: isAdmin ? true : document.getElementById('perm-meters').checked,
 
-                campusAdd: role === 'admin' ? true : document.getElementById('perm-campus-add').checked,
-                campusDelete: role === 'admin' ? true : document.getElementById('perm-campus-delete').checked,
-                officeAdd: role === 'admin' ? true : document.getElementById('perm-office-add').checked,
-                officeDelete: role === 'admin' ? true : document.getElementById('perm-office-delete').checked
+                // 2. Modül İçi Yetkiler
+                dashExport: isAdmin ? true : document.getElementById('perm-dash-export').checked,
+
+                campusAdd: isAdmin ? true : document.getElementById('perm-campus-add').checked,
+                campusDelete: isAdmin ? true : document.getElementById('perm-campus-delete').checked,
+                officeAdd: isAdmin ? true : document.getElementById('perm-office-add').checked,
+                officeDelete: isAdmin ? true : document.getElementById('perm-office-delete').checked,
+
+                rentalCreate: isAdmin ? true : document.getElementById('perm-rental-create').checked,
+                rentalEdit: isAdmin ? true : document.getElementById('perm-rental-edit').checked,
+                rentalPriceEdit: isAdmin ? true : document.getElementById('perm-rent-price').checked,
+                rentalCommonCostEdit: isAdmin ? true : document.getElementById('perm-common-cost').checked,
+                rentalAreaEdit: isAdmin ? true : document.getElementById('perm-allocated-area').checked,
+                rentalDatesEdit: isAdmin ? true : document.getElementById('perm-dates').checked,
+                rentalEndContract: isAdmin ? true : document.getElementById('perm-end-contract').checked,
+                rentalDelete: isAdmin ? true : document.getElementById('perm-rental-delete').checked,
+                rentalExport: isAdmin ? true : document.getElementById('perm-rental-export').checked,
+
+                refCreate: isAdmin ? true : document.getElementById('perm-ref-create').checked,
+                refEdit: isAdmin ? true : document.getElementById('perm-ref-edit').checked,
+                refDelete: isAdmin ? true : document.getElementById('perm-ref-delete').checked,
+                refPay: isAdmin ? true : document.getElementById('perm-ref-pay').checked,
+                refExport: isAdmin ? true : document.getElementById('perm-ref-export').checked,
+
+                conCreate: isAdmin ? true : document.getElementById('perm-con-create').checked,
+                conEdit: isAdmin ? true : document.getElementById('perm-con-edit').checked,
+                conDelete: isAdmin ? true : document.getElementById('perm-con-delete').checked,
+                conPay: isAdmin ? true : document.getElementById('perm-con-pay').checked,
+                conExport: isAdmin ? true : document.getElementById('perm-con-export').checked,
+
+                payCreate: isAdmin ? true : document.getElementById('perm-pay-create').checked,
+                payEdit: isAdmin ? true : document.getElementById('perm-pay-edit').checked,
+                payDelete: isAdmin ? true : document.getElementById('perm-pay-delete').checked,
+                payMark: isAdmin ? true : document.getElementById('perm-pay-mark').checked,
+                payExport: isAdmin ? true : document.getElementById('perm-pay-export').checked,
+
+                meterTariff: isAdmin ? true : document.getElementById('perm-meter-tariff').checked,
+                meterInput: isAdmin ? true : document.getElementById('perm-meter-input').checked,
+                meterExport: isAdmin ? true : document.getElementById('perm-meter-export').checked
             };
 
-            if(editUserId) {
+            if (editUserId) {
                 const u = users.find(item => String(item.id) === String(editUserId));
-                if(u) { u.username = username; u.password = password; u.role = role; u.permissions = permissions; }
+                if (u) {
+                    u.username = username;
+                    u.password = password;
+                    u.role = role;
+                    u.permissions = permissions;
+                    // Eğer aktif kullanıcının kendisi düzenlendiyse oturumu güncelle
+                    if (currentUser && String(currentUser.id) === String(u.id)) {
+                        currentUser = u;
+                        sessionStorage.setItem('teknoparkActiveUser', JSON.stringify(currentUser));
+                    }
+                }
             } else {
-                if(users.some(u => u.username === username)) { alert("Bu kullanıcı adı kullanılmaktadır!"); return; }
+                if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    alert("Bu kullanıcı adı zaten kullanılmaktadır!");
+                    return;
+                }
                 users.push({ id: Date.now(), username, password, role, permissions });
             }
 
             closeModal('user-modal');
+            renderUsers();
+            applyUserPermissionsUI();
             saveData();
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('user-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                const isAdmin = u.role === 'admin';
+                const p = u.permissions || {};
+
+                // Ekran rozetleri
+                const screens = [];
+                if (isAdmin || p.dashboard) screens.push('<span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Dashboard</span>');
+                if (isAdmin || p.campuses) screens.push('<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Yerleşkeler</span>');
+                if (isAdmin || p.rentals) screens.push('<span class="bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Kiralama</span>');
+                if (isAdmin || p.referees) screens.push('<span class="bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Hakemler</span>');
+                if (isAdmin || p.consultants) screens.push('<span class="bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Danışmanlık</span>');
+                if (isAdmin || p.payments) screens.push('<span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Ödemeler</span>');
+                if (isAdmin || p.meters) screens.push('<span class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Sayaç</span>');
+
+                // Müdahale özeti
+                const permsSummary = [];
+                if (isAdmin) {
+                    permsSummary.push('<span class="text-emerald-700 font-bold">Tam Yetkili Yönetici</span>');
+                } else {
+                    if (p.rentalDelete || p.refDelete || p.conDelete || p.payDelete || p.campusDelete || p.officeDelete) {
+                        permsSummary.push('<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]">Silme Açık</span>');
+                    } else {
+                        permsSummary.push('<span class="text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">Silme Kapalı</span>');
+                    }
+                    if (p.rentalPriceEdit) permsSummary.push('<span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">Fiyat Değiştirme</span>');
+                    if (p.refPay || p.conPay || p.payMark) permsSummary.push('<span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded text-[10px]">Ödeme Onaylama</span>');
+                    if (p.meterTariff) permsSummary.push('<span class="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px]">Birim Fiyat</span>');
+                }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3.5 font-bold text-gray-800">${u.username}</td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-1 text-xs rounded-full font-bold ${isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+                                ${isAdmin ? 'Yönetici (Admin)' : 'Alt Kullanıcı'}
+                            </span>
+                        </td>
+                        <td class="p-3.5"><div class="flex flex-wrap gap-1 max-w-xs">${screens.join(' ')}</div></td>
+                        <td class="p-3.5"><div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div></td>
+                        <td class="p-3.5 text-center">
+                            ${u.username === 'admin' ? '<span class="text-xs text-gray-400 italic">Ana Admin (Kilitli)</span>' : `
+                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2.5 py-1 rounded-md mr-1">Yetkileri Düzenle</button>
+                                <button onclick="deleteUser('${u.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold bg-rose-50 px-2.5 py-1 rounded-md">Sil</button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         async function deleteUser(id) {
