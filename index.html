@@ -463,73 +463,79 @@
                     </div>
                 </div>
 <!-- KİRA TAKİBİ DİNAMİK 6'LI ÖZET KARTLAR -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-                        <!-- 1. Sözleşme Sayısı -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Sözleşme Sayısı</div>
-                                <div class="text-lg font-bold text-gray-800" id="rental-stat-count">0</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-file-signature text-sm"></i>
-                            </div>
-                        </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <!-- 1. Sözleşme Sayısı -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Sözleşme Sayısı</div>
+            <div class="text-lg font-bold text-gray-800" id="rental-stat-count">0</div>
+            <div class="text-[10px] text-gray-400 mt-1">Aktif Filtreleme</div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-file-signature text-sm"></i>
+        </div>
+    </div>
 
-                        <!-- 2. Kiralanan Alan -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Kiralanan Alan</div>
-                                <div class="text-lg font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-ruler-combined text-sm"></i>
-                            </div>
-                        </div>
+    <!-- 2. Kiralanan Alan -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Kiralanan Alan</div>
+            <div class="text-lg font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
+            <div class="text-[10px] text-gray-400 mt-1">Toplam Kullanım</div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-ruler-combined text-sm"></i>
+        </div>
+    </div>
 
-                        <!-- 3. Toplam Kira Tutarı -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Kira Tutarı (KDV Hariç)</div>
-                                <div class="text-lg font-bold text-indigo-600"><span id="rental-stat-rent">0,00</span> ₺</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-coins text-sm"></i>
-                            </div>
-                        </div>
+    <!-- 3. Toplam Kira Tutarı -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Kira Tutarı</div>
+            <div class="text-base font-bold text-indigo-600"><span id="rental-stat-rent">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-rent-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-coins text-sm"></i>
+        </div>
+    </div>
 
-                        <!-- 4. Toplam Ortak Gider -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Ort. Gider (KDV Hariç)</div>
-                                <div class="text-lg font-bold text-sky-600"><span id="rental-stat-common">0,00</span> ₺</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
-                            </div>
-                        </div>
+    <!-- 4. Toplam Ortak Gider -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Ortak Gider</div>
+            <div class="text-base font-bold text-sky-600"><span id="rental-stat-common">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-common-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+        </div>
+    </div>
 
-                        <!-- 5. Toplam Katılım Payı -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Katılım Payı (KDV Hariç)</div>
-                                <div class="text-lg font-bold text-teal-600"><span id="rental-stat-other">0,00</span> ₺</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-receipt text-sm"></i>
-                            </div>
-                        </div>
+    <!-- 5. Toplam Katılım Payı -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Katılım Payı</div>
+            <div class="text-base font-bold text-teal-600"><span id="rental-stat-other">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-other-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-receipt text-sm"></i>
+        </div>
+    </div>
 
-                        <!-- 6. Toplam Ciro (KDV Dahil) -->
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
-                            <div>
-                                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Ciro (KDV Dahil)</div>
-                                <div class="text-lg font-bold text-blue-600"><span id="rental-stat-total-incl">0,00</span> ₺</div>
-                            </div>
-                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                <i class="fa-solid fa-vault text-sm"></i>
-                            </div>
-                        </div>
-                    </div>
+    <!-- 6. Toplam Ciro -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
+        <div>
+            <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Ciro</div>
+            <div class="text-base font-bold text-blue-600"><span id="rental-stat-total-excl">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-total-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-vault text-sm"></i>
+        </div>
+    </div>
+</div>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1200px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
@@ -3712,18 +3718,41 @@ function renderRentals() {
     });
 
     // 6'lı kart değerlerini tek seferde yazdır
+// YENİ KOD:
     const countEl = document.getElementById('rental-stat-count');
     const areaEl = document.getElementById('rental-stat-area');
+    
+    // Kira Hariç / Dahil
     const rentEl = document.getElementById('rental-stat-rent');
+    const rentInclEl = document.getElementById('rental-stat-rent-incl');
+    
+    // Ortak Gider Hariç / Dahil
     const commonEl = document.getElementById('rental-stat-common');
+    const commonInclEl = document.getElementById('rental-stat-common-incl');
+    
+    // Katılım Payı Hariç / Dahil
     const otherEl = document.getElementById('rental-stat-other');
+    const otherInclEl = document.getElementById('rental-stat-other-incl');
+    
+    // Toplam Ciro Hariç / Dahil
+    const totalExclEl = document.getElementById('rental-stat-total-excl');
     const totalInclEl = document.getElementById('rental-stat-total-incl');
+
+    const statTotalOverallExcl = statTotalRent + statTotalCommon + statTotalOther;
 
     if (countEl) countEl.innerText = statTotalCount;
     if (areaEl) areaEl.innerText = statTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
     if (rentEl) rentEl.innerText = statTotalRent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (rentInclEl) rentInclEl.innerText = (statTotalRent * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
     if (commonEl) commonEl.innerText = statTotalCommon.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (commonInclEl) commonInclEl.innerText = (statTotalCommon * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
     if (otherEl) otherEl.innerText = statTotalOther.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (otherInclEl) otherInclEl.innerText = (statTotalOther * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    if (totalExclEl) totalExclEl.innerText = statTotalOverallExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (totalInclEl) totalInclEl.innerText = statTotalOverallIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     if (filteredRentals.length === 0) {
