@@ -1476,12 +1476,12 @@ async function fetchCentralData() {
             }
 
             if (!APPS_SCRIPT_URL) return;
+            // Eğer yerelde bir kaydetme işlemi sürüyorsa buluttan çekip yereli EZME!
             if (isSyncing) return;
 
             try {
-                // 2.5 saniye içinde buluttan ses çıkmazsa isteği iptal et, sayfayı bekletme
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2500);
+                const timeoutId = setTimeout(() => controller.abort(), 3500);
 
                 const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
                 const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
@@ -1496,58 +1496,56 @@ async function fetchCentralData() {
                 let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
 
                 if (targetData) {
-                    // 1. ÖDENME DURUMLARINI VE TARİHLERİ YERELDE KORU
+                    // 1. ÖDENME DURUMLARINI VE TARİHLERİ KORU
                     const localPaidStatus = new Map();
                     (data.refereePayments || []).forEach(r => localPaidStatus.set('ref_' + r.id, { isPaid: r.isPaid, paymentDate: r.paymentDate }));
                     (data.consultantPayments || []).forEach(c => localPaidStatus.set('con_' + c.id, { isPaid: c.isPaid, paymentDate: c.paymentDate }));
                     (data.manualPayments || []).forEach(m => localPaidStatus.set('man_' + m.id, { isPaid: m.isPaid, paymentDate: m.paymentDate }));
 
                     // 2. YERLEŞKELER
-                    data.campuses = (targetData.campuses || data.campuses || [])
-                        .filter(c => !persistentDeletedIds.has('cam_' + String(c.id)))
-                        .map(c => ({
-                            ...c,
-                            offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)))
-                        }));
+                    if (targetData.campuses && targetData.campuses.length > 0) {
+                        data.campuses = targetData.campuses
+                            .filter(c => !persistentDeletedIds.has('cam_' + String(c.id)) && !persistentDeletedIds.has(String(c.id)))
+                            .map(c => ({
+                                ...c,
+                                offices: (c.offices || []).filter(o => !persistentDeletedIds.has('off_' + String(o.id)) && !persistentDeletedIds.has(String(o.id)))
+                            }));
+                    }
 
-                    // 3. KİRALAMALAR (Silinenleri süz, yereldeki yenileri koru)
+                    // 3. KİRALAMALAR (Bulut ile Yereli Birleştir - Yereldeki yeni sözleşmeyi kaybetme)
                     const cloudRentals = (targetData.rentals || []).filter(rent => 
                         !persistentDeletedIds.has('rent_' + String(rent.id)) && 
                         !persistentDeletedIds.has(String(rent.id))
                     );
-
                     const rentalMap = new Map();
-                    // Önce buluttakileri haritaya al
                     cloudRentals.forEach(r => rentalMap.set(String(r.id).trim(), r));
-                    // Yerelde olup henüz buluta yazılmamış olanları koru (ezilmesini önler)
                     (data.rentals || []).forEach(lr => {
                         const lrId = String(lr.id).trim();
                         if (!persistentDeletedIds.has('rent_' + lrId) && !persistentDeletedIds.has(lrId)) {
                             rentalMap.set(lrId, lr);
                         }
                     });
-
                     data.rentals = Array.from(rentalMap.values());
 
-                    // 4. HAKEM ÖDEMELERİ (Yerelde olup henüz buluta gitmemiş olanları kaybetme)
-                    const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)));
-                    const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
+                    // 4. HAKEM ÖDEMELERİ (Yereldeki yeni hakemleri koru)
+                    const cloudRef = (targetData.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !persistentDeletedIds.has(String(r.id)));
+                    const localOnlyRef = (data.refereePayments || []).filter(r => !persistentDeletedIds.has('ref_' + String(r.id)) && !persistentDeletedIds.has(String(r.id)) && !cloudRef.some(cr => String(cr.id) === String(r.id)));
                     data.refereePayments = [...cloudRef, ...localOnlyRef].map(r => {
                         const local = localPaidStatus.get('ref_' + r.id);
                         return local ? { ...r, isPaid: local.isPaid, paymentDate: local.paymentDate } : r;
                     });
 
-                    // 5. DANIŞMANLIK ÖDEMELERİ (Yerelde yeni eklenenleri koru)
-                    const cloudCon = (targetData.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)));
-                    const localOnlyCon = (data.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !cloudCon.some(cc => String(cc.id) === String(c.id)));
+                    // 5. DANIŞMANLIK ÖDEMELERİ (Yerelde yeni eklenenleri bulutun ezmesini engelle)
+                    const cloudCon = (targetData.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !persistentDeletedIds.has(String(c.id)));
+                    const localOnlyCon = (data.consultantPayments || []).filter(c => !persistentDeletedIds.has('con_' + String(c.id)) && !persistentDeletedIds.has(String(c.id)) && !cloudCon.some(cc => String(cc.id) === String(c.id)));
                     data.consultantPayments = [...cloudCon, ...localOnlyCon].map(c => {
                         const local = localPaidStatus.get('con_' + c.id);
                         return local ? { ...c, isPaid: local.isPaid, paymentDate: local.paymentDate } : c;
                     });
 
-                    // 6. MANUEL FATURA / GİDERLER (Yerelde yeni eklenen faturaları koru)
-                    const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)));
-                    const localOnlyMan = (data.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !cloudMan.some(cm => String(cm.id) === String(m.id)));
+                    // 6. MANUEL FATURA / GİDERLER (Yereldeki yeni faturaları koru)
+                    const cloudMan = (targetData.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !persistentDeletedIds.has(String(m.id)));
+                    const localOnlyMan = (data.manualPayments || []).filter(m => !persistentDeletedIds.has('man_' + String(m.id)) && !persistentDeletedIds.has(String(m.id)) && !cloudMan.some(cm => String(cm.id) === String(m.id)));
                     data.manualPayments = [...cloudMan, ...localOnlyMan].map(m => {
                         const local = localPaidStatus.get('man_' + m.id);
                         return local ? { ...m, isPaid: local.isPaid, paymentDate: local.paymentDate } : m;
@@ -1573,7 +1571,7 @@ async function fetchCentralData() {
             }
         }
 async function saveData() {
-            // 1. ANINDA YEREL DEPOYA YAZ (Sayfa yenilense dahi veri kaybolmaz)
+            // 1. ÖNCE ANINDA YEREL DEPOYA YAZ (Sayfa yenilense bile veri kaybolmaz)
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
@@ -1585,20 +1583,32 @@ async function saveData() {
             if (APPS_SCRIPT_URL) {
                 isSyncing = true;
                 try {
-                    const payload = JSON.stringify({ data: data, users: users, userNotes: userNotes });
+                    // Tüm veri kümelerinin eksiksiz gittiğinden emin ol
+                    const payload = JSON.stringify({
+                        data: {
+                            campuses: data.campuses || [],
+                            rentals: data.rentals || [],
+                            refereePayments: data.refereePayments || [],
+                            consultantPayments: data.consultantPayments || [],
+                            manualPayments: data.manualPayments || []
+                        },
+                        users: users,
+                        userNotes: userNotes
+                    });
+
                     await fetch(APPS_SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
                         body: payload
                     });
-                } catch(err) {
+                } catch (err) {
                     console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
                 } finally {
-                    // Bulutun veriyi Google Sheets'e işlemesi için 3 saniye bekle
+                    // Google Sheets'in veriyi diske yazması için 4 saniye koruma süresi
                     setTimeout(() => {
                         isSyncing = false;
-                    }, 3000);
+                    }, 4000);
                 }
             }
         }
