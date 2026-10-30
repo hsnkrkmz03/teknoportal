@@ -4622,22 +4622,50 @@ function processRentalExcelUpload() {
             XLSX.writeFile(workbook, `Teknopark_Kiralama_Listesi_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
+// PDF için Türkçe karakterleri PDF standart fontuna uyarlayan yardımcı fonksiyon
+        function fixTRForPDF(text) {
+            if (text === null || text === undefined) return '';
+            return String(text)
+                .replace(/ğ/g, 'g').replace(/Ğ/g, 'G')
+                .replace(/ü/g, 'u').replace(/Ü/g, 'U')
+                .replace(/ş/g, 's').replace(/Ş/g, 'S')
+                .replace(/ı/g, 'i').replace(/İ/g, 'I')
+                .replace(/ö/g, 'o').replace(/Ö/g, 'O')
+                .replace(/ç/g, 'c').replace(/Ç/g, 'C')
+                .replace(/₺/g, 'TL');
+        }
+
         function exportToPDF() {
             const exportData = getExportData();
-            if (exportData.length === 0) { alert("İndirilecek veri bulunamadı."); return; }
+            if (exportData.length === 0) { 
+                alert("Indirilecek veri bulunamadi."); 
+                return; 
+            }
+
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ orientation: 'landscape' });
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-            doc.setFontSize(16);
-            doc.text("Teknopark Ofis Kiralama ve Sözleşme Raporu", 14, 15);
-            doc.setFontSize(10);
-            doc.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 14, 22);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(15);
+            doc.text(fixTRForPDF("Teknopark Ofis Kiralama ve Sozlesme Raporu"), 14, 15);
 
-            const headers = [["Durum", "Firma Adı", "Yerleşke / Ofis", "Alan", "Başlangıç", "Bitiş", "Kira (₺)", "Ort. Gider", "Katılım", "KDV Hariç", "KDV Dahil"]];
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`), 14, 21);
+
+            const headers = [[
+                "Durum", "Firma Adi", "Yerleske / Ofis", "Alan", 
+                "Baslangic", "Bitis", "Kira (TL)", "Ort. Gider", 
+                "Katilim", "KDV Haric", "KDV Dahil"
+            ]];
+
             const rows = exportData.map(r => [
-                r["Durum"], r["Firma Adı"], `${r["Yerleşke"]} - ${r["Ofis"]}`,
-                `${parseFloat(r["Alan (m²)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²`,
-                r["Başlangıç Tarihi"], r["Bitiş Tarihi"],
+                fixTRForPDF(r["Durum"]),
+                fixTRForPDF(r["Firma Adı"]),
+                fixTRForPDF(`${r["Yerleşke"]} - ${r["Ofis"]}`),
+                `${parseFloat(r["Alan (m²)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m2`,
+                r["Başlangıç Tarihi"] || '-',
+                r["Bitiş Tarihi"] || '-',
                 parseFloat(r["Kira Tutarı (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
                 parseFloat(r["Ortak Gider (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
                 parseFloat(r["Katılım Payı (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
@@ -4646,9 +4674,33 @@ function processRentalExcelUpload() {
             ]);
 
             doc.autoTable({
-                head: headers, body: rows, startY: 28,
-                styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [37, 99, 235] }
+                head: headers,
+                body: rows,
+                startY: 26,
+                styles: { 
+                    font: "helvetica", 
+                    fontSize: 8, 
+                    cellPadding: 2.5,
+                    textColor: [50, 50, 50]
+                },
+                headStyles: { 
+                    fillColor: [37, 99, 235],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
+                },
+                columnStyles: {
+                    3: { halign: 'right' },
+                    6: { halign: 'right' },
+                    7: { halign: 'right' },
+                    8: { halign: 'right' },
+                    9: { halign: 'right' },
+                    10: { halign: 'right', fontStyle: 'bold' }
+                }
             });
+
             doc.save(`Teknopark_Kiralama_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
         }
 
