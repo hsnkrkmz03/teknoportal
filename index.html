@@ -4635,7 +4635,7 @@ function processRentalExcelUpload() {
                 .replace(/₺/g, 'TL');
         }
 
-        function exportToPDF() {
+function exportToPDF() {
             const exportData = getExportData();
             if (exportData.length === 0) { 
                 alert("Indirilecek veri bulunamadi."); 
@@ -4714,6 +4714,7 @@ function processRentalExcelUpload() {
                 head: headers,
                 body: rows,
                 foot: footers,
+                showFoot: 'lastPage', // SADECE EN SON SAYFADA GÖSTERİR
                 startY: 26,
                 styles: { 
                     font: "helvetica", 
@@ -4722,12 +4723,12 @@ function processRentalExcelUpload() {
                     textColor: [50, 50, 50]
                 },
                 headStyles: { 
-                    fillColor: [37, 99, 235],
+                    fillColor: [37, 99, 235], // Canlı Mavi
                     textColor: [255, 255, 255],
                     fontStyle: 'bold'
                 },
                 footStyles: {
-                    fillColor: [30, 41, 59], // Koyu Slate / Lacivert zemin
+                    fillColor: [37, 99, 235], // BAŞLIKLA AYNI RENK (Canlı Mavi)
                     textColor: [255, 255, 255],
                     fontStyle: 'bold',
                     fontSize: 8.5
