@@ -3915,9 +3915,14 @@ function renderRentals() {
     const searchInput = document.getElementById('rental-company-search-input');
     const searchKeyword = searchInput ? searchInput.value.trim().toLowerCase() : '';
 
-    const canEdit = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.canEdit));
-    const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
     const isUserAdmin = currentUser && currentUser.role === 'admin';
+    const p = currentUser ? (currentUser.permissions || {}) : {};
+
+    // GÜNCELLENEN YETKİ KONTROLLERİ:
+    // Hem yeni matristeki rentalEdit hem de eski genel canEdit desteklenir
+    const canEdit = isUserAdmin || p.rentalEdit !== false || p.canEdit !== false;
+    const canEnd = isUserAdmin || p.rentalEndContract !== false;
+    const canDelete = isUserAdmin || p.rentalDelete === true;
 
     // Güvenli ofis ve yerleşke bulucu
     function getOfficeDetails(officeRef) {
@@ -3998,10 +4003,10 @@ function renderRentals() {
                 <td class="p-4 text-center">
                     <div class="flex items-center justify-center space-x-1.5">
                         ${isActive ? `
-                            ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md">Düzenle</button>` : ''}
-                            ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md">Bitir</button>` : ''}
+                            ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md transition">Düzenle</button>` : ''}
+                            ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md transition">Bitir</button>` : ''}
                         ` : '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>'}
-                        ${isUserAdmin ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md">Sil</button>` : ''}
+                        ${canDelete ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md transition">Sil</button>` : ''}
                     </div>
                 </td>
             </tr>
@@ -4009,23 +4014,18 @@ function renderRentals() {
     });
 
     // 6'lı kart değerlerini tek seferde yazdır
-// YENİ KOD:
     const countEl = document.getElementById('rental-stat-count');
     const areaEl = document.getElementById('rental-stat-area');
     
-    // Kira Hariç / Dahil
     const rentEl = document.getElementById('rental-stat-rent');
     const rentInclEl = document.getElementById('rental-stat-rent-incl');
     
-    // Ortak Gider Hariç / Dahil
     const commonEl = document.getElementById('rental-stat-common');
     const commonInclEl = document.getElementById('rental-stat-common-incl');
     
-    // Katılım Payı Hariç / Dahil
     const otherEl = document.getElementById('rental-stat-other');
     const otherInclEl = document.getElementById('rental-stat-other-incl');
     
-    // Toplam Ciro Hariç / Dahil
     const totalExclEl = document.getElementById('rental-stat-total-excl');
     const totalInclEl = document.getElementById('rental-stat-total-incl');
 
