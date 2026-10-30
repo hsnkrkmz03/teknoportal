@@ -4373,77 +4373,94 @@ async function deleteOffice(campusId, officeId) {
                 return;
             }
 
-            // Görüntü yakalama öncesi kaydırmayı sıfırla
+            // Yakalama öncesi kaydırmayı sıfırla
             const originalScroll = window.scrollY;
             window.scrollTo(0, 0);
 
-            // Dikey A4'e basılmadan önce kartların ve ChartDataLabels etiketlerinin
-            // birbirine girmemesi için masaüstü genişliğini sabitliyoruz
+            // Masaüstü tam genişliğini sabitle (kartların daralıp metinlerin kırpılmasını engeller)
             const originalWidth = captureArea.style.width;
             const originalMaxWidth = captureArea.style.maxWidth;
-            captureArea.style.width = '1100px';
-            captureArea.style.maxWidth = '1100px';
+            captureArea.style.width = '1150px';
+            captureArea.style.maxWidth = '1150px';
 
             html2canvas(captureArea, {
-                scale: 2,               // Yüksek netlik (Retina çözünürlük)
+                scale: 2,               // Yüksek çözünürlük (Retina kalitesi)
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#f3f4f6',
                 scrollX: 0,
                 scrollY: 0,
-                windowWidth: 1200       // Sanal genişlik sayesinde etiketler asla kırpılmaz
+                windowWidth: 1200
             }).then(canvas => {
-                // Orijinal genişliği ve sayfa konumunu anında geri yükle
+                // Genişlik ve kaydırma durumunu anında eski haline getir
                 captureArea.style.width = originalWidth;
                 captureArea.style.maxWidth = originalMaxWidth;
                 window.scrollTo(0, originalScroll);
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const { jsPDF } = window.jspdf;
-
-                // 1. DİKEY FORMAT (portrait) A4: 210mm x 297mm
+                // DİKEY (PORTRAIT) A4: 210mm x 297mm
                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
                 const pageWidth = 210;
                 const pageHeight = 297;
                 const margin = 10;
-                const availableWidth = pageWidth - (margin * 2); // 190 mm
-                const startY = 22;
-                const availableHeight = pageHeight - startY - margin; // 265 mm
+                const printWidth = pageWidth - (margin * 2); // 190 mm
+                
+                // Canvas'ın PDF üzerindeki toplam yüksekliği
+                const totalPdfHeight = (canvas.height * printWidth) / canvas.width;
 
-                // Resmin orantılı boyutları
-                let imgWidth = availableWidth;
-                let imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const firstPageHeaderHeight = 20; // Başlık ve tarih alanı
+                const firstPageAvailableHeight = pageHeight - firstPageHeaderHeight - margin; // ~267 mm
+                const regularPageAvailableHeight = pageHeight - (margin * 2); // ~277 mm
 
-                // Eğer dikey tek sayfa sınırını aşıyorsa tüm etiketlerin tek sayfada eksiksiz kalması için
-                // orantılı olarak dikey boyuta göre küçülterek sayfaya ortala
-                if (imgHeight > availableHeight) {
-                    imgWidth = (canvas.width * availableHeight) / canvas.height;
-                    imgHeight = availableHeight;
+                // Üst Başlık Fonksiyonu
+                function drawHeader(doc, pageNum, totalPages) {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(13);
+                    doc.setTextColor(30, 41, 59);
+                    doc.text(fixTRForPDF("Teknopark Dashboard ve Analiz Raporu"), margin, 11);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8);
+                    doc.setTextColor(100, 116, 139);
+                    const campusText = document.getElementById('dash-occupancy-chart-title')?.innerText || "Genel Gorunum";
+                    doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} | Kapsam: ${campusText} | Sayfa ${pageNum}/${totalPages}`), margin, 16);
                 }
 
-                // Yatayda ortalama
-                const posX = margin + ((availableWidth - imgWidth) / 2);
+                // Sayfa dilimleme hesabı
+                const totalPages = Math.ceil(totalPdfHeight / regularPageAvailableHeight);
 
-                // Başlık Bilgisi
-                pdf.setFont("helvetica", "bold");
-                pdf.setFontSize(14);
-                pdf.text(fixTRForPDF("Teknopark Dashboard ve Analiz Raporu"), margin, 12);
+                let heightLeft = totalPdfHeight;
+                let position = 0;
+                let pageNumber = 1;
 
-                pdf.setFont("helvetica", "normal");
-                pdf.setFontSize(8.5);
-                const campusText = document.getElementById('dash-occupancy-chart-title')?.innerText || "Genel Gorunum";
-                pdf.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} | Kapsam: ${campusText}`), margin, 17);
+                // 1. SAYFA
+                drawHeader(pdf, 1, totalPages);
+                
+                // İlk sayfaya resmi üst başlıktan sonrasına yerleştir
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                pdf.addImage(imgData, 'JPEG', margin, firstPageHeaderHeight, printWidth, totalPdfHeight);
+                heightLeft -= firstPageAvailableHeight;
+                position -= firstPageAvailableHeight;
 
-                // Çizimi dikey sayfaya yerleştir
-                pdf.addImage(imgData, 'JPEG', posX, startY, imgWidth, imgHeight);
-                pdf.save(`Teknopark_Dashboard_Dikey_${new Date().toISOString().split('T')[0]}.pdf`);
+                // GEREKİRSE 2. VE DİĞER SAYFALAR (Hiçbir kart kesilmeden otomatik sonraki sayfaya geçer)
+                while (heightLeft > 0) {
+                    pageNumber++;
+                    pdf.addPage();
+                    drawHeader(pdf, pageNumber, totalPages);
+                    // Başlıktan sonra kalan kısmı sayfaya hizala
+                    pdf.addImage(imgData, 'JPEG', margin, position + firstPageHeaderHeight, printWidth, totalPdfHeight);
+                    heightLeft -= regularPageAvailableHeight;
+                    position -= regularPageAvailableHeight;
+                }
+
+                pdf.save(`Teknopark_Dashboard_Raporu_${new Date().toISOString().split('T')[0]}.pdf`);
             }).catch(err => {
                 captureArea.style.width = originalWidth;
                 captureArea.style.maxWidth = originalMaxWidth;
                 window.scrollTo(0, originalScroll);
                 console.error("Dashboard PDF Hatası:", err);
-                alert("Dashboard PDF oluşturulurken bir hata meydana geldi: " + err.message);
+                alert("Dashboard PDF oluşturulurken hata oluştu: " + err.message);
             });
         }
 
