@@ -117,6 +117,11 @@
                     <i class="fa-solid fa-file-contract text-base min-w-[20px]"></i>
                     <span class="sidebar-text truncate">Kiralama Takibi</span>
                 </button>
+                <!-- SAYAÇ & TÜKETİM TAKİBİ SEKMESİ BUTONU -->
+                <button onclick="switchTab('meters')" id="nav-meters" title="Elektrik Sayaç Takibi" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
+                    <i class="fa-solid fa-bolt text-base min-w-[20px] text-amber-400"></i>
+                    <span class="sidebar-text truncate">Elektrik Sayaç Takibi</span>
+                </button>
                 <!-- HAKEM ÖDEMELERİ SEKMESİ -->
                 <button onclick="switchTab('referees')" id="nav-referees" title="Hakem Ödemeleri" class="sidebar-item w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-gray-400 hover:bg-slate-800 hover:text-white transition text-xs font-semibold">
                     <i class="fa-solid fa-user-check text-base min-w-[20px]"></i>
@@ -574,7 +579,133 @@
                     </table>
                 </div>
             </section>
+<!-- 7. ELEKTRİK SAYAÇ & TÜKETİM TAKİBİ SEKMESİ -->
+<section id="tab-meters" class="hidden">
+    <div class="mb-6 space-y-3">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500"></i>
+                    <span>Elektrik Sayaç & Tüketim Takibi</span>
+                </h1>
+                <p class="text-xs text-gray-500">Yerleşke bazlı aylık birim fiyat ve ofis endeks farklarına göre KDV dahil elektrik gider dağılımı.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="exportMetersToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
+                    <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
+                </button>
+                <button onclick="exportMetersToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
+                    <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
+                </button>
+                <button onclick="saveAllMeterReadings()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Endeksleri Kaydet
+                </button>
+            </div>
+        </div>
 
+        <!-- FİLTRE VE YERLEŞKE BİRİM FİYAT ÇUBUĞU -->
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Dönem Seçimi -->
+                <div class="flex items-center space-x-1.5">
+                    <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+                    <select id="meter-year-filter" class="border rounded-md px-2 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderMeters()"></select>
+                    <select id="meter-month-filter" class="border rounded-md px-2 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderMeters()">
+                        <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                        <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
+                        <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                        <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                    </select>
+                </div>
+
+                <!-- Yerleşke Seçimi -->
+                <div class="flex items-center space-x-1.5 border-l pl-3">
+                    <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-city mr-1 text-blue-600"></i> Yerleşke:</label>
+                    <select id="meter-campus-filter" class="border rounded-md px-2.5 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[170px]" onchange="renderMeters()"></select>
+                </div>
+            </div>
+
+            <!-- Yerleşke Bazlı Aylık Birim Fiyat Kutusu -->
+            <div class="flex items-center space-x-2 bg-amber-50/80 border border-amber-200 px-3 py-1.5 rounded-lg">
+                <i class="fa-solid fa-tag text-amber-600 text-sm"></i>
+                <label class="text-xs font-bold text-amber-900">Yerleşke Birim Fiyatı (TL/kWh):</label>
+                <div class="relative">
+                    <input type="number" step="0.0001" id="meter-campus-unit-price" placeholder="Örn: 4.85" 
+                           class="w-28 px-2 py-1 text-xs font-bold text-gray-800 border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                           oninput="onMeterUnitPriceInput()">
+                    <span class="absolute right-2 top-1 text-[10px] text-gray-400 font-bold pointer-events-none">₺</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4'LÜ DİNAMİK KPI ÖZET KARTLARI -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Enerji Tüketimi</div>
+                <div class="text-lg font-bold text-gray-800"><span id="meter-stat-total-kwh">0,00</span> <span class="text-xs text-gray-500 font-normal">kWh</span></div>
+                <div class="text-[10px] text-gray-400 mt-1">Yerleşke İçi Net Tüketim</div>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-plug-circle-bolt text-sm"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-[11px] font-medium mb-1">Aktif Birim Fiyat</div>
+                <div class="text-lg font-bold text-blue-600"><span id="meter-stat-unit-price">0,0000</span> ₺ <span class="text-xs text-gray-400 font-normal">/ kWh</span></div>
+                <div class="text-[10px] text-gray-400 mt-1">KDV Hariç Tarife</div>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-coins text-sm"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Tutar (KDV Hariç)</div>
+                <div class="text-lg font-bold text-indigo-600"><span id="meter-stat-total-excl">0,00</span> ₺</div>
+                <div class="text-[10px] text-gray-400 mt-1">Net Enerji Bedeli</div>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-receipt text-sm"></i>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-emerald-600 flex items-center justify-between">
+            <div>
+                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Tahakkuk (KDV Dahil)</div>
+                <div class="text-lg font-bold text-emerald-600"><span id="meter-stat-total-incl">0,00</span> ₺</div>
+                <div class="text-[10px] text-gray-400 mt-1">%20 KDV Uygulanmış</div>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-vault text-sm"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIZLI ENDEKS VE TÜKETİM TABLOSU -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[1100px]">
+            <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
+                <tr>
+                    <th class="p-3.5">Ofis No / Adı</th>
+                    <th class="p-3.5">Kiracı Firma</th>
+                    <th class="p-3.5 text-right w-32">İlk Endeks (kWh)</th>
+                    <th class="p-3.5 text-right w-36">Son Endeks (kWh)</th>
+                    <th class="p-3.5 text-right">Tüketim (kWh)</th>
+                    <th class="p-3.5 text-right">Birim Fiyat</th>
+                    <th class="p-3.5 text-right">Tutar (KDV Hariç)</th>
+                    <th class="p-3.5 text-right text-emerald-800">Tahakkuk (KDV Dahil)</th>
+                    <th class="p-3.5 text-center">Durum</th>
+                </tr>
+            </thead>
+            <tbody id="meter-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
+        </table>
+    </div>
+</section>
             <!-- 4. HAKEM ÖDEMELERİ SEKMESİ -->
             <section id="tab-referees" class="hidden">
                 <div class="mb-6 space-y-3">
@@ -1533,6 +1664,8 @@ function normalizeOfficeName(str) {
             populateRefereeYearFilter();
             populateConsultantYearFilter();
             populatePaymentsYearFilter();
+            populateMeterYearFilter();
+            populateMeterCampusFilter();
             fetchCentralData();
 
             const savedUserJson = sessionStorage.getItem('teknoparkActiveUser');
@@ -1896,7 +2029,7 @@ async function saveData() {
         }
 
         function switchTab(tab) {
-            ['dashboard', 'campuses', 'rentals', 'referees', 'consultants','payments', 'users'].forEach(t => {
+            ['dashboard', 'campuses', 'rentals', 'referees', 'consultants', 'payments', 'users', 'meters'].forEach(t => { ... });
                 const el = document.getElementById(`tab-${t}`);
                 if (el) el.classList.add('hidden');
 
@@ -1927,6 +2060,7 @@ async function saveData() {
             if(tab === 'consultants') renderConsultants();
             if(tab === 'payments') renderPayments();
             if(tab === 'users') renderUsers();
+            if(tab === 'meters') renderMeters();
         }
 
         // ==================== DASHBOARD GRAFİKLERİ ====================
@@ -5507,6 +5641,251 @@ async function markSelectedPaymentsAsPaid() {
         alert(`${updatedCount} adet ödeme başarıyla 'Ödendi' durumuna geçirildi.`);
     }
 }
+        // ==================== ELEKTRİK SAYAÇ VE TÜKETİM MODÜLÜ ====================
+        if (!data.meterTariffs) data.meterTariffs = [];
+        if (!data.meterReadings) data.meterReadings = [];
+
+        function populateMeterYearFilter() {
+            const yearSelect = document.getElementById('meter-year-filter');
+            if (!yearSelect) return;
+            const currentYear = new Date().getFullYear();
+            yearSelect.innerHTML = '';
+            for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+            }
+            const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+            const monthSelect = document.getElementById('meter-month-filter');
+            if (monthSelect) monthSelect.value = currentMonth;
+        }
+
+        function populateMeterCampusFilter() {
+            const campusSelect = document.getElementById('meter-campus-filter');
+            if (!campusSelect) return;
+            const currentVal = campusSelect.value;
+            campusSelect.innerHTML = '';
+            (data.campuses || []).forEach(c => {
+                campusSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+            });
+            if (currentVal && (data.campuses || []).some(c => String(c.id) === String(currentVal))) {
+                campusSelect.value = currentVal;
+            }
+        }
+
+        // Seçili dönem ve yerleşkenin birim fiyatını çeker
+        function getCampusMeterTariff(campusId, year, month) {
+            const key = `elec_${campusId}_${year}_${month}`;
+            const found = (data.meterTariffs || []).find(t => String(t.campusId) === String(campusId) && String(t.year) === String(year) && String(t.month) === String(month));
+            return found ? parseFloat(found.unitPrice || 0) : 0;
+        }
+
+        // Birim fiyat inputuna yazıldığı anda tüm tabloyu canlı günceller
+        function onMeterUnitPriceInput() {
+            const campusId = document.getElementById('meter-campus-filter')?.value;
+            const year = document.getElementById('meter-year-filter')?.value;
+            const month = document.getElementById('meter-month-filter')?.value;
+            const price = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+
+            if (!campusId || !year || !month) return;
+
+            // Fiyatı yerel tarifeler listesine işle veya güncelle
+            let tariff = (data.meterTariffs || []).find(t => String(t.campusId) === String(campusId) && String(t.year) === String(year) && String(t.month) === String(month));
+            if (tariff) {
+                tariff.unitPrice = price;
+            } else {
+                data.meterTariffs.push({ campusId, year, month, unitPrice: price });
+            }
+
+            // Tablodaki her ofis satırının tutarını canlı güncelle
+            recalculateMeterTableLive(price);
+        }
+
+        // Endeks değiştiğinde anlık satır ve KPI hesabı
+        function onOfficeIndexChange(officeId) {
+            const prevInput = document.getElementById(`meter-prev-${officeId}`);
+            const currInput = document.getElementById(`meter-curr-${officeId}`);
+            const kwhEl = document.getElementById(`meter-kwh-${officeId}`);
+
+            const prevVal = parseFloat(prevInput?.value) || 0;
+            const currVal = parseFloat(currInput?.value) || 0;
+            const diff = Math.max(0, currVal - prevVal);
+
+            if (kwhEl) kwhEl.innerText = diff.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const campusPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+            recalculateMeterTableLive(campusPrice);
+        }
+
+        // Tablodaki tüm satırları ve üst 4'lü KPI kartlarını anlık yeniden toplayan fonksiyon
+        function recalculateMeterTableLive(unitPrice) {
+            let totalKwh = 0;
+            let totalExcl = 0;
+            let totalIncl = 0;
+
+            const rows = document.querySelectorAll('#meter-table-body tr[data-office-id]');
+            rows.forEach(row => {
+                const offId = row.getAttribute('data-office-id');
+                const prev = parseFloat(document.getElementById(`meter-prev-${offId}`)?.value) || 0;
+                const curr = parseFloat(document.getElementById(`meter-curr-${offId}`)?.value) || 0;
+                const kwh = Math.max(0, curr - prev);
+
+                const excl = kwh * unitPrice;
+                const incl = excl * (1 + VAT_RATE);
+
+                totalKwh += kwh;
+                totalExcl += excl;
+                totalIncl += incl;
+
+                const priceCol = row.querySelector('.col-unit-price');
+                const exclCol = row.querySelector('.col-total-excl');
+                const inclCol = row.querySelector('.col-total-incl');
+
+                if (priceCol) priceCol.innerText = unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 }) + ' ₺';
+                if (exclCol) exclCol.innerText = excl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+                if (inclCol) inclCol.innerText = incl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+            });
+
+            // Üst KPI Kartları
+            document.getElementById('meter-stat-total-kwh').innerText = totalKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('meter-stat-unit-price').innerText = unitPrice.toLocaleString('tr-TR', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+            document.getElementById('meter-stat-total-excl').innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('meter-stat-total-incl').innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Sayaç Ekranını Çizen Ana Fonksiyon
+        function renderMeters() {
+            const tbody = document.getElementById('meter-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            populateMeterCampusFilter();
+            const campusId = document.getElementById('meter-campus-filter')?.value;
+            const year = document.getElementById('meter-year-filter')?.value || String(new Date().getFullYear());
+            const month = document.getElementById('meter-month-filter')?.value || String(new Date().getMonth() + 1).padStart(2, '0');
+
+            if (!campusId) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Lütfen önce bir yerleşke tanımlayın.</td></tr>`;
+                return;
+            }
+
+            const currentUnitPrice = getCampusMeterTariff(campusId, year, month);
+            const unitPriceInput = document.getElementById('meter-campus-unit-price');
+            if (unitPriceInput) unitPriceInput.value = currentUnitPrice > 0 ? currentUnitPrice : '';
+
+            const campus = (data.campuses || []).find(c => String(c.id) === String(campusId));
+            const offices = campus ? (campus.offices || []) : [];
+
+            if (offices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Bu yerleşkede henüz kayıtlı ofis bulunmuyor.</td></tr>`;
+                recalculateMeterTableLive(currentUnitPrice);
+                return;
+            }
+
+            // Bir önceki dönemi belirle (Önceki aydan endeks devri için)
+            let prevYear = parseInt(year);
+            let prevMonthNum = parseInt(month) - 1;
+            if (prevMonthNum === 0) { prevMonthNum = 12; prevYear -= 1; }
+            const prevMonthStr = String(prevMonthNum).padStart(2, '0');
+
+            offices.forEach(o => {
+                // Aktif kiracıyı bul
+                const activeRental = (data.rentals || []).find(r => String(r.officeId) === String(o.id) && r.status === 'active');
+                const companyName = activeRental ? activeRental.company : '<span class="text-gray-400 italic font-normal">Boş Ofis (Teknopark)</span>';
+
+                // Bu ofisin bu aydaki kayıtlı endeksini çek
+                const record = (data.meterReadings || []).find(m => String(m.officeId) === String(o.id) && String(m.year) === String(year) && String(m.month) === String(month));
+
+                // Önceki ayın son endeksini bul (otomatik ilk endeks devri)
+                const prevRecord = (data.meterReadings || []).find(m => String(m.officeId) === String(o.id) && String(m.year) === String(prevYear) && String(m.month) === String(prevMonthStr));
+                
+                const initialPrevIndex = record ? (record.previousIndex || 0) : (prevRecord ? (prevRecord.currentIndex || 0) : 0);
+                const initialCurrIndex = record ? (record.currentIndex || 0) : 0;
+                const diffKwh = Math.max(0, initialCurrIndex - initialPrevIndex);
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition" data-office-id="${o.id}">
+                        <td class="p-3.5 font-bold text-gray-800">
+                            ${o.name} <span class="text-[10px] text-gray-400 font-normal">(${o.floor || '1. Kat'})</span>
+                        </td>
+                        <td class="p-3.5 font-semibold text-gray-700">${companyName}</td>
+                        <td class="p-3.5 text-right">
+                            <input type="number" id="meter-prev-${o.id}" value="${initialPrevIndex > 0 ? initialPrevIndex : ''}" placeholder="0.00"
+                                   class="w-24 px-2 py-1 text-xs border rounded text-right font-medium focus:ring-1 focus:ring-blue-500"
+                                   oninput="onOfficeIndexChange('${o.id}')">
+                        </td>
+                        <td class="p-3.5 text-right">
+                            <input type="number" id="meter-curr-${o.id}" value="${initialCurrIndex > 0 ? initialCurrIndex : ''}" placeholder="0.00"
+                                   class="w-24 px-2 py-1 text-xs border border-amber-300 bg-amber-50/40 rounded text-right font-bold text-gray-900 focus:ring-2 focus:ring-amber-500"
+                                   oninput="onOfficeIndexChange('${o.id}')">
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-gray-800 tabular-nums">
+                            <span id="meter-kwh-${o.id}">${diffKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </td>
+                        <td class="p-3.5 text-right font-semibold text-gray-600 tabular-nums col-unit-price">0,0000 ₺</td>
+                        <td class="p-3.5 text-right font-bold text-indigo-700 tabular-nums col-total-excl">0,00 ₺</td>
+                        <td class="p-3.5 text-right font-black text-emerald-700 bg-emerald-50/40 tabular-nums col-total-incl">0,00 ₺</td>
+                        <td class="p-3.5 text-center">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${diffKwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}">
+                                ${diffKwh > 0 ? 'Okundu' : 'Bekliyor'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            recalculateMeterTableLive(currentUnitPrice);
+        }
+
+        // Tüm ofis endekslerini tek seferde kaydeden fonksiyon
+        async function saveAllMeterReadings() {
+            const campusId = document.getElementById('meter-campus-filter')?.value;
+            const year = document.getElementById('meter-year-filter')?.value;
+            const month = document.getElementById('meter-month-filter')?.value;
+            const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+
+            if (!campusId) return;
+
+            // 1. Birim fiyat tarifesini kaydet
+            let tariff = (data.meterTariffs || []).find(t => String(t.campusId) === String(campusId) && String(t.year) === String(year) && String(t.month) === String(month));
+            if (tariff) {
+                tariff.unitPrice = unitPrice;
+            } else {
+                data.meterTariffs.push({ campusId, year, month, unitPrice });
+            }
+
+            // 2. Ofis okumalarını güncelle
+            const rows = document.querySelectorAll('#meter-table-body tr[data-office-id]');
+            let savedCount = 0;
+
+            rows.forEach(row => {
+                const officeId = row.getAttribute('data-office-id');
+                const prev = parseFloat(document.getElementById(`meter-prev-${officeId}`)?.value) || 0;
+                const curr = parseFloat(document.getElementById(`meter-curr-${officeId}`)?.value) || 0;
+
+                let record = (data.meterReadings || []).find(m => String(m.officeId) === String(officeId) && String(m.year) === String(year) && String(m.month) === String(month));
+                if (record) {
+                    record.previousIndex = prev;
+                    record.currentIndex = curr;
+                    record.unitPrice = unitPrice;
+                } else {
+                    data.meterReadings.push({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        campusId, officeId, year, month,
+                        previousIndex: prev,
+                        currentIndex: curr,
+                        unitPrice: unitPrice
+                    });
+                }
+                savedCount++;
+            });
+
+            await saveData();
+            renderMeters();
+            if (typeof showToast === 'function') {
+                showToast(`✓ ${savedCount} ofisin elektrik endeksleri başarıyla kaydedildi!`);
+            } else {
+                alert("Sayaç endeksleri ve yerleşke tarifesi kaydedildi.");
+            }
+        }
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
