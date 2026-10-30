@@ -4053,7 +4053,7 @@ async function deleteOffice(campusId, officeId) {
             if (!file) { alert("Lütfen yüklenecek bir Excel dosyası seçin."); return; }
 
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const dataContent = e.target.result;
                     const workbook = XLSX.read(dataContent, { type: 'binary' });
@@ -4096,9 +4096,17 @@ async function deleteOffice(campusId, officeId) {
                     });
 
                     if (addedCount > 0) {
-                        alert(`Başarıyla ${addedCount} adet ofis tanımlandı.`);
                         closeModal('excel-upload-modal');
-                        saveData();
+
+                        // ANINDA EKRANA YANSIT (F5'e gerek bırakmayan kısım)
+                        renderCampuses();
+                        populateCampusFilters();
+                        renderDashboard();
+
+                        // Yerel belleğe ve buluta kaydet
+                        await saveData();
+
+                        alert(`Başarıyla ${addedCount} adet ofis tanımlandı ve listeye eklendi.`);
                     } else {
                         alert("Excel dosyasındaki sütunlar eşleştirilemedi. Dosyanızda 'Ofis Adı' ve 'Alan (m²)' sütun başlıklarının yer aldığından emin olun.");
                     }
@@ -4114,7 +4122,6 @@ async function deleteOffice(campusId, officeId) {
                 reader.readAsArrayBuffer(file);
             }
         }
-
         // ==================== DASHBOARD GÖRSEL PDF İNDİRME DÜZELTİLDİ ====================
         function exportDashboardVisualPDF() {
             const captureArea = document.getElementById('dashboard-capture-area');
