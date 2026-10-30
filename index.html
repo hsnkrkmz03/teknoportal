@@ -809,41 +809,60 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1150px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
-                            <tr>
-<!-- TÜR BAŞLIĞI: İKON İLE AÇILIR MİNİ AÇILIR KUTU (DROPDOWN) -->
-<th class="p-3 relative">
-    <div class="flex items-center space-x-1.5">
-        <span>Tür</span>
-        <button type="button" onclick="togglePaymentTypeFilter(event)" class="text-gray-400 hover:text-blue-600 transition p-1" title="Türe Göre Filtrele">
-            <i class="fa-solid fa-filter text-xs"></i>
-        </button>
-        <!-- Aktif filtre varsa görsel nokta gösterir -->
-        <span id="pay-type-filter-indicator" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
-    </div>
-    <div id="payment-type-filter-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 min-w-[200px]" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
-            <span class="text-[11px] font-bold text-gray-700">Ödeme Türü Seçin</span>
-            <button type="button" onclick="resetPaymentTypeFilter()" class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold underline">
-                Sıfırla
-            </button>
-        </div>
-        <select id="pay-type-filter" onchange="onPaymentTypeChange()" class="w-full border border-gray-200 rounded-md p-1.5 text-xs bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium">
-            <option value="all">Tüm Ödemeler</option>
-            <option value="referee">Hakem Ödemesi</option>
-            <option value="consultant">Danışmanlık Ödemesi</option>
-            <option value="manual">Fatura / Gider</option>
-        </select>
-    </div>
-</th>
-                                <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
-                                <th class="p-3">IBAN Bilgisi</th>
-                                <th class="p-3">Açıklama</th>
-                                <th class="p-3">Son Ödeme (Vade)</th>
-                                <th class="p-3 text-right">Ödenecek Tutar</th>
-                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
-                                <th class="p-3 text-center">İşlem</th>
-                            </tr>
-                        </thead>
+    <tr>
+        <!-- 1. SÜTUN: TÜMÜNÜ SEÇ CHECKBOX -->
+        <th class="p-3 text-center w-10">
+            <input type="checkbox" id="pay-select-all" onchange="toggleSelectAllPayments(this.checked)" class="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" title="Tümünü Seç / Kaldır">
+        </th>
+
+        <!-- 2. SÜTUN: TÜR (AÇILIR MİNİ FİLTRE POP-UP) -->
+        <th class="p-3 relative">
+            <div class="flex items-center space-x-1.5">
+                <span>Tür</span>
+                <button type="button" onclick="togglePaymentTypeFilter(event)" class="text-gray-400 hover:text-blue-600 transition p-1" title="Türe Göre Filtrele">
+                    <i class="fa-solid fa-filter text-xs"></i>
+                </button>
+                <!-- Aktif filtre göstergesi -->
+                <span id="pay-type-filter-indicator" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
+            </div>
+            <div id="payment-type-filter-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 min-w-[200px]" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                    <span class="text-[11px] font-bold text-gray-700">Ödeme Türü Seçin</span>
+                    <button type="button" onclick="resetPaymentTypeFilter()" class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold underline">
+                        Sıfırla
+                    </button>
+                </div>
+                <select id="pay-type-filter" onchange="onPaymentTypeChange()" class="w-full border border-gray-200 rounded-md p-1.5 text-xs bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium">
+                    <option value="all">Tüm Ödemeler</option>
+                    <option value="referee">Hakem Ödemesi</option>
+                    <option value="consultant">Danışmanlık Ödemesi</option>
+                    <option value="manual">Fatura / Gider</option>
+                </select>
+            </div>
+        </th>
+
+        <!-- 3. SÜTUN: ALICI BİLGİSİ -->
+        <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
+
+        <!-- 4. SÜTUN: IBAN -->
+        <th class="p-3">IBAN Bilgisi</th>
+
+        <!-- 5. SÜTUN: AÇIKLAMA -->
+        <th class="p-3">Açıklama</th>
+
+        <!-- 6. SÜTUN: VADE -->
+        <th class="p-3">Son Ödeme (Vade)</th>
+
+        <!-- 7. SÜTUN: TUTAR -->
+        <th class="p-3 text-right">Ödenecek Tutar</th>
+
+        <!-- 8. SÜTUN: DURUM & ÖDEME TARİHİ -->
+        <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
+
+        <!-- 9. SÜTUN: İŞLEMLER -->
+        <th class="p-3 text-center">İşlem</th>
+    </tr>
+</thead>
                         <tbody id="payments-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
                     </table>
                 </div>
