@@ -4362,11 +4362,44 @@ function renderUsers() {
         }
 
         async function deleteUser(id) {
-            if(confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
-                recentlyDeletedIds.add('user_' + String(id));
-                users = users.filter(u => String(u.id) !== String(id));
+            const targetId = String(id).trim();
+
+            // 1. Ana Admin'in silinmesini engelle
+            const targetUser = users.find(u => String(u.id).trim() === targetId);
+            if (targetUser && targetUser.username.toLowerCase() === 'admin') {
+                alert("Sistem güvenliği gereği ana 'admin' kullanıcısı silinemez!");
+                return;
+            }
+
+            // 2. Kendi kendini silme kontrolü
+            if (currentUser && String(currentUser.id).trim() === targetId) {
+                alert("Şu anda oturumu açık olan kendi hesabınızı silemezsiniz!");
+                return;
+            }
+
+            if (confirm(`"${targetUser ? targetUser.username : 'Bu'}" kullanıcısını kalıcı olarak silmek istediğinize emin misiniz?`)) {
+                // HATA DÜZELTİLDİ: recentlyDeletedIds yerine doğru kara liste (persistentDeletedIds) kullanıldı
+                if (typeof markAsDeleted === 'function') {
+                    markAsDeleted('user_' + targetId);
+                    markAsDeleted(targetId);
+                } else if (typeof persistentDeletedIds !== 'undefined') {
+                    persistentDeletedIds.add('user_' + targetId);
+                    persistentDeletedIds.add(targetId);
+                    localStorage.setItem('teknoparkDeletedIds', JSON.stringify([...persistentDeletedIds]));
+                }
+
+                // Kullanıcı listesinden çıkar
+                users = (users || []).filter(u => String(u.id).trim() !== targetId);
+
+                // Tabloyu anında yeniden çiz
                 renderUsers();
+
+                // Yerel depoya ve buluta anında yaz
                 await saveData();
+
+                if (typeof showToast === 'function') {
+                    showToast("✓ Kullanıcı başarıyla silindi!");
+                }
             }
         }
 
