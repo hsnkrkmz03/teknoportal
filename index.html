@@ -4651,7 +4651,7 @@ function processRentalExcelUpload() {
 
             doc.setFont("helvetica", "normal");
             doc.setFontSize(9);
-            doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`), 14, 21);
+            doc.text(fixTRForPDF(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} | Toplam Sozlesme: ${exportData.length} Adet`), 14, 21);
 
             const headers = [[
                 "Durum", "Firma Adi", "Yerleske / Ofis", "Alan", 
@@ -4659,34 +4659,78 @@ function processRentalExcelUpload() {
                 "Katilim", "KDV Haric", "KDV Dahil"
             ]];
 
-            const rows = exportData.map(r => [
-                fixTRForPDF(r["Durum"]),
-                fixTRForPDF(r["Firma Adı"]),
-                fixTRForPDF(`${r["Yerleşke"]} - ${r["Ofis"]}`),
-                `${parseFloat(r["Alan (m²)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m2`,
-                r["Başlangıç Tarihi"] || '-',
-                r["Bitiş Tarihi"] || '-',
-                parseFloat(r["Kira Tutarı (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
-                parseFloat(r["Ortak Gider (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
-                parseFloat(r["Katılım Payı (₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
-                parseFloat(r["Toplam (KDV Hariç ₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 }),
-                parseFloat(r["Toplam (KDV Dahil ₺)"]).toLocaleString('tr-TR', { minimumFractionDigits: 2 })
-            ]);
+            // Toplam hesaplama değişkenleri
+            let totalArea = 0;
+            let totalRent = 0;
+            let totalCommon = 0;
+            let totalOther = 0;
+            let totalExcl = 0;
+            let totalIncl = 0;
+
+            const rows = exportData.map(r => {
+                const area = parseFloat(r["Alan (m²)"]) || 0;
+                const rent = parseFloat(r["Kira Tutarı (₺)"]) || 0;
+                const common = parseFloat(r["Ortak Gider (₺)"]) || 0;
+                const other = parseFloat(r["Katılım Payı (₺)"]) || 0;
+                const excl = parseFloat(r["Toplam (KDV Hariç ₺)"]) || 0;
+                const incl = parseFloat(r["Toplam (KDV Dahil ₺)"]) || 0;
+
+                totalArea += area;
+                totalRent += rent;
+                totalCommon += common;
+                totalOther += other;
+                totalExcl += excl;
+                totalIncl += incl;
+
+                return [
+                    fixTRForPDF(r["Durum"]),
+                    fixTRForPDF(r["Firma Adı"]),
+                    fixTRForPDF(`${r["Yerleşke"]} - ${r["Ofis"]}`),
+                    `${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`,
+                    r["Başlangıç Tarihi"] || '-',
+                    r["Bitiş Tarihi"] || '-',
+                    rent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    common.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    other.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    excl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    incl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                ];
+            });
+
+            // Tablo Alt Toplam Satırı (Footer)
+            const footers = [[
+                { content: 'GENEL TOPLAM', colSpan: 3, styles: { halign: 'left', fontStyle: 'bold' } },
+                `${totalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m2`,
+                '', // Başlangıç boş
+                '', // Bitiş boş
+                totalRent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                totalCommon.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                totalOther.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            ]];
 
             doc.autoTable({
                 head: headers,
                 body: rows,
+                foot: footers,
                 startY: 26,
                 styles: { 
                     font: "helvetica", 
                     fontSize: 8, 
-                    cellPadding: 2.5,
+                    cellPadding: 2.2,
                     textColor: [50, 50, 50]
                 },
                 headStyles: { 
                     fillColor: [37, 99, 235],
                     textColor: [255, 255, 255],
                     fontStyle: 'bold'
+                },
+                footStyles: {
+                    fillColor: [30, 41, 59], // Koyu Slate / Lacivert zemin
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8.5
                 },
                 alternateRowStyles: {
                     fillColor: [248, 250, 252]
