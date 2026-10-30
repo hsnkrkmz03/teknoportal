@@ -3918,9 +3918,9 @@ function renderRentals() {
     const isUserAdmin = currentUser && currentUser.role === 'admin';
     const p = currentUser ? (currentUser.permissions || {}) : {};
 
-    // GÜNCELLENEN YETKİ KONTROLLERİ:
-    // Hem yeni matristeki rentalEdit hem de eski genel canEdit desteklenir
-    const canEdit = isUserAdmin || p.rentalEdit !== false || p.canEdit !== false;
+    // GÜVENLİ YETKİ KONTROLÜ:
+    // Admin ise veya kiralama düzenleme yetkisi açıksa (veya henüz ayarlanmamışsa) her koşulda gösterir
+    const canEdit = isUserAdmin || p.rentalEdit === true || p.canEdit === true || (p.rentalEdit !== false && p.canEdit !== false);
     const canEnd = isUserAdmin || p.rentalEndContract !== false;
     const canDelete = isUserAdmin || p.rentalDelete === true;
 
@@ -4000,13 +4000,33 @@ function renderRentals() {
                 <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
                 <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
                 <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
-                <td class="p-4 text-center">
-                    <div class="flex items-center justify-center space-x-1.5">
-                        ${isActive ? `
-                            ${canEdit ? `<button onclick="openRentalModal('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2 py-1 rounded-md transition">Düzenle</button>` : ''}
-                            ${canEnd ? `<button onclick="openEndRentalModal('${r.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold bg-amber-50 px-2 py-1 rounded-md transition">Bitir</button>` : ''}
-                        ` : '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>'}
-                        ${canDelete ? `<button onclick="deleteContractDirectly('${r.id}')" class="text-red-600 hover:text-red-800 text-xs font-semibold bg-red-50 px-2 py-1 rounded-md transition">Sil</button>` : ''}
+                <td class="p-4 text-center whitespace-nowrap">
+                    <div class="inline-flex items-center justify-center gap-1.5">
+                        ${canEdit ? `
+                            <button type="button" onclick="openRentalModal('${r.id}')" 
+                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition" 
+                                    title="Sözleşmeyi Düzenle">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle
+                            </button>
+                        ` : ''}
+
+                        ${(isActive && canEnd) ? `
+                            <button type="button" onclick="openEndRentalModal('${r.id}')" 
+                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition" 
+                                    title="Sözleşmeyi Bitir / Feshet">
+                                <i class="fa-solid fa-calendar-xmark mr-1"></i> Bitir
+                            </button>
+                        ` : ''}
+
+                        ${canDelete ? `
+                            <button type="button" onclick="deleteContractDirectly('${r.id}')" 
+                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition" 
+                                    title="Sözleşmeyi Sil">
+                                <i class="fa-solid fa-trash mr-1"></i> Sil
+                            </button>
+                        ` : ''}
+
+                        ${(!canEdit && !canEnd && !canDelete) ? '<span class="text-xs text-gray-400 italic">Yetki Yok</span>' : ''}
                     </div>
                 </td>
             </tr>
