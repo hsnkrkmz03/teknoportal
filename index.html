@@ -1327,6 +1327,16 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
+        // Türkçe karakterleri ve gereksiz ekleri/boşlukları temizleyen evrensel eşleştirici
+function normalizeOfficeName(str) {
+    if (!str) return '';
+    return String(str)
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .replace(/nolu|no'lu|no|numaralı|ofis|oda/g, '') // "112 nolu ofis" -> "112"
+        .replace(/\s+/g, '')                             // tüm boşlukları kaldır
+        .replace(/[^a-z0-9ğüşıöç]/g, '');                // özel işaretleri kaldır
+}
         Chart.register(ChartDataLabels);
 
         const VAT_RATE = 0.20;
@@ -3369,23 +3379,26 @@ function renderRentals() {
             const canEnd = currentUser && (currentUser.role === 'admin' || (currentUser.permissions && currentUser.permissions.rentalEndContract));
             const isUserAdmin = currentUser && currentUser.role === 'admin';
 
-            function getOfficeDetails(officeRef) {
-                const ref = String(officeRef || '').trim().toLowerCase();
-                let officeName = "Bilinmiyor";
-                let campusName = "Bilinmiyor";
-                let campusId = null;
+function getOfficeDetails(officeRef) {
+    const rawRef = String(officeRef || '').trim();
+    const normRef = normalizeOfficeName(rawRef);
+    let officeName = "Bilinmiyor";
+    let campusName = "Bilinmiyor";
+    let campusId = null;
 
-                for (let c of (data.campuses || [])) {
-                    for (let o of (c.offices || [])) {
-                        const oId = String(o.id || '').trim().toLowerCase();
-                        const oName = String(o.name || '').trim().toLowerCase();
+    for (let c of (data.campuses || [])) {
+        for (let o of (c.offices || [])) {
+            const oId = String(o.id || '').trim();
+            const oNorm = normalizeOfficeName(o.name);
 
-                        if (oId === ref || oName === ref) {
-                            officeName = o.name;
-                            campusName = c.name;
-                            campusId = c.id;
-                            return { officeName, campusName, campusId };
-                        }
+            // Hem ID hem temizlenmiş isim üzerinden tam eşleşme
+            if (oId === rawRef || oNorm === normRef || o.name.trim().toLowerCase() === rawRef.toLowerCase()) {
+                return { officeName: o.name, campusName: c.name, campusId: c.id };
+            }
+        }
+    }
+    return { officeName, campusName, campusId };
+}
                     }
                 }
                 return { officeName, campusName, campusId };
@@ -4166,10 +4179,21 @@ async function deleteOffice(campusId, officeId) {
             document.getElementById('rental-excel-upload-modal').classList.remove('hidden');
         }
 
-        function processRentalExcelUpload() {
+function processRentalExcelUpload() {
             const fileInput = document.getElementById('rental-excel-file-input');
             const file = fileInput.files[0];
             if (!file) { alert("Lütfen yüklenecek bir Excel dosyası seçin."); return; }
+
+            // Yardımcı İsim Temizleme (Normalizasyon) Fonksiyonu
+            function cleanName(str) {
+                if (!str) return '';
+                return String(str)
+                    .trim()
+                    .toLocaleLowerCase('tr-TR')
+                    .replace(/nolu|no'lu|no|numaralı|ofis|oda/g, '')
+                    .replace(/\s+/g, '')
+                    .replace(/[^a-z0-9ğüşıöç]/g, '');
+            }
 
             function parseExcelDate(val) {
                 if (!val) return null;
@@ -4220,31 +4244,62 @@ async function deleteOffice(campusId, officeId) {
                             const companyName = String(row[companyKey]).trim();
                             const campusName = String(row[campusKey]).trim();
                             const officeName = String(row[officeKey]).trim();
-                            const allocatedArea = (areaKey && !isNaN(parseFloat(row[areaKey]))) ? parseFloat(row[areaKey]) : 50;
-                            const unitPrice = (unitPriceKey && !isNaN(parseFloat(row[unitPriceKey]))) ? parseFloat(row[unitPriceKey]) : 0;
-                            const commonCost = (commonKey && !isNaN(parseFloat(row[commonKey]))) ? parseFloat(row[commonKey]) : 0;
-                            const otherCost = (otherKey && !isNaN(parseFloat(row[otherKey]))) ? parseFloat(row[otherKey]) : 0;
+                            const allocatedArea = (areaKey && !isNaN(parseFloat(String(row[areaKey]).replace(',', '.')))) ? parseFloat(String(row[areaKey]).replace(',', '.')) : 50;
+                            const unitPrice = (unitPriceKey && !isNaN(parseFloat(String(row[unitPriceKey]).replace(',', '.')))) ? parseFloat(String(row[unitPriceKey]).replace(',', '.')) : 0;
+                            const commonCost = (commonKey && !isNaN(parseFloat(String(row[commonKey]).replace(',', '.')))) ? parseFloat(String(row[commonKey]).replace(',', '.')) : 0;
+                            const otherCost = (otherKey && !isNaN(parseFloat(String(row[otherKey]).replace(',', '.')))) ? parseFloat(String(row[otherKey]).replace(',', '.')) : 0;
                             const startDate = startKey ? parseExcelDate(row[startKey]) : new Date().toISOString().split('T')[0];
                             const endDate = endKey ? parseExcelDate(row[endKey]) : null;
 
-                            let campus = data.campuses.find(c => c.name.toLowerCase() === campusName.toLowerCase());
+                            // 1. Yerleşkeyi Normalize İsimle Güvenli Eşleştir
+                            const normCampus = cleanName(campusName);
+                            let campus = (data.campuses || []).find(c => cleanName(c.name) === normCampus || c.name.toLowerCase().includes(campusName.toLowerCase()));
+                            
                             if (!campus) {
                                 campus = { id: Date.now() + Math.floor(Math.random() * 1000), name: campusName, offices: [] };
+                                if (!data.campuses) data.campuses = [];
                                 data.campuses.push(campus);
                             }
 
                             if (!campus.offices) campus.offices = [];
-                            let office = campus.offices.find(o => o.name.toLowerCase() === officeName.toLowerCase());
+
+                            // 2. Ofisi Yerleşkede Önce Birebir ve Normalize İsimle Ara
+                            const normOffice = cleanName(officeName);
+                            let office = campus.offices.find(o => {
+                                const oNorm = cleanName(o.name);
+                                return oNorm === normOffice || o.name.trim().toLowerCase() === officeName.toLowerCase();
+                            });
+
+                            // 3. İsimde ufak fark varsa aynı yerleşkede aynı metrekaredeki ofisi eşleştir
+                            if (!office && allocatedArea > 0) {
+                                office = campus.offices.find(o => Math.abs(parseFloat(o.area || 0) - allocatedArea) < 0.05);
+                            }
+
+                            // 4. Ofis yerleşkede hiç yoksa yeni ofis aç (Uydurma +50 alan kaldırıldı, gerçek alan verildi)
                             if (!office) {
-                                office = { id: Date.now() + Math.floor(Math.random() * 1000), name: officeName, area: allocatedArea + 50, floor: "1. Kat" };
+                                office = {
+                                    id: Date.now() + Math.floor(Math.random() * 10000),
+                                    name: officeName,
+                                    area: allocatedArea,
+                                    floor: "1. Kat"
+                                };
                                 campus.offices.push(office);
                             }
 
+                            // 5. Sözleşmeyi kesinleşen ofis ID'sine bağla
+                            if (!data.rentals) data.rentals = [];
                             data.rentals.unshift({
                                 id: Date.now() + Math.floor(Math.random() * 10000),
-                                company: companyName, officeId: office.id, allocatedArea, unitPrice,
-                                commonCostPerM2: commonCost, otherCost, startDate, endDate, status: 'active',
-                                history: [ { username: currentUser ? currentUser.username : 'Excel İçe Aktarım', date: currentTimestamp, note: 'Excel dosyası ile yüklendi.' } ]
+                                company: companyName,
+                                officeId: office.id,
+                                allocatedArea: allocatedArea,
+                                unitPrice: unitPrice,
+                                commonCostPerM2: commonCost,
+                                otherCost: otherCost,
+                                startDate: startDate,
+                                endDate: endDate,
+                                status: 'active',
+                                history: [{ username: currentUser ? currentUser.username : 'Excel İçe Aktarım', date: currentTimestamp, note: 'Excel dosyası ile yüklendi.' }]
                             });
 
                             addedCount++;
@@ -4252,11 +4307,15 @@ async function deleteOffice(campusId, officeId) {
                     });
 
                     if (addedCount > 0) {
-                        alert(`Başarıyla ${addedCount} adet kiralama sözleşmesi sisteme aktarıldı.`);
+                        alert(`Başarıyla ${addedCount} adet kiralama sözleşmesi yerleşke ofisleriyle eşleştirilerek aktarıldı.`);
                         closeModal('rental-excel-upload-modal');
                         saveData();
-                    } else { alert("Excel sütunları eşleştirilemedi."); }
-                } catch (err) { alert("Excel işlenirken hata oluştu: " + err.message); }
+                    } else { 
+                        alert("Excel sütunları eşleştirilemedi. Dosyanızdaki sütun başlıklarını kontrol edin."); 
+                    }
+                } catch (err) { 
+                    alert("Excel işlenirken hata oluştu: " + err.message); 
+                }
             };
             reader.readAsArrayBuffer(file);
         }
