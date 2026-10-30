@@ -4369,40 +4369,73 @@ async function deleteOffice(campusId, officeId) {
         function exportDashboardVisualPDF() {
             const captureArea = document.getElementById('dashboard-capture-area');
             if (!captureArea) {
-                alert("Raporlanacak dashboard alanı bulunamadı.");
+                alert("Raporlanacak dashboard alani bulunamadi.");
                 return;
             }
 
-            // Görüntü yakalama öncesi sayfa kaydırmasını sıfırla ve arka planı sabitle
+            // Görüntü yakalama öncesi kaydırmayı sıfırla
             const originalScroll = window.scrollY;
             window.scrollTo(0, 0);
 
+            // Yatay A4 için capture alanına geçici olarak sabit masaüstü genişliği veriyoruz
+            // Bu sayede etiketler (ChartDataLabels) ve 4'lü grid kartları birbirine girmeden tam ferah çizilir
+            const originalWidth = captureArea.style.width;
+            captureArea.style.width = '1250px';
+
             html2canvas(captureArea, {
-                scale: 2,
+                scale: 2,               // Yüksek çözünürlük (Retina kalitesi)
                 useCORS: true,
                 logging: false,
                 backgroundColor: '#f3f4f6',
                 scrollX: 0,
-                scrollY: 0
+                scrollY: 0,
+                windowWidth: 1300       // html2canvas sanal pencere genişliği
             }).then(canvas => {
+                // Orijinal genişliği ve sayfa konumunu geri yükle
+                captureArea.style.width = originalWidth;
                 window.scrollTo(0, originalScroll);
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 190;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                pdf.setFontSize(16);
-                pdf.text("Teknopark Dashboard ve Analiz Raporu", 10, 12);
-                pdf.setFontSize(9);
-                pdf.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}`, 10, 17);
-                pdf.addImage(imgData, 'JPEG', 10, 22, imgWidth, imgHeight);
-                pdf.save(`Teknopark_Dashboard_Gorsel_${new Date().toISOString().split('T')[0]}.pdf`);
+                // 1. YATAY FORMAT (landscape) A4: 297mm x 210mm
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                const pageWidth = 297;
+                const pageHeight = 210;
+                const margin = 10;
+                const availableWidth = pageWidth - (margin * 2); // 277 mm
+
+                // Resim orantısını koruyarak sayfa genişliğine yayma
+                let imgWidth = availableWidth;
+                let imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                // Başlık Bilgisi
+                pdf.setFont("helvetica", "bold");
+                pdf.setFontSize(14);
+                pdf.text("Teknopark Dashboard ve Analiz Raporu", margin, 10);
+
+                pdf.setFont("helvetica", "normal");
+                pdf.setFontSize(8.5);
+                const campusText = document.getElementById('dash-occupancy-chart-title')?.innerText || "Genel Gorunum";
+                pdf.text(`Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')} | Kapsam: ${campusText}`, margin, 15);
+
+                const startY = 18;
+                const maxAvailableHeight = pageHeight - startY - margin;
+
+                // Eğer tek sayfaya sığmıyorsa orantılı küçült veya sayfaya oturt
+                if (imgHeight > maxAvailableHeight) {
+                    imgWidth = (canvas.width * maxAvailableHeight) / canvas.height;
+                    imgHeight = maxAvailableHeight;
+                }
+
+                pdf.addImage(imgData, 'JPEG', margin, startY, imgWidth, imgHeight);
+                pdf.save(`Teknopark_Dashboard_Yatay_${new Date().toISOString().split('T')[0]}.pdf`);
             }).catch(err => {
+                captureArea.style.width = originalWidth;
                 window.scrollTo(0, originalScroll);
-                console.error("Dashboard PDF Hatası:", err);
-                alert("Dashboard PDF oluşturulurken bir hata meydana geldi: " + err.message);
+                console.error("Dashboard PDF Hatasi:", err);
+                alert("Dashboard PDF olusturulurken bir hata meydana geldi: " + err.message);
             });
         }
 
