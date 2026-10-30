@@ -4366,7 +4366,7 @@ async function deleteOffice(campusId, officeId) {
             }
         }
         // ==================== DASHBOARD GÖRSEL PDF İNDİRME DÜZELTİLDİ ====================
-        function exportDashboardVisualPDF() {
+function exportDashboardVisualPDF() {
             const campusFilterEl = document.getElementById('dash-campus-filter');
             const selectedCampus = campusFilterEl ? campusFilterEl.value : 'all';
             const stats = getStats(selectedCampus);
@@ -4569,20 +4569,20 @@ async function deleteOffice(campusId, officeId) {
 
             const overallOcc = sumTotalArea > 0 ? ((sumRentedArea / sumTotalArea) * 100).toFixed(1) : "0.0";
 
-            // Tablo Alt Toplamı (Footer)
+            // Tablo Alt Toplamı (Footer) - Tüm hücreler üst sütunların hizalarıyla kilitlendi
             const tableFooter = [[
-                fixTRForPDF("GENEL TOPLAM"),
-                sumTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                sumRentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                sumAvailArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                `%${overallOcc}`,
-                sumRevExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                sumRevIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                { content: fixTRForPDF("GENEL TOPLAM"), styles: { halign: 'left', fontStyle: 'bold' } },
+                { content: sumTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'right', fontStyle: 'bold' } },
+                { content: sumRentedArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'right', fontStyle: 'bold' } },
+                { content: sumAvailArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'right', fontStyle: 'bold' } },
+                { content: `%${overallOcc}`, styles: { halign: 'center', fontStyle: 'bold' } },
+                { content: sumRevExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'right', fontStyle: 'bold' } },
+                { content: sumRevIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }), styles: { halign: 'right', fontStyle: 'bold' } }
             ]];
 
             doc.autoTable({
                 startY: y,
-                // TÜM BAŞLIKLAR ORTALI HALE GETİRİLDİ
+                // TÜM SÜTUN BAŞLIKLARI ORTALI
                 head: [[
                     { content: 'Yerleske Adi', styles: { halign: 'center' } },
                     { content: 'Toplam (m2)', styles: { halign: 'center' } },
@@ -4622,7 +4622,7 @@ async function deleteOffice(campusId, officeId) {
                 alternateRowStyles: {
                     fillColor: [248, 250, 252]
                 },
-                // VERİ HÜCRELERİNİN NİZAMİ HİZALARI:
+                // VERİ VE TOPLAM HÜCRELERİNİN NİZAMİ HİZALARI:
                 columnStyles: {
                     0: { cellWidth: 44, halign: 'left' },                                     // Yerleşke Adı (Sola yaslı)
                     1: { cellWidth: 22, halign: 'right' },                                    // Toplam m2 (Sağa yaslı)
