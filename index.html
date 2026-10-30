@@ -3190,11 +3190,24 @@ function renderDuePaymentsAlert() {
             renderCampuses();
         }
 
-        function toggleCampusDetails(campusId) {
-            const body = document.getElementById(`campus-body-${campusId}`);
-            if (body) body.classList.toggle('hidden');
-        }
+        // Kullanıcının açık bıraktığı yerleşkeleri hafızada tutan Set
+        const expandedCampusIds = new Set();
 
+        function toggleCampusDetails(campusId) {
+            const strId = String(campusId);
+            const body = document.getElementById(`campus-body-${strId}`);
+            const icon = document.getElementById(`campus-icon-${strId}`);
+
+            if (expandedCampusIds.has(strId)) {
+                expandedCampusIds.delete(strId);
+                if (body) body.classList.add('hidden');
+                if (icon) icon.classList.remove('rotate-180');
+            } else {
+                expandedCampusIds.add(strId);
+                if (body) body.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            }
+        }
         function renderCampuses() {
             const container = document.getElementById('campus-list');
             if (!container) return;
@@ -3389,7 +3402,8 @@ function renderDuePaymentsAlert() {
                 }).join('');
 
                 const isFiltered = !isNaN(minM2Input) || !isNaN(maxM2Input);
-                const shouldOpenBody = isFiltered && filteredOffices.length > 0;
+                const isUserExpanded = expandedCampusIds.has(String(c.id));
+                const shouldOpenBody = isUserExpanded || (isFiltered && filteredOffices.length > 0);
                 const campusOfficeIds = (c.offices || []).map(o => String(o.id));
                 const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
@@ -3397,7 +3411,7 @@ function renderDuePaymentsAlert() {
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
                         <div class="p-5 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails('${c.id}')">
                             <div class="flex items-center space-x-3">
-                                <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200 transform" id="campus-icon-${c.id}"></i>
+                                <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200 transform ${shouldOpenBody ? 'rotate-180' : ''}" id="campus-icon-${c.id}"></i>
                                 <div>
                                     <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
                                         <span>${c.name}</span>
