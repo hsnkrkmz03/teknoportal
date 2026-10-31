@@ -1701,6 +1701,7 @@
 
     <!-- UYGULAMA MANTIĞI & GÜÇLENDİRİLMİŞ VERİTABANI SENKRONİZASYONU -->
     <script>
+        let hasUnsavedMeterChanges = false; // Sayaçta kaydedilmemiş veri var mı?
         // ==================== MOBİL DENEYİM VE SAHA SENKRONİZASYONU ====================
         // Mobil Menü Aç / Kapa Kontrolü
         function toggleMobileSidebar(forceState = null) {
@@ -1949,6 +1950,21 @@ function normalizeOfficeName(str) {
         };
 
 async function fetchCentralData(isSilent = false) {
+    // 1. Sayaçta kaydedilmemiş değişiklik varsa buluttan çekip verileri ASLA EZME
+    if (hasUnsavedMeterChanges) {
+        console.warn("Sayaç tablosunda kaydedilmemiş değişiklikler var, bulut eşitlemesi engellendi.");
+        return;
+    }
+
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+    const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
+
+    if (isTyping || isAnyModalOpen) return;
+    if (isSyncing) return;
+    if (!APPS_SCRIPT_URL) return;
+
+    // ... kodun devamı ...
     // 1. KULLANICI BİR KUTUYA YAZI YAZIYORSA VEYA MODAL AÇIKSA DÖNGÜYÜ ANINDA DURDUR
     // (Böylece siz endeks veya sözleşme girerken ekran aniden yenilenip imleci kaybetmezsiniz)
     const activeEl = document.activeElement;
@@ -6284,20 +6300,23 @@ async function markSelectedPaymentsAsPaid() {
         }
 
         // Endeks değiştiğinde anlık satır ve KPI hesabı
-        function onOfficeIndexChange(officeId) {
-            const prevInput = document.getElementById(`meter-prev-${officeId}`);
-            const currInput = document.getElementById(`meter-curr-${officeId}`);
-            const kwhEl = document.getElementById(`meter-kwh-${officeId}`);
+    function onOfficeIndexChange(officeId) {
+    // KULLANICI DEĞER GİRDİĞİ ANDA ARKA PLAN EŞİTLEMESİNİ TAMAMEN BLOKE ET
+    hasUnsavedMeterChanges = true;
 
-            const prevVal = parseFloat(prevInput?.value) || 0;
-            const currVal = parseFloat(currInput?.value) || 0;
-            const diff = Math.max(0, currVal - prevVal);
+    const prevInput = document.getElementById(`meter-prev-${officeId}`);
+    const currInput = document.getElementById(`meter-curr-${officeId}`);
+    const kwhEl = document.getElementById(`meter-kwh-${officeId}`);
 
-            if (kwhEl) kwhEl.innerText = diff.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const prevVal = parseFloat(prevInput?.value) || 0;
+    const currVal = parseFloat(currInput?.value) || 0;
+    const diff = Math.max(0, currVal - prevVal);
 
-            const campusPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
-            recalculateMeterTableLive(campusPrice);
-        }
+    if (kwhEl) kwhEl.innerText = diff.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const campusPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+    recalculateMeterTableLive(campusPrice);
+}
 
         // Tablodaki tüm satırları ve üst 4'lü KPI kartlarını anlık yeniden toplayan fonksiyon
         function recalculateMeterTableLive(unitPrice) {
@@ -6597,6 +6616,9 @@ async function markSelectedPaymentsAsPaid() {
             } catch (err) {
                 console.error("Sayaç kaydetme hatası:", err);
                 alert("Kayıt sırasında bir hata oluştu: " + err.message);
+                // saveAllMeterReadings fonksiyonunun en sonuna, saveData()'dan hemen sonraya ekleyin:
+                await saveData();
+                hasUnsavedMeterChanges = false; // Kaydedildi, artık kilidi kaldır
             }
         }
         // ==================== ELEKTRİK SAYAÇ EXCEL VE PDF RAPORLAMA ====================
@@ -6856,6 +6878,7 @@ async function markSelectedPaymentsAsPaid() {
         }
         // Mobil karttaki endeks girişini masaüstü inputuyla anında eşitleyip canlı hesaplatan köprü
 function syncMobileMeterIndex(officeId, type) {
+    hasUnsavedMeterChanges = true;
     const mobInput = document.getElementById(type === 'prev' ? `meter-prev-mob-${officeId}` : `meter-curr-mob-${officeId}`);
     const deskInput = document.getElementById(type === 'prev' ? `meter-prev-${officeId}` : `meter-curr-${officeId}`);
 
