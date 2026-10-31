@@ -174,10 +174,10 @@
             <!-- ALT ALAN: Sabit Alt Butonlar -->
             <div class="p-3 border-t border-slate-800 space-y-1.5 shrink-0 bg-slate-950/40">
                 <div id="backup-buttons-container" class="space-y-1.5">
-                    <button onclick="fetchCentralData()" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
-                        <i class="fa-solid fa-cloud-arrow-down text-xs min-w-[16px]"></i>
-                        <span class="sidebar-text truncate">Buluttan Veri Çek</span>
-                    </button>
+<button onclick="fetchCentralData().then(() => { if (typeof renderMeters === 'function') renderMeters(); })" title="Buluttan Veri Çek / Yenile" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-blue-800 hover:bg-blue-700 text-blue-100 rounded-lg text-xs font-semibold transition">
+    <i class="fa-solid fa-cloud-arrow-down text-xs min-w-[16px]"></i>
+    <span class="sidebar-text truncate">Buluttan Veri Çek</span>
+</button>
                     <button onclick="exportSystemJSON()" title="Verileri Yedekle (JSON)" class="sidebar-item w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-900/60 hover:bg-indigo-800 text-indigo-200 rounded-lg text-xs font-semibold transition">
                         <i class="fa-solid fa-download text-xs min-w-[16px]"></i>
                         <span class="sidebar-text truncate">Verileri Yedekle</span>
@@ -3618,6 +3618,7 @@ function getStats(selectedCampusId = 'all') {
         }
 
 function renderAll() {
+    if (typeof renderMeters === 'function') renderMeters();
     populateCampusFilters();
     renderDashboard();
     renderCampuses();
