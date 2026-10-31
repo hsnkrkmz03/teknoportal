@@ -449,6 +449,8 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
+                            <!-- KİRALAMA MOBİL DİKEY KART LİSTESİ (Yalnızca mobilde görünür) -->
+                            <div id="rental-cards-mobile" class="md:hidden space-y-3 mt-4"></div>
                             <thead class="bg-amber-100/60 text-amber-900 font-semibold uppercase">
                                 <tr>
                                     <th class="p-2">Firma Adı</th>
@@ -619,6 +621,8 @@
 <section id="tab-meters" class="hidden">
     <div class="mb-6 space-y-3">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- SAYAÇ MOBİL DİKEY KART LİSTESİ (Yalnızca mobilde görünür) -->
+        <div id="meter-cards-mobile" class="md:hidden space-y-3 mt-4"></div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <i class="fa-solid fa-bolt text-amber-500"></i>
@@ -4071,6 +4075,80 @@ function renderRentals() {
         statTotalOverallIncl += totalInclVat;
 
         tbody.innerHTML += `
+            // Mobil Kart Kapsayıcısı
+    const mobileContainer = document.getElementById('rental-cards-mobile');
+    if (mobileContainer) mobileContainer.innerHTML = '';
+
+    filteredRentals.forEach(r => {
+        // ... (mevcut hesaplamalar aynı kalıyor) ...
+
+        // MOBİL KART RENDER (md:hidden)
+        if (mobileContainer) {
+            mobileContainer.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 ${!isActive ? 'opacity-80 bg-gray-50' : ''}">
+                    <!-- Üst Bilgi: Durum ve Ofis -->
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <span class="px-2 py-0.5 text-[11px] rounded-full font-bold ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}">
+                            ${isActive ? '● Devam Ediyor' : '○ Sonlandı'}
+                        </span>
+                        <span class="text-xs font-bold text-gray-500">${details.campusName}</span>
+                    </div>
+
+                    <!-- Firma ve Ofis Adı -->
+                    <div>
+                        <div class="text-sm font-bold text-gray-800 leading-snug">${r.company || '-'}</div>
+                        <div class="text-xs text-blue-600 font-semibold mt-0.5"><i class="fa-solid fa-door-open mr-1"></i>${details.officeName}</div>
+                    </div>
+
+                    <!-- Detay Grid (Alan, Tarih ve Kiralar) -->
+                    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg text-xs">
+                        <div>
+                            <span class="text-gray-400 block text-[10px]">Tahsis Alanı</span>
+                            <span class="font-bold text-gray-700">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-[10px]">Sözleşme Bitiş</span>
+                            <span class="font-medium text-gray-700">${toTRDate(r.endDate)}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-[10px]">Net Tutar (KDV Hariç)</span>
+                            <span class="font-bold text-gray-800">${formatCurrency(totalExclVat)}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400 block text-[10px]">Tahakkuk (KDV Dahil)</span>
+                            <span class="font-bold text-emerald-700">${formatCurrency(totalInclVat)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Aksiyon Butonları (Parmak Dostu) -->
+                    <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                        ${canEdit ? `
+                            <button type="button" onclick="openRentalModal('${r.id}')" 
+                                    class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-center active:scale-95 transition">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle
+                            </button>
+                        ` : ''}
+                        ${(isActive && canEnd) ? `
+                            <button type="button" onclick="openEndRentalModal('${r.id}')" 
+                                    class="py-2 px-3 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 active:scale-95 transition">
+                                Bitir
+                            </button>
+                        ` : ''}
+                        ${canDelete ? `
+                            <button type="button" onclick="deleteContractDirectly('${r.id}')" 
+                                    class="py-2 px-3 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 active:scale-95 transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    if (mobileContainer && filteredRentals.length === 0) {
+        mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
+    }
             <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
                 <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
                 <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
@@ -6185,6 +6263,64 @@ async function markSelectedPaymentsAsPaid() {
 
         // Sayaç Ekranını Çizen Ana Fonksiyon
         function renderMeters() {
+            // Sayaç Mobil Kart Kapsayıcısı
+    const mobileMeterContainer = document.getElementById('meter-cards-mobile');
+    if (mobileMeterContainer) mobileMeterContainer.innerHTML = '';
+
+    offices.forEach(o => {
+        // ... (mevcut hesaplamalar ve veriler aynı kalıyor) ...
+
+        // MOBİL SAYAÇ KARTI RENDER
+        if (mobileMeterContainer) {
+            mobileMeterContainer.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3" data-mobile-office-id="${o.id}">
+                    <!-- Üst Bilgi: Ofis ve Okuma Rozeti -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="font-bold text-gray-800 text-sm">${o.name}</span>
+                            <span class="text-xs text-gray-400 font-normal ml-1">(${o.floor || '1. Kat'})</span>
+                        </div>
+                        <span id="meter-badge-mob-${o.id}" class="px-2 py-0.5 rounded text-[10px] font-bold ${diffKwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}">
+                            ${diffKwh > 0 ? 'Okundu' : 'Bekliyor'}
+                        </span>
+                    </div>
+
+                    <!-- Kiracı Firma -->
+                    <div class="text-xs font-semibold text-gray-600 truncate">
+                        <i class="fa-regular fa-building mr-1 text-gray-400"></i>${companyName}
+                    </div>
+
+                    <!-- Endeks Giriş Alanları (Mobil Numpad Uyumlu) -->
+                    <div class="grid grid-cols-2 gap-3 bg-amber-50/50 p-3 rounded-lg border border-amber-200/60">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1">İlk Endeks (kWh)</label>
+                            <input type="number" inputmode="decimal" id="meter-prev-mob-${o.id}" value="${initialPrevIndex > 0 ? initialPrevIndex : ''}" placeholder="0.00"
+                                   class="w-full p-2 text-sm font-semibold border rounded-lg bg-white text-right focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                   oninput="syncMobileMeterIndex('${o.id}', 'prev')">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-amber-900 mb-1">Son Endeks (kWh)</label>
+                            <input type="number" inputmode="decimal" id="meter-curr-mob-${o.id}" value="${initialCurrIndex > 0 ? initialCurrIndex : ''}" placeholder="0.00"
+                                   class="w-full p-2 text-sm font-bold border-2 border-amber-400 rounded-lg bg-white text-right text-gray-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                                   oninput="syncMobileMeterIndex('${o.id}', 'curr')">
+                        </div>
+                    </div>
+
+                    <!-- Canlı Hesaplanan Tüketim & Tahakkuk Barı -->
+                    <div class="flex items-center justify-between text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                        <div>
+                            <span class="text-gray-400 text-[10px] block">Net Tüketim</span>
+                            <span id="meter-kwh-mob-${o.id}" class="font-bold text-gray-800">${diffKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} kWh</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-gray-400 text-[10px] block">Tahakkuk (KDV Dahil)</span>
+                            <span id="meter-incl-mob-${o.id}" class="font-black text-emerald-700 text-sm">0,00 ₺</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    });
             const tbody = document.getElementById('meter-table-body');
             if (!tbody) return;
             tbody.innerHTML = '';
@@ -6573,6 +6709,36 @@ async function markSelectedPaymentsAsPaid() {
                 alert("PDF oluşturulurken bir hata meydana geldi: " + err.message);
             }
         }
+        // Mobil karttaki endeks girişini masaüstü inputuyla anında eşitleyip canlı hesaplatan köprü
+function syncMobileMeterIndex(officeId, type) {
+    const mobInput = document.getElementById(type === 'prev' ? `meter-prev-mob-${officeId}` : `meter-curr-mob-${officeId}`);
+    const deskInput = document.getElementById(type === 'prev' ? `meter-prev-${officeId}` : `meter-curr-${officeId}`);
+
+    if (mobInput && deskInput) {
+        deskInput.value = mobInput.value;
+    }
+
+    // Mevcut canlı hesaplamayı tetikle
+    onOfficeIndexChange(officeId);
+
+    // Mobil kart üzerindeki kwh ve tahakkuk yazılarını güncelle
+    const prev = parseFloat(document.getElementById(`meter-prev-${officeId}`)?.value) || 0;
+    const curr = parseFloat(document.getElementById(`meter-curr-${officeId}`)?.value) || 0;
+    const kwh = Math.max(0, curr - prev);
+    const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+    const incl = kwh * unitPrice * (1 + VAT_RATE);
+
+    const kwhMobEl = document.getElementById(`meter-kwh-mob-${officeId}`);
+    const inclMobEl = document.getElementById(`meter-incl-mob-${officeId}`);
+    const badgeMobEl = document.getElementById(`meter-badge-mob-${officeId}`);
+
+    if (kwhMobEl) kwhMobEl.innerText = `${kwh.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} kWh`;
+    if (inclMobEl) inclMobEl.innerText = `${incl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺`;
+    if (badgeMobEl) {
+        badgeMobEl.innerText = kwh > 0 ? 'Okundu' : 'Bekliyor';
+        badgeMobEl.className = `px-2 py-0.5 rounded text-[10px] font-bold ${kwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`;
+    }
+}
     </script>
     <!-- KOPYALANDI BİLDİRİMİ (TOAST POP-UP) -->
     <div id="copy-toast" class="hidden fixed bottom-6 right-6 z-50 bg-slate-900/95 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs font-semibold backdrop-blur-sm border border-slate-700/60 transition-all duration-300 transform translate-y-2 opacity-0">
