@@ -1947,9 +1947,34 @@ async function fetchCentralData() {
         let parsedPayload = JSON.parse(textData);
         if (typeof parsedPayload === 'string') parsedPayload = JSON.parse(parsedPayload);
 
+        // Katman Çözücü: parsedPayload.data veya doğrudan kök
         let targetData = parsedPayload.data || (parsedPayload.campuses ? parsedPayload : null);
+        
+        // Çift zarf kontrolü (data.data durumu)
+        if (targetData && targetData.data && (targetData.data.campuses || targetData.data.refereePayments)) {
+            targetData = targetData.data;
+        }
 
         if (targetData) {
+            // KRİTİK KORUMA KİLİDİ:
+            // Buluttan gelen veri boşsa ama tarayıcınızda aktif sözleşmeler/ödemeler varsa yerel veriyi EZME!
+            const cloudHasContent = (Array.isArray(targetData.campuses) && targetData.campuses.length > 0) ||
+                                    (Array.isArray(targetData.rentals) && targetData.rentals.length > 0) ||
+                                    (Array.isArray(targetData.refereePayments) && targetData.refereePayments.length > 0) ||
+                                    (Array.isArray(targetData.manualPayments) && targetData.manualPayments.length > 0);
+
+            const localHasContent = (data && Array.isArray(data.rentals) && data.rentals.length > 0) ||
+                                    (data && Array.isArray(data.refereePayments) && data.refereePayments.length > 0);
+
+            if (!cloudHasContent && localHasContent) {
+                console.warn("⚠️ Bulut boş döndü, yereldeki dolu veriler korundu (Ezilme engellendi).");
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fa-solid fa-shield-halved text-amber-600 mr-1.5"></i><span>Yerel Veriler Korundu (Bulut Eşitlemesi Bekleniyor)</span>`;
+                    statusEl.className = "mb-6 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center text-xs font-semibold text-amber-900 shadow-sm";
+                }
+                return;
+            }
+
             // Güvenli Boolean Dönüştürücü
             const parseBool = (val) => val === true || String(val).toLowerCase() === 'true' || val === 1 || String(val) === '1';
 
@@ -1964,19 +1989,16 @@ async function fetchCentralData() {
             }
 
             // 2. KİRALAMALAR (MÜKERRER BİRLEŞMEYİ KESİN ÖNLEYEN BLOK)
-            // Buluttan gelen veri esastır (Single Source of Truth).
             const rawCloudRentals = (targetData.rentals || []).filter(rent => 
                 !persistentDeletedIds.has('rent_' + String(rent.id)) && 
                 !persistentDeletedIds.has(String(rent.id))
             );
 
-            // Hem ID bazında hem de "Firma + Ofis" bazında tam tekilleştirme yapıyoruz:
             const uniqueRentals = [];
             const seenRentalKeys = new Set();
 
             rawCloudRentals.forEach(r => {
                 const rId = String(r.id || '').trim();
-                // Firma adı ve ofis bilgisinden benzersiz imza oluştur
                 const companyNorm = String(r.company || '').trim().toLocaleLowerCase('tr-TR');
                 const officeNorm = String(r.officeId || '').trim().toLocaleLowerCase('tr-TR');
                 const sig = `${companyNorm}___${officeNorm}`;
@@ -1988,7 +2010,6 @@ async function fetchCentralData() {
                 }
             });
 
-            // Bulutta sözleşmeler varsa yereli tamamen bulutun temiz listesine eşitliyoruz
             if (uniqueRentals.length > 0) {
                 data.rentals = uniqueRentals;
             } else if (rawCloudRentals.length === 0 && (!data.rentals || data.rentals.length === 0)) {
@@ -2028,11 +2049,26 @@ async function fetchCentralData() {
                 return { ...cm, isPaid, paymentDate };
             });
 
-            // 6. KULLANICILAR VE NOTLAR
+            // 6. SAYAÇ OKUMALARI VE TARİFELERİ (EKLENDİ)
+            if (Array.isArray(targetData.meterReadings) && targetData.meterReadings.length > 0) {
+                const readingMap = new Map();
+                (data.meterReadings || []).forEach(m => readingMap.set(`${m.officeId}_${m.year}_${m.month}`, m));
+                targetData.meterReadings.forEach(m => readingMap.set(`${m.officeId}_${m.year}_${m.month}`, m));
+                data.meterReadings = Array.from(readingMap.values());
+            }
+
+            if (Array.isArray(targetData.meterTariffs) && targetData.meterTariffs.length > 0) {
+                const tariffMap = new Map();
+                (data.meterTariffs || []).forEach(t => tariffMap.set(`${t.campusId}_${t.year}_${t.month}`, t));
+                targetData.meterTariffs.forEach(t => tariffMap.set(`${t.campusId}_${t.year}_${t.month}`, t));
+                data.meterTariffs = Array.from(tariffMap.values());
+            }
+
+            // 7. KULLANICILAR VE NOTLAR
             users = (parsedPayload.users || users).filter(u => !persistentDeletedIds.has('user_' + String(u.id)));
             userNotes = parsedPayload.userNotes || userNotes;
 
-            // Yerel depoyu yeni tarayıcıda hemen güncelle
+            // Yerel depoyu güncelle
             localStorage.setItem('teknoparkData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
@@ -2041,7 +2077,7 @@ async function fetchCentralData() {
                 statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1.5"></i><span>Bulut Veritabanı Eşitlendi (Canlı Sync)</span>`;
                 statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
             }
-            if (currentUser) renderAll();
+            if (currentUser && typeof renderAll === 'function') renderAll();
         }
     } catch (e) {
         console.warn("Bulut eşitleme yerel modda devam ediyor:", e);
