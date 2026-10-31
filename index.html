@@ -6539,43 +6539,37 @@ async function saveAllMeterReadings() {
         let savedCount = 0;
 
         // 1. Ofis Endekslerini Oku ve Değeri Olan Inputu Seç
-        campus.offices.forEach(office => {
+campus.offices.forEach(office => {
             const offId = String(office.id);
 
-            const mobPrevEl = document.getElementById(`meter-prev-mob-${offId}`);
             const deskPrevEl = document.getElementById(`meter-prev-${offId}`);
-            
-            // Hangisinde sayı varsa onu al (Önce masaüstü, sonra mobil)
-            let prevVal = 0;
-            if (deskPrevEl && deskPrevEl.value.trim() !== '') {
-                prevVal = parseFloat(deskPrevEl.value.trim()) || 0;
-            } else if (mobPrevEl && mobPrevEl.value.trim() !== '') {
-                prevVal = parseFloat(mobPrevEl.value.trim()) || 0;
-            }
-
-            const mobCurrEl = document.getElementById(`meter-curr-mob-${offId}`);
+            const mobPrevEl = document.getElementById(`meter-prev-mob-${offId}`);
             const deskCurrEl = document.getElementById(`meter-curr-${offId}`);
-            
-            let currVal = 0;
-            if (deskCurrEl && deskCurrEl.value.trim() !== '') {
-                currVal = parseFloat(deskCurrEl.value.trim()) || 0;
-            } else if (mobCurrEl && mobCurrEl.value.trim() !== '') {
-                currVal = parseFloat(mobCurrEl.value.trim()) || 0;
+            const mobCurrEl = document.getElementById(`meter-curr-mob-${offId}`);
+
+            // Kutunun içi tamamen silinmiş mi (boş bırakılmış mı) kontrolü:
+            const rawPrevStr = deskPrevEl ? deskPrevEl.value.trim() : (mobPrevEl ? mobPrevEl.value.trim() : '');
+            const rawCurrStr = deskCurrEl ? deskCurrEl.value.trim() : (mobCurrEl ? mobCurrEl.value.trim() : '');
+
+            // KULLANICI KUTUYU SİLDİYSE: Kaydı listeden tamamen uçur (Böylece eski veri geri gelmez)
+            if (rawCurrStr === '' && rawPrevStr === '') {
+                data.meterReadings = (data.meterReadings || []).filter(m => 
+                    !(String(m.officeId) === offId && String(m.year) === String(year) && String(m.month) === String(month))
+                );
+                return; // Bu ofis için kayıt silindi, bir sonrakine geç
             }
 
-            // İki taraftaki kutuları da görsel olarak senkron tut
-            if (deskPrevEl) deskPrevEl.value = prevVal > 0 ? prevVal : '';
-            if (mobPrevEl) mobPrevEl.value = prevVal > 0 ? prevVal : '';
-            if (deskCurrEl) deskCurrEl.value = currVal > 0 ? currVal : '';
-            if (mobCurrEl) mobCurrEl.value = currVal > 0 ? currVal : '';
+            // Sayı varsa parse et (Boş bırakılan taraf 0 kabul edilir)
+            const prevVal = rawPrevStr !== '' ? parseFloat(rawPrevStr) || 0 : 0;
+            const currVal = rawCurrStr !== '' ? parseFloat(rawCurrStr) || 0 : 0;
 
-            // Eski kaydı çıkar, dolu olan yeni kaydı ekle
-            data.meterReadings = data.meterReadings.filter(m => 
+            // Listeden eskiyi çıkar, yeni değeri mühürle
+            data.meterReadings = (data.meterReadings || []).filter(m => 
                 !(String(m.officeId) === offId && String(m.year) === String(year) && String(m.month) === String(month))
             );
 
             data.meterReadings.push({
-                id: 'meter_' + offId + '_' + year + '_' + month,
+                id: 'meter_' + offId + '_' + String(year) + '_' + String(month),
                 campusId: String(campusId),
                 officeId: offId,
                 year: String(year),
@@ -6587,7 +6581,7 @@ async function saveAllMeterReadings() {
 
             savedCount++;
         });
-
+        
         // 2. Birim Fiyatı Kaydet
         const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
         data.meterTariffs = data.meterTariffs.filter(t => 
