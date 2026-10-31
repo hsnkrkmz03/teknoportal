@@ -771,74 +771,80 @@
         </table>
     </div>
 </section>
-            <!-- 4. HAKEM ÖDEMELERİ SEKMESİ -->
-            <section id="tab-referees" class="hidden">
-                <div class="mb-6 space-y-3">
+<!-- 4. HAKEM ÖDEMELERİ SEKMESİ -->
+            <section id="tab-referees" class="hidden w-full max-w-full overflow-hidden">
+                <div class="mb-6 space-y-3 w-full max-w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-user-check text-blue-600"></i>
-    <span>Hakem Ödemeleri Takibi</span>
-</h1>
-<p class="text-xs text-gray-500">Hakemlere yapılan ödemeleri aylık bazda yönetin, hesaplayın ve Excel olarak indirin.</p>
+                            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                                <i class="fa-solid fa-user-check text-blue-600"></i>
+                                <span>Hakem Ödemeleri Takibi</span>
+                            </h1>
+                            <p class="text-xs text-gray-500">Hakemlere yapılan ödemeleri aylık bazda yönetin, hesaplayın ve Excel olarak indirin.</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                                <button id="btn-ref-filter-pending" onclick="setRefereeStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <!-- Durum Filtre Butonları -->
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold w-full sm:w-auto justify-center">
+                                <button id="btn-ref-filter-pending" onclick="setRefereeStatusFilter('pending')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition text-center">
                                     <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
                                 </button>
-                                <button id="btn-ref-filter-paid" onclick="setRefereeStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                                <button id="btn-ref-filter-paid" onclick="setRefereeStatusFilter('paid')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition text-center">
                                     <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
                                 </button>
                             </div>
 
-                            <button onclick="exportRefereesToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                                <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
+                            <button onclick="exportRefereesToExcel()" class="flex-1 sm:flex-none justify-center bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-export active:scale-95">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
                             </button>
-                            <button onclick="openRefereeModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
-                                <i class="fa-solid fa-plus mr-1.5"></i> Yeni Hakem Ödemesi Ekle
+                            <button onclick="openRefereeModal()" class="flex-1 sm:flex-none justify-center bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-edit active:scale-95">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Hakem Ekle
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
-                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
-                            <select id="referee-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderReferees()"></select>
-                            <select id="referee-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderReferees()">
-                                <option value="01">Ocak</option>
-                                <option value="02">Şubat</option>
-                                <option value="03">Mart</option>
-                                <option value="04">Nisan</option>
-                                <option value="05">Mayıs</option>
-                                <option value="06">Haziran</option>
-                                <option value="07">Temmuz</option>
-                                <option value="08">Ağustos</option>
-                                <option value="09">Eylül</option>
-                                <option value="10">Ekim</option>
-                                <option value="11">Kasım</option>
-                                <option value="12">Aralık</option>
-                            </select>
+                    <!-- Dönem Seçici -->
+                    <div class="flex justify-end w-full">
+                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
+                            <label class="text-xs font-semibold text-gray-600 shrink-0"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+                            <div class="flex items-center space-x-1.5">
+                                <select id="referee-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderReferees()"></select>
+                                <select id="referee-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderReferees()">
+                                    <option value="01">Ocak</option>
+                                    <option value="02">Şubat</option>
+                                    <option value="03">Mart</option>
+                                    <option value="04">Nisan</option>
+                                    <option value="05">Mayıs</option>
+                                    <option value="06">Haziran</option>
+                                    <option value="07">Temmuz</option>
+                                    <option value="08">Ağustos</option>
+                                    <option value="09">Eylül</option>
+                                    <option value="10">Ekim</option>
+                                    <option value="11">Kasım</option>
+                                    <option value="12">Aralık</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1" id="ref-total-gross-label">Seçili Dönem Net Ödenecek Toplam</div>
-                        <div class="text-lg font-bold text-blue-600"><span id="referee-total-gross">0,00</span> ₺</div>
+                <!-- 3'LÜ KPI ÖZET KARTLAR (Mobilde 1 Kolon, Tablet/Masaüstünde 3 Kolon) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 mb-6 w-full max-w-full">
+                    <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden">
+                        <div class="text-gray-500 text-xs font-medium mb-1 truncate" id="ref-total-gross-label">Net Ödenecek Toplam</div>
+                        <div class="text-lg font-bold text-blue-600 truncate tabular-nums"><span id="referee-total-gross">0,00</span> ₺</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Gayri Safi Tutar (Net/0.90)</div>
-                        <div class="text-lg font-bold text-emerald-600"><span id="referee-total-net">0,00</span> ₺</div>
+                    <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden">
+                        <div class="text-gray-500 text-xs font-medium mb-1 truncate">Gayri Safi Tutar (Net/0.90)</div>
+                        <div class="text-lg font-bold text-emerald-600 truncate tabular-nums"><span id="referee-total-net">0,00</span> ₺</div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                        <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Toplam Kesinti (%10)</div>
-                        <div class="text-lg font-bold text-rose-600"><span id="referee-total-tax">0,00</span> ₺</div>
+                    <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden sm:col-span-2 md:col-span-1">
+                        <div class="text-gray-500 text-xs font-medium mb-1 truncate">Toplam Kesinti (%10)</div>
+                        <div class="text-lg font-bold text-rose-600 truncate tabular-nums"><span id="referee-total-tax">0,00</span> ₺</div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                <!-- 1. MASAÜSTÜ TABLOSU (Mobilde gizlenir: hidden md:block) -->
+                <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto w-full max-w-full">
                     <table class="w-full text-left border-collapse min-w-[1250px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
@@ -855,71 +861,79 @@
                         <tbody id="referee-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
                     </table>
                 </div>
+
+                <!-- 2. MOBİL DİKEY KART LİSTESİ (Sadece mobilde görünür, asla taşmaz: block md:hidden) -->
+                <div id="referee-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
             </section>
-        <!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
-<section id="tab-consultants" class="hidden">
-    <div class="mb-6 space-y-3">
+<!-- DANIŞMANLIK ÖDEMELERİ SEKMESİ -->
+<section id="tab-consultants" class="hidden w-full max-w-full overflow-hidden">
+    <div class="mb-6 space-y-3 w-full max-w-full">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-chalkboard-user text-teal-600"></i>
-    <span>Danışmanlık Ödemeleri Takibi</span>
-</h1>
-<p class="text-xs text-gray-500">Ar-Ge projelerine kesilen faturaların akademisyenlere ödeme listesini yönetin ve hesaplayın.</p>
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                    <i class="fa-solid fa-chalkboard-user text-teal-600"></i>
+                    <span>Danışmanlık Ödemeleri Takibi</span>
+                </h1>
+                <p class="text-xs text-gray-500">Ar-Ge projelerine kesilen faturaların akademisyenlere ödeme listesini yönetin ve hesaplayın.</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                    <button id="btn-con-filter-pending" onclick="setConsultantStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition">
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                <!-- Durum Filtre Butonları -->
+                <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold w-full sm:w-auto justify-center">
+                    <button id="btn-con-filter-pending" onclick="setConsultantStatusFilter('pending')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md bg-white text-teal-600 shadow-sm transition text-center">
                         <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
                     </button>
-                    <button id="btn-con-filter-paid" onclick="setConsultantStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
+                    <button id="btn-con-filter-paid" onclick="setConsultantStatusFilter('paid')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition text-center">
                         <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
                     </button>
                 </div>
-                <button onclick="exportConsultantsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                    <i class="fa-solid fa-file-excel mr-1.5"></i> Seçili Ayı Excel Olarak İndir
+                <button onclick="exportConsultantsToExcel()" class="flex-1 sm:flex-none justify-center bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-export active:scale-95">
+                    <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
                 </button>
-                <button onclick="openConsultantModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
-                    <i class="fa-solid fa-plus mr-1.5"></i> Yeni Danışmanlık Ödemesi Ekle
+                <button onclick="openConsultantModal()" class="flex-1 sm:flex-none justify-center bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-edit active:scale-95">
+                    <i class="fa-solid fa-plus mr-1.5"></i> Danışmanlık Ekle
                 </button>
             </div>
         </div>
 
-        <div class="flex justify-end">
-            <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
-                <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-teal-600"></i> Dönem:</label>
-                <select id="consultant-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()"></select>
-                <select id="consultant-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()">
-                    <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
-                    <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
-                    <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
-                    <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-                </select>
+        <!-- Dönem Seçici -->
+        <div class="flex justify-end w-full">
+            <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
+                <label class="text-xs font-semibold text-gray-600 shrink-0"><i class="fa-solid fa-calendar mr-1 text-teal-600"></i> Dönem:</label>
+                <div class="flex items-center space-x-1.5">
+                    <select id="consultant-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()"></select>
+                    <select id="consultant-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-teal-500" onchange="renderConsultants()">
+                        <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
+                        <option value="04">Nisan</option><option value="05">Mayıs</option><option value="06">Haziran</option>
+                        <option value="07">Temmuz</option><option value="08">Ağustos</option><option value="09">Eylül</option>
+                        <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- ÖZET KARTLARI -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Dahil Toplam</div>
-            <div class="text-lg font-bold text-gray-800"><span id="con-total-incl">0,00</span> ₺</div>
+    <!-- ÖZET 4'LÜ KPI KARTLARI (Mobilde 1 Kolon, Tablette 2 Kolon, Masaüstünde 4 Kolon) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 w-full max-w-full">
+        <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden">
+            <div class="text-gray-500 text-xs font-medium mb-1 truncate">KDV Dahil Toplam</div>
+            <div class="text-lg font-bold text-gray-800 truncate tabular-nums"><span id="con-total-incl">0,00</span> ₺</div>
         </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem KDV Hariç (%20)</div>
-            <div class="text-lg font-bold text-indigo-600"><span id="con-total-excl">0,00</span> ₺</div>
+        <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden">
+            <div class="text-gray-500 text-xs font-medium mb-1 truncate">KDV Hariç (%20)</div>
+            <div class="text-lg font-bold text-indigo-600 truncate tabular-nums"><span id="con-total-excl">0,00</span> ₺</div>
         </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <div class="text-gray-500 text-xs font-medium mb-1">Teknopark Kalan (%15)</div>
-            <div class="text-lg font-bold text-amber-600"><span id="con-total-tpark">0,00</span> ₺</div>
+        <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 min-w-0 overflow-hidden">
+            <div class="text-gray-500 text-xs font-medium mb-1 truncate">Teknopark Kalan (%15)</div>
+            <div class="text-lg font-bold text-amber-600 truncate tabular-nums"><span id="con-total-tpark">0,00</span> ₺</div>
         </div>
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-teal-600">
-            <div class="text-gray-500 text-xs font-medium mb-1" id="con-total-net-label">Danışmana Net Ödenecek Toplam</div>
-            <div class="text-lg font-bold text-teal-600"><span id="con-total-net">0,00</span> ₺</div>
+        <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 border-l-4 border-l-teal-600 min-w-0 overflow-hidden">
+            <div class="text-gray-500 text-xs font-medium mb-1 truncate" id="con-total-net-label">Net Ödenecek Toplam</div>
+            <div class="text-lg font-bold text-teal-600 truncate tabular-nums"><span id="con-total-net">0,00</span> ₺</div>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+    <!-- 1. MASAÜSTÜ TABLOSU (Mobilde gizlenir: hidden md:block) -->
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto w-full max-w-full">
         <table class="w-full text-left border-collapse min-w-[1300px]">
             <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                 <tr>
@@ -939,7 +953,10 @@
             <tbody id="consultant-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
         </table>
     </div>
-</section>     
+
+    <!-- 2. MOBİL DİKEY KART LİSTESİ (Sadece mobilde görünür, asla taşmaz: block md:hidden) -->
+    <div id="consultant-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
+</section>
 <!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
             <section id="tab-payments" class="hidden w-full max-w-full overflow-hidden">
                 <div class="mb-6 space-y-3 w-full max-w-full">
@@ -3440,10 +3457,12 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             }
         }
 
-        function renderReferees() {
+function renderReferees() {
             const tbody = document.getElementById('referee-table-body');
+            const mobileContainer = document.getElementById('referee-cards-mobile');
             if (!tbody) return;
             tbody.innerHTML = '';
+            if (mobileContainer) mobileContainer.innerHTML = '';
 
             const selYear = document.getElementById('referee-year-filter') ? document.getElementById('referee-year-filter').value : String(new Date().getFullYear());
             const selMonth = document.getElementById('referee-month-filter') ? document.getElementById('referee-month-filter').value : String(new Date().getMonth() + 1).padStart(2, '0');
@@ -3475,7 +3494,11 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
 
                 const isPaidChecked = !!r.isPaid;
                 const ibanDisplay = (r.iban && r.iban.trim() !== '') ? r.iban.trim() : '-';
+                const fullName = `${r.firstName || ''} ${r.lastName || ''}`.trim() || 'Hakem Belirtilmemiş';
+                const safeName = fullName.replace(/'/g, "\\'");
+                const safeIban = ibanDisplay.replace(/'/g, "\\'");
 
+                // 1. MASAÜSTÜ TABLO SATIRI
                 tbody.innerHTML += `
                     <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
                         <td class="p-3 text-center">
@@ -3492,7 +3515,7 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
                                 ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                             </div>
                         </td>
-                        <td class="p-3 font-bold text-gray-800">${r.firstName || ''} ${r.lastName || ''}</td>
+                        <td class="p-3 font-bold text-gray-800">${fullName}</td>
                         <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
                         <td class="p-3 font-semibold text-gray-700">${r.company || '-'}</td>
                         <td class="p-3 text-indigo-700 font-semibold">${r.project || '-'}</td>
@@ -3506,6 +3529,79 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
                         </td>
                     </tr>
                 `;
+
+                // 2. MOBİL DİKEY KART (ASLA SAĞA-SOLA TAŞMAZ, DOKUNMATİK ERGONOMİSİ)
+                if (mobileContainer) {
+                    mobileContainer.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 w-full max-w-full overflow-hidden">
+                            <!-- Üst Satır: Hakem Adı ve Tutar -->
+                            <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5 min-w-0">
+                                <div class="min-w-0 flex-1 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeName}', 'Hakem Adı')">
+                                    <div class="flex items-center space-x-1.5 text-gray-800 font-bold text-sm truncate">
+                                        <span class="truncate">${fullName}</span>
+                                        <i class="fa-regular fa-copy text-gray-400 text-xs shrink-0"></i>
+                                    </div>
+                                    <span class="text-[10px] text-gray-400 font-medium block truncate mt-0.5">Belge Tarihi: ${r.docDate || '-'}</span>
+                                </div>
+                                <span class="font-black text-blue-600 text-sm tabular-nums shrink-0">${formatCurrency(r.gross)}</span>
+                            </div>
+
+                            <!-- IBAN Bilgisi (Dokun ve Kopyala) -->
+                            ${ibanDisplay !== '-' ? `
+                                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 min-w-0 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeIban}', 'IBAN')">
+                                    <span class="text-[10px] text-gray-400 uppercase font-semibold block">IBAN (Kopyalamak için dokunun)</span>
+                                    <div class="flex items-center justify-between text-[11px] font-semibold text-gray-700 truncate mt-0.5">
+                                        <span class="truncate tracking-wide font-mono">${ibanDisplay}</span>
+                                        <i class="fa-regular fa-copy text-gray-400 text-xs shrink-0 ml-1"></i>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Firma ve Proje Grid'i -->
+                            <div class="grid grid-cols-2 gap-2 bg-gray-50/80 p-2.5 rounded-lg border border-gray-100 text-xs">
+                                <div class="min-w-0">
+                                    <span class="text-gray-400 block text-[10px] uppercase font-semibold truncate">Firma</span>
+                                    <span class="font-bold text-gray-800 text-xs block truncate mt-0.5">${r.company || '-'}</span>
+                                </div>
+                                <div class="min-w-0 text-right">
+                                    <span class="text-gray-400 block text-[10px] uppercase font-semibold truncate">Proje</span>
+                                    <span class="font-bold text-indigo-700 text-xs block truncate mt-0.5">${r.project || '-'}</span>
+                                </div>
+                            </div>
+
+                            <!-- Durum / Ödeme Onay Alanı -->
+                            <div class="flex items-center justify-between gap-2 bg-emerald-50/40 p-2.5 rounded-lg border border-emerald-100/60 text-xs">
+                                <div class="min-w-0">
+                                    <span class="text-gray-500 block text-[10px] uppercase font-semibold">Ödeme Durumu</span>
+                                    ${r.paymentDate ? `
+                                        <span class="text-emerald-700 text-[11px] font-bold inline-flex items-center mt-0.5">
+                                            <i class="fa-solid fa-calendar-check mr-1 text-[10px]"></i>${r.paymentDate}
+                                        </span>
+                                    ` : '<span class="text-amber-700 text-[11px] font-semibold">Ödeme Bekliyor</span>'}
+                                </div>
+                                <label class="flex items-center space-x-1.5 text-[11px] font-bold text-gray-700 cursor-pointer shrink-0">
+                                    <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                        ${isUserAdmin ? '' : 'disabled'}
+                                        onchange="toggleRefereePaidStatus('${r.id}', this.checked)" 
+                                        class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}">
+                                    <span>${isPaidChecked ? 'Ödendi' : 'Öde'}</span>
+                                </label>
+                            </div>
+
+                            <!-- Butonlar (Düzenle / Sil) -->
+                            ${canEdit ? `
+                                <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                                    <button onclick="openRefereeModal('${r.id}')" class="flex-1 py-1.5 px-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                        <i class="fa-regular fa-pen-to-square mr-1"></i>Düzenle
+                                    </button>
+                                    <button onclick="deleteRefereePayment('${r.id}')" class="py-1.5 px-3 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
             });
 
             document.getElementById('referee-total-gross').innerText = totalGross.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -3513,7 +3609,11 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
             document.getElementById('referee-total-tax').innerText = totalTax.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             if (tbody.innerHTML === '') {
-                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} hakem kaydı bulunamadı.</td></tr>`;
+                const emptyMsg = `Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} hakem kaydı bulunamadı.`;
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400 italic">${emptyMsg}</td></tr>`;
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border border-gray-200">${emptyMsg}</div>`;
+                }
             }
         }
 
@@ -6208,58 +6308,60 @@ async function deleteConsultantPayment(id) {
 
 function renderConsultants() {
     const tbody = document.getElementById('consultant-table-body');
+    const mobileContainer = document.getElementById('consultant-cards-mobile');
     if (!tbody) return;
     tbody.innerHTML = '';
+    if (mobileContainer) mobileContainer.innerHTML = '';
 
-    const yearSelect = document.getElementById('consultant-year-filter');
-    const monthSelect = document.getElementById('consultant-month-filter');
+    const selYearEl = document.getElementById('consultant-year-filter');
+    const selMonthEl = document.getElementById('consultant-month-filter');
+    const selYear = selYearEl ? selYearEl.value : String(new Date().getFullYear());
+    const selMonth = selMonthEl ? selMonthEl.value : String(new Date().getMonth() + 1).padStart(2, '0');
 
-    // Filtre değerlerini al, boşsa güncel yılı/ayı varsayılan yap
-    const now = new Date();
-    const currentYear = String(now.getFullYear());
-    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
-
-    const selYear = (yearSelect && yearSelect.value) ? String(yearSelect.value).trim() : currentYear;
-    const selMonth = (monthSelect && monthSelect.value) ? String(monthSelect.value).trim().padStart(2, '0') : currentMonth;
-
-    let totalIncl = 0, totalExcl = 0, totalTPark = 0, totalNet = 0;
+    let totalIncl = 0, totalExcl = 0, totalTpark = 0, totalNet = 0;
     const isUserAdmin = currentUser && currentUser.role === 'admin';
     const canEdit = currentUser && (isUserAdmin || (currentUser.permissions && currentUser.permissions.canEdit));
-    const isPending = currentConsultantFilter === 'pending';
+    const isPending = typeof currentConsultantFilter !== 'undefined' ? currentConsultantFilter === 'pending' : true;
 
     const list = data.consultantPayments || [];
 
     const filtered = list.filter(c => {
         const isPaid = !!c.isPaid;
-        // 1. Ödenecekler / Ödenenler sekme kontrolü
         if (isPending ? isPaid : !isPaid) return false;
 
-        // 2. Tarih filtresi kontrolü
-        const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : c.date;
-        if (!targetDate) return true; // Tarih girilmemişse bile kaydı ekranda gizleme
-
-        const { year, month } = extractYearMonth(targetDate);
-        
-        // Eğer tarih ayrıştırılabildiyse yıl ve aya göre süz
-        if (year && month) {
-            return String(year).trim() === selYear && String(month).trim().padStart(2, '0') === selMonth;
+        const targetDate = (!isPending && c.paymentDate) ? c.paymentDate : (c.date || c.docDate);
+        if (typeof extractYearMonth === 'function') {
+            const { year, month } = extractYearMonth(targetDate);
+            if (year && month) return year === selYear && month === selMonth;
         }
-        
-        // Tarih formatı uyuşmuyorsa kaydı kaybetmek yerine listede göster
         return true;
     });
 
     filtered.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
 
     filtered.forEach(c => {
-        totalIncl += parseFloat(c.gross || 0);
-        totalExcl += parseFloat(c.netExcl || 0);
-        totalTPark += parseFloat(c.tpark || 0);
-        totalNet += parseFloat(c.netPayable || 0);
+        const inclVal = parseFloat(c.totalInclVat || c.gross || 0);
+        const exclVal = parseFloat(c.totalExclVat || 0) || (inclVal / 1.20);
+        const tparkVal = parseFloat(c.technoparkCut || 0) || (exclVal * 0.15);
+        const netVal = parseFloat(c.netPaid || c.net || 0) || (exclVal - tparkVal);
+
+        totalIncl += inclVal;
+        totalExcl += exclVal;
+        totalTpark += tparkVal;
+        totalNet += netVal;
 
         const isPaidChecked = !!c.isPaid;
         const ibanDisplay = (c.iban && c.iban.trim() !== '') ? c.iban.trim() : '-';
+        const fullName = `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.name || 'Danışman Belirtilmemiş';
+        const tcNo = c.tcNo || c.taxNo || '-';
+        const docDateStr = c.date || c.docDate || '-';
+        const descStr = c.desc || c.description || '-';
 
+        const safeName = fullName.replace(/'/g, "\\'");
+        const safeIban = ibanDisplay.replace(/'/g, "\\'");
+        const safeTc = tcNo.replace(/'/g, "\\'");
+
+        // 1. MASAÜSTÜ TABLO SATIRI
         tbody.innerHTML += `
             <tr class="${isPaidChecked ? 'bg-emerald-50/50' : 'hover:bg-gray-50'} transition">
                 <td class="p-3 text-center">
@@ -6268,7 +6370,7 @@ function renderConsultants() {
                             ${isUserAdmin ? '' : 'disabled'}
                             onchange="toggleConsultantPaidStatus('${c.id}', this.checked)" 
                             class="w-4 h-4 text-teal-600 rounded cursor-pointer focus:ring-teal-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}" 
-                            title="${isUserAdmin ? (isPaidChecked ? 'Ödendi olarak işaretlendi' : 'Ödenmedi') : 'Sadece Admin değiştirebilir'}">
+                            title="${isUserAdmin ? (isPaidChecked ? 'Ödendi' : 'Ödenmedi') : 'Sadece Admin değiştirebilir'}">
                         ${c.paymentDate ? `
                             <span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-2xs whitespace-nowrap">
                                 <i class="fa-solid fa-calendar-check mr-1 text-[9px]"></i>${c.paymentDate}
@@ -6276,15 +6378,25 @@ function renderConsultants() {
                         ` : '<span class="text-gray-400 text-[10px] italic">Bekliyor</span>'}
                     </div>
                 </td>
-                <td class="p-3 font-semibold text-gray-600">${c.date || '-'}</td>
-                <td class="p-3 font-bold text-gray-800">${c.name || '-'}</td>
-                <td class="p-3 text-gray-600 font-semibold">${c.tc || '-'}</td>
-                <td class="p-3 text-gray-700 font-semibold text-[11px]">${ibanDisplay}</td>
-                <td class="p-3 text-right font-bold text-gray-800 tabular-nums">${formatCurrency(c.gross)}</td>
-                <td class="p-3 text-right font-semibold text-indigo-700 tabular-nums">${formatCurrency(c.netExcl)}</td>
-                <td class="p-3 text-right font-semibold text-amber-700 tabular-nums">${formatCurrency(c.tpark)}</td>
-                <td class="p-3 text-right font-bold text-teal-700 tabular-nums bg-teal-50/50">${formatCurrency(c.netPayable)}</td>
-                <td class="p-3 text-gray-600 font-medium">${c.desc || '-'}</td>
+                <td class="p-3 font-semibold text-gray-600 tabular-nums">${docDateStr}</td>
+                <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Danışman Adı')">
+                    <div class="flex items-center space-x-1 group-hover:text-teal-600 transition">
+                        <span>${fullName}</span>
+                        <i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 text-xs"></i>
+                    </div>
+                </td>
+                <td class="p-3 text-gray-600 font-mono text-[11px]">${tcNo}</td>
+                <td class="p-3 text-gray-700 font-semibold text-[11px] cursor-pointer group" onclick="copyToClipboard('${safeIban}', 'IBAN')">
+                    <div class="flex items-center space-x-1 group-hover:text-teal-600 transition">
+                        <span>${ibanDisplay}</span>
+                        ${ibanDisplay !== '-' ? '<i class="fa-regular fa-copy opacity-0 group-hover:opacity-100 text-gray-400 text-xs"></i>' : ''}
+                    </div>
+                </td>
+                <td class="p-3 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(inclVal)}</td>
+                <td class="p-3 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(exclVal)}</td>
+                <td class="p-3 text-right font-semibold text-amber-600 tabular-nums">${formatCurrency(tparkVal)}</td>
+                <td class="p-3 text-right font-black text-teal-700 tabular-nums">${formatCurrency(netVal)}</td>
+                <td class="p-3 text-gray-600 text-[11px] truncate max-w-[140px]">${descStr}</td>
                 <td class="p-3 text-center">
                     ${canEdit ? `
                         <button onclick="openConsultantModal('${c.id}')" class="text-teal-600 hover:text-teal-800 font-semibold bg-teal-50 px-2 py-1 rounded mr-1">Düzenle</button>
@@ -6293,21 +6405,118 @@ function renderConsultants() {
                 </td>
             </tr>
         `;
+
+        // 2. MOBİL DİKEY KART (ASLA TAŞMAZ, DOKUNMATİK ERGONOMİSİ)
+        if (mobileContainer) {
+            mobileContainer.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 w-full max-w-full overflow-hidden">
+                    <!-- Üst: Ad Soyad ve Net Tutar -->
+                    <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5 min-w-0">
+                        <div class="min-w-0 flex-1 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeName}', 'Danışman Adı')">
+                            <div class="flex items-center space-x-1.5 text-gray-800 font-bold text-sm truncate">
+                                <span class="truncate">${fullName}</span>
+                                <i class="fa-regular fa-copy text-gray-400 text-xs shrink-0"></i>
+                            </div>
+                            <span class="text-[10px] text-gray-400 font-medium block truncate mt-0.5">Tarih: ${docDateStr}</span>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-[9px] uppercase font-bold text-teal-700 block">Net Ödenen</span>
+                            <span class="font-black text-teal-700 text-sm tabular-nums">${formatCurrency(netVal)}</span>
+                        </div>
+                    </div>
+
+                    <!-- TC No & IBAN Alanı (Dokun ve Kopyala) -->
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1.5 text-xs">
+                        <div class="flex justify-between items-center text-[11px]">
+                            <span class="text-gray-400 font-medium">TC Kimlik:</span>
+                            <span class="font-mono font-semibold text-gray-700 cursor-pointer active:opacity-70" onclick="copyToClipboard('${safeTc}', 'TC Kimlik')">${tcNo}</span>
+                        </div>
+                        ${ibanDisplay !== '-' ? `
+                            <div class="border-t border-slate-200/60 pt-1.5 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeIban}', 'IBAN')">
+                                <span class="text-[10px] text-gray-400 uppercase font-semibold block">IBAN (Dokun ve Kopyala)</span>
+                                <div class="flex items-center justify-between text-[11px] font-semibold text-gray-700 truncate mt-0.5">
+                                    <span class="truncate tracking-wide font-mono">${ibanDisplay}</span>
+                                    <i class="fa-regular fa-copy text-gray-400 text-xs shrink-0 ml-1"></i>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Maliyet Dağılım Grid'i (KDV Dahil, Hariç, Teknopark Payı) -->
+                    <div class="grid grid-cols-3 gap-2 bg-gray-50/80 p-2.5 rounded-lg border border-gray-100 text-[11px]">
+                        <div class="min-w-0">
+                            <span class="text-gray-400 block text-[9px] uppercase font-semibold truncate">KDV Dahil</span>
+                            <span class="font-bold text-gray-800 tabular-nums truncate block">${formatCurrency(inclVal)}</span>
+                        </div>
+                        <div class="min-w-0 text-center">
+                            <span class="text-gray-400 block text-[9px] uppercase font-semibold truncate">KDV Hariç</span>
+                            <span class="font-semibold text-indigo-700 tabular-nums truncate block">${formatCurrency(exclVal)}</span>
+                        </div>
+                        <div class="min-w-0 text-right">
+                            <span class="text-gray-400 block text-[9px] uppercase font-semibold truncate">T.Park %15</span>
+                            <span class="font-bold text-amber-600 tabular-nums truncate block">${formatCurrency(tparkVal)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Açıklama (Varsa) -->
+                    ${descStr !== '-' ? `
+                        <div class="text-xs text-gray-600 truncate min-w-0 bg-gray-50/50 p-2 rounded border border-gray-100">
+                            <i class="fa-regular fa-file-lines mr-1 text-gray-400"></i><span class="truncate">${descStr}</span>
+                        </div>
+                    ` : ''}
+
+                    <!-- Durum / Ödeme Onayı -->
+                    <div class="flex items-center justify-between gap-2 bg-teal-50/40 p-2.5 rounded-lg border border-teal-100/60 text-xs">
+                        <div class="min-w-0">
+                            <span class="text-gray-500 block text-[10px] uppercase font-semibold">Ödeme Durumu</span>
+                            ${c.paymentDate ? `
+                                <span class="text-emerald-700 text-[11px] font-bold inline-flex items-center mt-0.5">
+                                    <i class="fa-solid fa-calendar-check mr-1 text-[10px]"></i>${c.paymentDate}
+                                </span>
+                            ` : '<span class="text-amber-700 text-[11px] font-semibold">Ödeme Bekliyor</span>'}
+                        </div>
+                        <label class="flex items-center space-x-1.5 text-[11px] font-bold text-gray-700 cursor-pointer shrink-0">
+                            <input type="checkbox" ${isPaidChecked ? 'checked' : ''} 
+                                ${isUserAdmin ? '' : 'disabled'}
+                                onchange="toggleConsultantPaidStatus('${c.id}', this.checked)" 
+                                class="w-4 h-4 text-teal-600 rounded cursor-pointer focus:ring-teal-500 ${isUserAdmin ? '' : 'opacity-60 cursor-not-allowed'}">
+                            <span>${isPaidChecked ? 'Ödendi' : 'Öde'}</span>
+                        </label>
+                    </div>
+
+                    <!-- Butonlar (Düzenle / Sil) -->
+                    ${canEdit ? `
+                        <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                            <button onclick="openConsultantModal('${c.id}')" class="flex-1 py-1.5 px-3 bg-teal-50 text-teal-700 hover:bg-teal-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                <i class="fa-regular fa-pen-to-square mr-1"></i>Düzenle
+                            </button>
+                            <button onclick="deleteConsultantPayment('${c.id}')" class="py-1.5 px-3 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
     });
 
-    // Kart toplamlarını güncelle
-    const conInclEl = document.getElementById('con-total-incl');
-    const conExclEl = document.getElementById('con-total-excl');
-    const conTparkEl = document.getElementById('con-total-tpark');
-    const conNetEl = document.getElementById('con-total-net');
+    // 4'lü KPI Kartlarını Yazdır
+    const inclEl = document.getElementById('con-total-incl');
+    const exclEl = document.getElementById('con-total-excl');
+    const tparkEl = document.getElementById('con-total-tpark');
+    const netEl = document.getElementById('con-total-net');
 
-    if (conInclEl) conInclEl.innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conExclEl) conExclEl.innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conTparkEl) conTparkEl.innerText = totalTPark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (conNetEl) conNetEl.innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (inclEl) inclEl.innerText = totalIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (exclEl) exclEl.innerText = totalExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (tparkEl) tparkEl.innerText = totalTpark.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (netEl) netEl.innerText = totalNet.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} danışmanlık kaydı bulunamadı.</td></tr>`;
+    if (tbody.innerHTML === '') {
+        const emptyMsg = `Seçilen ${selMonth}/${selYear} dönemine ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} danışmanlık kaydı bulunamadı.`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-4 text-center text-gray-400 italic">${emptyMsg}</td></tr>`;
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border border-gray-200">${emptyMsg}</div>`;
+        }
     }
 }
 
