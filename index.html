@@ -6522,19 +6522,38 @@ async function saveAllMeterReadings() {
 
         let savedCount = 0;
 
-        // 1. Ofis Endekslerini Oku ve Güncelle
+        // 1. Ofis Endekslerini Oku ve Değeri Olan Inputu Seç
         campus.offices.forEach(office => {
             const offId = String(office.id);
 
             const mobPrevEl = document.getElementById(`meter-prev-mob-${offId}`);
             const deskPrevEl = document.getElementById(`meter-prev-${offId}`);
-            const prevVal = parseFloat(mobPrevEl && mobPrevEl.value !== '' ? mobPrevEl.value : (deskPrevEl ? deskPrevEl.value : 0)) || 0;
+            
+            // Hangisinde sayı varsa onu al (Önce masaüstü, sonra mobil)
+            let prevVal = 0;
+            if (deskPrevEl && deskPrevEl.value.trim() !== '') {
+                prevVal = parseFloat(deskPrevEl.value.trim()) || 0;
+            } else if (mobPrevEl && mobPrevEl.value.trim() !== '') {
+                prevVal = parseFloat(mobPrevEl.value.trim()) || 0;
+            }
 
             const mobCurrEl = document.getElementById(`meter-curr-mob-${offId}`);
             const deskCurrEl = document.getElementById(`meter-curr-${offId}`);
-            const currVal = parseFloat(mobCurrEl && mobCurrEl.value !== '' ? mobCurrEl.value : (deskCurrEl ? deskCurrEl.value : 0)) || 0;
+            
+            let currVal = 0;
+            if (deskCurrEl && deskCurrEl.value.trim() !== '') {
+                currVal = parseFloat(deskCurrEl.value.trim()) || 0;
+            } else if (mobCurrEl && mobCurrEl.value.trim() !== '') {
+                currVal = parseFloat(mobCurrEl.value.trim()) || 0;
+            }
 
-            // Listeden eski kaydı çıkarıp güncelini ekle (Mükerrerlik ve ezilme biter)
+            // İki taraftaki kutuları da görsel olarak senkron tut
+            if (deskPrevEl) deskPrevEl.value = prevVal > 0 ? prevVal : '';
+            if (mobPrevEl) mobPrevEl.value = prevVal > 0 ? prevVal : '';
+            if (deskCurrEl) deskCurrEl.value = currVal > 0 ? currVal : '';
+            if (mobCurrEl) mobCurrEl.value = currVal > 0 ? currVal : '';
+
+            // Eski kaydı çıkar, dolu olan yeni kaydı ekle
             data.meterReadings = data.meterReadings.filter(m => 
                 !(String(m.officeId) === offId && String(m.year) === String(year) && String(m.month) === String(month))
             );
@@ -6565,8 +6584,10 @@ async function saveAllMeterReadings() {
             unitPrice: unitPrice
         });
 
-        // 3. Tabloyu Canlı Güncelle
-        recalculateMeterTableLive(unitPrice);
+        // 3. Tabloyu ve KPI kartlarını canlı güncelle
+        if (typeof recalculateMeterTableLive === 'function') {
+            recalculateMeterTableLive(unitPrice);
+        }
 
         // 4. Buluta ve Yerel Depoya Mühürle
         await saveData();
