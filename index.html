@@ -2054,7 +2054,7 @@ async function saveData() {
     localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
     // Ekranları hemen güncelle
-    renderAll();
+    if (typeof renderAll === 'function') renderAll();
 
     // 2. Buluta gönder
     if (APPS_SCRIPT_URL) {
@@ -2079,13 +2079,17 @@ async function saveData() {
                 paymentDate: m.paymentDate || ''
             }));
 
+            // SAYAÇLAR DAHİL EDİLMİŞ VE MÜKEMMEL PAKETLENMİŞ VERİ
             const payload = JSON.stringify({
                 data: {
                     campuses: data.campuses || [],
                     rentals: data.rentals || [],
                     refereePayments: cleanReferee,
                     consultantPayments: cleanConsultant,
-                    manualPayments: cleanManual
+                    manualPayments: cleanManual,
+                    // KRİTİK EKLENEN KISIM: Sayaç okumaları ve tarifeleri
+                    meterReadings: data.meterReadings || [],
+                    meterTariffs: data.meterTariffs || []
                 },
                 users: users,
                 userNotes: userNotes
@@ -2097,6 +2101,8 @@ async function saveData() {
                 headers: { 'Content-Type': 'application/json' },
                 body: payload
             });
+
+            console.log("✓ Sayaçlar dahil tüm veriler buluta başarıyla fırlatıldı.");
         } catch (err) {
             console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
         } finally {
