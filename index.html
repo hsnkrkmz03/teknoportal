@@ -6363,7 +6363,7 @@ async function markSelectedPaymentsAsPaid() {
             const unitPriceInput = document.getElementById('meter-campus-unit-price');
             if (unitPriceInput) unitPriceInput.value = currentUnitPrice > 0 ? currentUnitPrice : '';
 
-            // 1. Önce campus ve offices değişkenleri eksiksiz tanımlanır (Hata burada çözüldü)
+            // 1. Yerleşke ve ofis tanımları
             const campus = (data.campuses || []).find(c => String(c.id) === String(campusId));
             const offices = campus ? (campus.offices || []) : [];
 
@@ -6374,7 +6374,7 @@ async function markSelectedPaymentsAsPaid() {
                 return;
             }
 
-            // Bir önceki dönemi belirle (Önceki aydan endeks devri için)
+            // Bir önceki dönemi belirle (Önceki aydan son endeks devri için)
             let prevYear = parseInt(year);
             let prevMonthNum = parseInt(month) - 1;
             if (prevMonthNum === 0) { prevMonthNum = 12; prevYear -= 1; }
@@ -6386,45 +6386,61 @@ async function markSelectedPaymentsAsPaid() {
                 const rawCompanyName = activeRental ? activeRental.company : 'Boş Ofis (Teknopark)';
                 const companyBadge = activeRental ? activeRental.company : '<span class="text-gray-400 italic font-normal">Boş Ofis (Teknopark)</span>';
 
-// Bu ofisin seçili dönemdeki (yıl/ay) kaydını ara
-const record = (data.meterReadings || []).find(m => 
-    String(m.officeId) === String(o.id) && 
-    String(m.year) === String(year) && 
-    String(m.month) === String(month)
-);
+                // 1. Bu ofisin seçili dönemdeki (yıl/ay) kendi kaydını ara
+                const record = (data.meterReadings || []).find(m => 
+                    String(m.officeId) === String(o.id) && 
+                    String(m.year) === String(year) && 
+                    String(m.month) === String(month)
+                );
 
-let initialPrevIndex = 0;
-let initialCurrIndex = 0;
-let isRead = false;
+                // 2. Bir önceki ayın son endeksini bul (Otomatik İlk Endeks Devri İçin)
+                const prevRecord = (data.meterReadings || []).find(m => 
+                    String(m.officeId) === String(o.id) && 
+                    String(m.year) === String(prevYear) && 
+                    String(m.month) === String(prevMonthStr)
+                );
 
-if (record) {
-    // 1. DÖNEM KAYDI VARSA: Kayıttaki gerçek sayıları al
-    initialPrevIndex = parseFloat(record.previousIndex) || 0;
-    initialCurrIndex = parseFloat(record.currentIndex) || 0;
-    isRead = initialCurrIndex > 0 || initialPrevIndex > 0;
-} else {
-    // 2. DÖNEM KAYDI SİLİNMİŞ VEYA HİÇ YOKSA:
-    // Kutuları tertemiz boş bırak (Kullanıcı sildiyse zorla devir basma)
-    initialPrevIndex = 0;
-    initialCurrIndex = 0;
-    isRead = false;
-}
+                let initialPrevIndex = 0;
+                let initialCurrIndex = 0;
+                let isRead = false;
 
-// Tüketim farkı (kWh)
-const diffKwh = Math.max(0, initialCurrIndex - initialPrevIndex);
+                if (record) {
+                    // KULLANICI BU AY KAYIT GİRMİŞ:
+                    // İlk endeks kayıtlıysa onu al, yoksa önceki aydan devral
+                    initialPrevIndex = (record.previousIndex !== undefined && record.previousIndex !== null && record.previousIndex !== '')
+                        ? parseFloat(record.previousIndex) || 0
+                        : (prevRecord ? parseFloat(prevRecord.currentIndex) || 0 : 0);
 
-// Kutularda gösterilecek değerler: Kayıt yoksa veya 0 ise kutu tamamen BOŞ kalsın
-const prevDisplay = (record && record.previousIndex !== undefined && record.previousIndex !== null && record.previousIndex !== '') 
-    ? record.previousIndex 
-    : '';
+                    // Son endeks kullanıcının kaydettiği değerdir
+                    initialCurrIndex = (record.currentIndex !== undefined && record.currentIndex !== null && record.currentIndex !== '')
+                        ? parseFloat(record.currentIndex) || 0
+                        : 0;
 
-const currDisplay = (record && record.currentIndex !== undefined && record.currentIndex !== null && record.currentIndex !== '') 
-    ? record.currentIndex 
-    : '';
+                    // Son endeks alanı doluysa 'Okundu' say
+                    isRead = (record.currentIndex !== undefined && record.currentIndex !== null && String(record.currentIndex).trim() !== '');
+                } else {
+                    // BU AY HENÜZ KAYIT GİRİLMEMİŞ (VEYA SİLİNMİŞ):
+                    // Önceki ayın son endeksi bu ayın İLK endeksi olarak otomatik devretsin!
+                    initialPrevIndex = prevRecord ? (parseFloat(prevRecord.currentIndex) || 0) : 0;
+                    initialCurrIndex = 0;
+                    isRead = false;
+                }
 
-const formattedKwh = diffKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const badgeClass = isRead && diffKwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600';
-const badgeText = isRead && diffKwh > 0 ? 'Okundu' : 'Bekliyor';
+                // Tüketim farkı (kWh) - Sadece son endeks girildiyse fark hesapla
+                const diffKwh = isRead ? Math.max(0, initialCurrIndex - initialPrevIndex) : 0;
+
+                // Kutuların ekranda gösterimi:
+                // İlk endeks varsa kutuya yazılır (önceki aydan devir anında görünür)
+                const prevDisplay = initialPrevIndex > 0 ? initialPrevIndex : '';
+
+                // Son endeks sadece kullanıcı girmişse görünür; silindiyse veya girilmediyse TERTEMİZ BOŞ kalır
+                const currDisplay = (record && record.currentIndex !== undefined && record.currentIndex !== null && String(record.currentIndex).trim() !== '')
+                    ? record.currentIndex
+                    : '';
+
+                const formattedKwh = diffKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const badgeClass = isRead && diffKwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600';
+                const badgeText = isRead && diffKwh > 0 ? 'Okundu' : 'Bekliyor';
 
                 // A. MASAÜSTÜ TABLO SATIRI
                 if (tbody) {
