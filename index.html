@@ -4082,7 +4082,7 @@ function renderRentals() {
     filteredRentals.forEach(r => {
         // ... (mevcut hesaplamalar aynı kalıyor) ...
 
-        // MOBİL KART RENDER (md:hidden)
+// MOBİL KART RENDER (md:hidden)
         if (mobileContainer) {
             mobileContainer.innerHTML += `
                 <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 ${!isActive ? 'opacity-80 bg-gray-50' : ''}">
@@ -4144,7 +4144,6 @@ function renderRentals() {
                 </div>
             `;
         }
-    });
 
     if (mobileContainer && filteredRentals.length === 0) {
         mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
