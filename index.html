@@ -372,28 +372,30 @@
                 </div>
             </section>
 
-            <!-- 2. YERLEŞKE & OFİS SEKMESİ -->
-            <section id="tab-campuses" class="hidden">
+<!-- 2. YERLEŞKE & OFİS SEKMESİ -->
+            <section id="tab-campuses" class="hidden w-full max-w-full">
+                <!-- ÜST BAŞLIK VE BUTONLAR -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                     <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-city text-indigo-600"></i>
-    <span>Yerleşke & Ofis Yönetimi</span>
-</h1>
-<p class="text-xs text-gray-500">Yerleşkeleri yönetin, manuel veya Excel dosyası ile toplu ofis ekleyin.</p>
+                        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-city text-indigo-600"></i>
+                            <span>Yerleşke & Ofis Yönetimi</span>
+                        </h1>
+                        <p class="text-xs text-gray-500">Yerleşkeleri yönetin, manuel veya Excel dosyası ile toplu ofis ekleyin.</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button id="btn-excel-office" onclick="openExcelUploadModal()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition perm-edit shadow-sm">
+                    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                        <button id="btn-excel-office" onclick="openExcelUploadModal()" class="flex-1 md:flex-none justify-center bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition perm-edit shadow-sm inline-flex items-center">
                             <i class="fa-solid fa-file-excel mr-1.5"></i> Excel ile Toplu Ofis Yükle
                         </button>
-                        <button id="btn-add-campus" onclick="openCampusModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition perm-edit shadow-sm">
+                        <button id="btn-add-campus" onclick="openCampusModal()" class="flex-1 md:flex-none justify-center bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition perm-edit shadow-sm inline-flex items-center">
                             <i class="fa-solid fa-plus mr-1.5"></i> Yeni Yerleşke Ekle
                         </button>
                     </div>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 mb-6 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-4 border-b pb-3">
+                <!-- AKILLI OFİS ÖNERİ ROBOTU & ARAMA FİLTRESİ -->
+                <div class="bg-white p-4 md:p-5 rounded-xl shadow-sm border border-gray-100 mb-6 space-y-4 w-full max-w-full overflow-hidden">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
                         <div class="flex items-center space-x-2 font-bold text-gray-800 text-sm">
                             <i class="fa-solid fa-wand-magic-sparkles text-blue-600 text-base"></i>
                             <span>Akıllı Ofis Öneri Robotu & Arama Filtresi</span>
@@ -403,23 +405,23 @@
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         <div class="bg-blue-50/60 p-3 rounded-lg border border-blue-100">
                             <label class="block text-xs font-bold text-blue-900 mb-1">
                                 <i class="fa-solid fa-users mr-1 text-blue-600"></i> Personel Sayısına Göre Öneri (8 m² / Personel)
                             </label>
-                            <input type="number" id="filter-person-count" placeholder="Örn: 15 Personel" class="w-full border border-blue-200 p-2 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onPersonCountInput()">
+                            <input type="number" id="filter-person-count" placeholder="Örn: 15 Personel" class="w-full border border-blue-200 p-2 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" oninput="onPersonCountInput()">
                             <span class="text-[10px] text-blue-600 mt-1 block font-medium" id="person-m2-calc-hint">0 Personel = 0.00 m² İhtiyaç</span>
                         </div>
 
-                        <div class="col-span-2 bg-gray-50/80 p-3 rounded-lg border border-gray-200 flex flex-col justify-between">
+                        <div class="md:col-span-2 bg-gray-50/80 p-3 rounded-lg border border-gray-200 flex flex-col justify-between">
                             <label class="block text-xs font-bold text-gray-700 mb-1">
                                 <i class="fa-solid fa-ruler-combined mr-1 text-gray-600"></i> Manuel Boş m² Aralığı İle Arama
                             </label>
                             <div class="flex items-center space-x-2">
-                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
+                                <input type="number" id="filter-min-m2" placeholder="Min Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" oninput="onManualM2Input()">
                                 <span class="text-gray-400 text-xs font-bold">-</span>
-                                <input type="number" id="filter-max-m2" placeholder="Max Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="onManualM2Input()">
+                                <input type="number" id="filter-max-m2" placeholder="Max Boş m²" class="border p-2 rounded-lg text-xs w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" oninput="onManualM2Input()">
                             </div>
                         </div>
                     </div>
@@ -433,9 +435,9 @@
                     </div>
                 </div>
 
-                <div id="campus-list" class="space-y-4"></div>
+                <!-- YERLEŞKE VE OFİSLER DİNAMİK LİSTESİ (ASLA TAŞMAZ) -->
+                <div id="campus-list" class="space-y-4 w-full max-w-full"></div>
             </section>
-
 <!-- 3. KİRALAMA TAKİBİ SEKMESİ -->
             <section id="tab-rentals" class="hidden">
                 <!-- SÖZLEŞME BİTİŞ UYARI ALANI -->
@@ -3833,23 +3835,23 @@ function renderDuePaymentsAlert() {
                 if (icon) icon.classList.add('rotate-180');
             }
         }
-        function renderCampuses() {
+function renderCampuses() {
             const container = document.getElementById('campus-list');
             if (!container) return;
             container.innerHTML = '';
 
-            const minM2Val = document.getElementById('filter-min-m2').value.trim();
-            const maxM2Val = document.getElementById('filter-max-m2').value.trim();
+            const minM2Val = document.getElementById('filter-min-m2') ? document.getElementById('filter-min-m2').value.trim() : '';
+            const maxM2Val = document.getElementById('filter-max-m2') ? document.getElementById('filter-max-m2').value.trim() : '';
             const minM2Input = minM2Val !== '' ? parseFloat(minM2Val) : NaN;
             const maxM2Input = maxM2Val !== '' ? parseFloat(maxM2Val) : NaN;
-            const personCount = parseFloat(document.getElementById('filter-person-count').value);
+            const personCount = parseFloat(document.getElementById('filter-person-count')?.value);
             
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             const perm = currentUser ? (currentUser.permissions || {}) : {};
 
             const canEditGeneral = isUserAdmin || perm.canEdit;
             const canAddOffice = isUserAdmin || perm.officeAdd !== false;
-            const can = isUserAdmin || perm.officeDelete !== false;
+            const canDeleteOffice = isUserAdmin || perm.officeDelete !== false;
             const canDeleteCampus = isUserAdmin || perm.campusDelete !== false;
 
             const suggestionBox = document.getElementById('smart-suggestion-box');
@@ -3960,19 +3962,19 @@ function renderDuePaymentsAlert() {
                         const boxBg = isCross ? 'bg-purple-50 border-purple-200' : (isCombo ? 'bg-indigo-50 border-indigo-200' : 'bg-emerald-50 border-emerald-200');
 
                         suggestionCards.innerHTML += `
-                            <div class="${boxBg} p-3 rounded-lg border flex justify-between items-center shadow-2xs">
-                                <div>
-                                    <div class="font-bold text-gray-900 text-xs">${item.title}</div>
-                                    <div class="text-[11px] text-gray-700 mt-0.5">Toplam Kullanılabilir Alan: <strong>${item.totalAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
+                            <div class="${boxBg} p-3 rounded-lg border flex justify-between items-center shadow-2xs w-full max-w-full overflow-hidden">
+                                <div class="min-w-0 flex-1 mr-2">
+                                    <div class="font-bold text-gray-900 text-xs truncate">${item.title}</div>
+                                    <div class="text-[11px] text-gray-700 mt-0.5 truncate">Toplam Kullanılabilir Alan: <strong>${item.totalAvail.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></div>
                                 </div>
-                                <span class="${badgeColor} text-white font-bold text-[10px] px-2 py-1 rounded-md shrink-0 ml-2">${item.badge}</span>
+                                <span class="${badgeColor} text-white font-bold text-[10px] px-2 py-1 rounded-md shrink-0">${item.badge}</span>
                             </div>
                         `;
                     });
                     suggestionBox.classList.remove('hidden');
                 } else {
                     suggestionCards.innerHTML = `
-                        <div class="col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
+                        <div class="col-span-1 md:col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800 font-semibold text-center">
                             Seçilen personel sayısı (${personCount} Personel = ${targetM2.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²) için yeterli boş ofis bulunamadı.
                         </div>
                     `;
@@ -3995,74 +3997,96 @@ function renderDuePaymentsAlert() {
                 let officesHtml = filteredOffices.map(o => {
                     const rentedArea = getOfficeRentedArea(o.id);
                     const availArea = Math.max(0, parseFloat(o.area || 0) - rentedArea);
-                    const floorInfo = o.floor ? ` | ${o.floor}` : '';
+                    const floorInfo = o.floor ? `${o.floor}` : 'Kat Belirtilmemiş';
                     
                     let statusBadge = '';
                     if (rentedArea === 0) {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-green-100 text-green-700">Tamamı Boş (${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</span>`;
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-green-100 text-green-700 shrink-0">Tamamı Boş (${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²)</span>`;
                     } else if (availArea > 0) {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-amber-100 text-amber-700">Kısmi Kiralı (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²)</span>`;
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-amber-100 text-amber-700 shrink-0">Kısmi Kiralı (Boş: ${availArea.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²)</span>`;
                     } else {
-                        statusBadge = `<span class="px-2.5 py-1 text-xs rounded-full font-medium bg-red-100 text-red-700">Tamamı Dolu</span>`;
+                        statusBadge = `<span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-red-100 text-red-700 shrink-0">Tamamı Dolu</span>`;
                     }
 
-                    const hasActiveRental = data.rentals.some(r => String(r.officeId) === String(o.id) && r.status === 'active');
+                    const hasActiveRental = (data.rentals || []).some(r => String(r.officeId) === String(o.id) && r.status === 'active');
 
                     return `
-                        <div class="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-gray-100 transition rounded-lg border border-gray-200">
-                            <div>
-                                <span class="font-semibold text-gray-800 text-sm">${o.name}</span>
-                                <span class="text-xs text-gray-500 ml-2">(Toplam: ${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²${floorInfo})</span>
+                        <div class="p-3.5 bg-white hover:bg-gray-50/80 transition rounded-xl border border-gray-200 shadow-2xs space-y-2.5 w-full max-w-full overflow-hidden">
+                            <!-- Üst Satır: Ofis Adı ve Kat Bilgisi -->
+                            <div class="flex items-center justify-between gap-2 min-w-0">
+                                <div class="min-w-0 flex-1">
+                                    <span class="font-bold text-gray-800 text-sm block truncate">${o.name}</span>
+                                    <span class="text-xs text-gray-400 font-medium block truncate">
+                                        <i class="fa-solid fa-layer-group mr-1"></i>${floorInfo}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    ${(canEditGeneral && canDeleteOffice) ? `
+                                        <button onclick="${hasActiveRental ? '' : `deleteOffice('${c.id}', '${o.id}')`}" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} p-1.5 rounded-lg transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
+                                            <i class="fa-solid ${hasActiveRental ? 'fa-lock' : 'fa-trash'} text-xs"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                ${statusBadge}
-                                ${(canEditGeneral && can) ? `
-                                    <button onclick="('${c.id}', '${o.id}')" class="${hasActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'} transition" title="${hasActiveRental ? 'Aktif kiralama varken silinemez' : 'Ofisi Sil'}">
-                                        <i class="fa-solid ${hasActiveRental ? 'fa-lock' : 'fa-trash'}"></i>
-                                    </button>
-                                ` : ''}
+
+                            <!-- Alt Satır: Alan Metrikleri ve Rozet -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-50 p-2.5 rounded-lg border border-gray-100 text-xs">
+                                <div class="min-w-0">
+                                    <span class="text-gray-400 block text-[10px] uppercase font-semibold">Toplam Alan</span>
+                                    <span class="font-bold text-gray-800 tabular-nums">${parseFloat(o.area || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</span>
+                                </div>
+                                <div class="text-right">
+                                    ${statusBadge}
+                                </div>
                             </div>
                         </div>
                     `;
                 }).join('');
 
                 const isFiltered = !isNaN(minM2Input) || !isNaN(maxM2Input);
-                const isUserExpanded = expandedCampusIds.has(String(c.id));
+                const isUserExpanded = typeof expandedCampusIds !== 'undefined' && expandedCampusIds.has(String(c.id));
                 const shouldOpenBody = isUserExpanded || (isFiltered && filteredOffices.length > 0);
                 const campusOfficeIds = (c.offices || []).map(o => String(o.id));
-                const hasCampusActiveRental = data.rentals.some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
+                const hasCampusActiveRental = (data.rentals || []).some(r => campusOfficeIds.includes(String(r.officeId)) && r.status === 'active');
 
                 container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition">
-                        <div class="p-5 flex items-center justify-between cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails('${c.id}')">
-                            <div class="flex items-center space-x-3">
-                                <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200 transform ${shouldOpenBody ? 'rotate-180' : ''}" id="campus-icon-${c.id}"></i>
-                                <div>
-                                    <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                                        <span>${c.name}</span>
-                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">${filteredOffices.length} / ${(c.offices || []).length} Ofis</span>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition w-full max-w-full">
+                        <!-- Yerleşke Başlık Satırı (Mobilde Dikey, Masaüstünde Yatay) -->
+                        <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-gray-50/50 transition border-b border-transparent" onclick="toggleCampusDetails('${c.id}')">
+                            <div class="flex items-center space-x-3 min-w-0">
+                                <i class="fa-solid fa-chevron-down text-gray-400 text-xs transition-transform duration-200 transform shrink-0 ${shouldOpenBody ? 'rotate-180' : ''}" id="campus-icon-${c.id}"></i>
+                                <div class="min-w-0">
+                                    <h2 class="text-base font-bold text-gray-800 flex flex-wrap items-center gap-2">
+                                        <span class="truncate">${c.name}</span>
+                                        <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold shrink-0">${filteredOffices.length} / ${(c.offices || []).length} Ofis</span>
                                     </h2>
-                                    <p class="text-xs text-gray-500 mt-0.5">Toplam Yerleşke Alanı: <strong>${totalCampusArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</strong></p>
+                                    <p class="text-xs text-gray-500 mt-0.5 truncate">Toplam Alan: <strong class="text-gray-700">${totalCampusArea.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</strong></p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3" onclick="event.stopPropagation()">
+
+                            <!-- Butonlar Grubu (Mobilde Sığacak Şekilde Flex Yapısı) -->
+                            <div class="flex items-center justify-end space-x-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0" onclick="event.stopPropagation()">
                                 ${(canEditGeneral && canAddOffice) ? `
-                                    <button onclick="openOfficeModal('${c.id}')" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100 transition flex items-center">
+                                    <button onclick="openOfficeModal('${c.id}')" class="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-100 transition inline-flex items-center active:scale-95">
                                         <i class="fa-solid fa-plus mr-1"></i> Ofis Ekle
                                     </button>
                                 ` : ''}
                                 ${(canEditGeneral && canDeleteCampus) ? `
-                                    <button onclick="deleteCampus('${c.id}')" class="${hasCampusActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'} text-xs p-1.5 transition" title="${hasCampusActiveRental ? 'Aktif kiralama varken yerleşke silinemez' : 'Yerleşkeyi Sil'}">
+                                    <button onclick="deleteCampus('${c.id}')" class="${hasCampusActiveRental ? 'text-gray-300 cursor-not-allowed' : 'text-red-500 hover:text-red-700'} text-xs p-2 rounded-lg hover:bg-red-50 transition active:scale-95" title="${hasCampusActiveRental ? 'Aktif kiralama varken yerleşke silinemez' : 'Yerleşkeyi Sil'}">
                                         <i class="fa-solid ${hasCampusActiveRental ? 'fa-lock' : 'fa-trash'}"></i>
                                     </button>
                                 ` : ''}
-                                <button onclick="toggleCampusDetails('${c.id}')" class="text-xs text-gray-500 hover:text-blue-600 font-semibold flex items-center gap-1 bg-gray-100 px-2.5 py-1.5 rounded-lg">
+                                <button onclick="toggleCampusDetails('${c.id}')" class="text-xs text-gray-600 hover:text-blue-600 font-semibold inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition">
                                     <span>Ofisler</span>
                                 </button>
                             </div>
                         </div>
-                        <div id="campus-body-${c.id}" class="${shouldOpenBody ? '' : 'hidden'} p-5 bg-gray-50/30 border-t border-gray-100 space-y-3">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">${officesHtml || '<p class="text-xs text-gray-400 col-span-2 p-2">Arama kriterlerinize uygun boş ofis bulunamadı.</p>'}</div>
+
+                        <!-- Ofis Kartları Grid Alanı -->
+                        <div id="campus-body-${c.id}" class="${shouldOpenBody ? '' : 'hidden'} p-4 sm:p-5 bg-gray-50/50 border-t border-gray-100 space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-full">
+                                ${officesHtml || '<p class="text-xs text-gray-400 col-span-1 md:col-span-2 p-3 text-center bg-white rounded-lg border border-dashed border-gray-200">Arama kriterlerinize uygun boş ofis bulunamadı.</p>'}
+                            </div>
                         </div>
                     </div>
                 `;
