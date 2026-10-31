@@ -2090,19 +2090,14 @@ async function fetchCentralData(isSilent = false) {
                 return { ...cm, isPaid, paymentDate };
             });
 
-            // 6. SAYAÇ OKUMALARI VE TARİFELERİ
-            if (Array.isArray(targetData.meterReadings) && targetData.meterReadings.length > 0) {
-                const readingMap = new Map();
-                (data.meterReadings || []).forEach(m => readingMap.set(`${m.officeId}_${m.year}_${m.month}`, m));
-                targetData.meterReadings.forEach(m => readingMap.set(`${m.officeId}_${m.year}_${m.month}`, m));
-                data.meterReadings = Array.from(readingMap.values());
+            // 6. SAYAÇ OKUMALARI VE TARİFELERİ (DÜZELTİLDİ: EZİLME ÖNLENDİ)
+            if (Array.isArray(targetData.meterReadings)) {
+                // Eğer buluttan sayaç listesi geldiyse doğrudan buluttakini mühürle
+                data.meterReadings = targetData.meterReadings;
             }
 
-            if (Array.isArray(targetData.meterTariffs) && targetData.meterTariffs.length > 0) {
-                const tariffMap = new Map();
-                (data.meterTariffs || []).forEach(t => tariffMap.set(`${t.campusId}_${t.year}_${t.month}`, t));
-                targetData.meterTariffs.forEach(t => tariffMap.set(`${t.campusId}_${t.year}_${t.month}`, t));
-                data.meterTariffs = Array.from(tariffMap.values());
+            if (Array.isArray(targetData.meterTariffs)) {
+                data.meterTariffs = targetData.meterTariffs;
             }
 
             // 7. KULLANICILAR VE NOTLAR
@@ -6390,18 +6385,38 @@ async function markSelectedPaymentsAsPaid() {
                 const rawCompanyName = activeRental ? activeRental.company : 'Boş Ofis (Teknopark)';
                 const companyBadge = activeRental ? activeRental.company : '<span class="text-gray-400 italic font-normal">Boş Ofis (Teknopark)</span>';
 
-                // Bu ofisin bu aydaki kayıtlı endeksini çek
-                const record = (data.meterReadings || []).find(m => String(m.officeId) === String(o.id) && String(m.year) === String(year) && String(m.month) === String(month));
+// Bu ofisin bu aydaki kayıtlı endeksini çek
+                const record = (data.meterReadings || []).find(m => 
+                    String(m.officeId) === String(o.id) && 
+                    String(m.year) === String(year) && 
+                    String(m.month) === String(month)
+                );
 
-                // Önceki ayın son endeksini bul (otomatik ilk endeks devri)
-                const prevRecord = (data.meterReadings || []).find(m => String(m.officeId) === String(o.id) && String(m.year) === String(prevYear) && String(m.month) === String(prevMonthStr));
-                
-                const initialPrevIndex = record ? (record.previousIndex || 0) : (prevRecord ? (prevRecord.currentIndex || 0) : 0);
-                const initialCurrIndex = record ? (record.currentIndex || 0) : 0;
+                let initialPrevIndex = 0;
+                let initialCurrIndex = 0;
+                let hasCurrentRecord = false;
+
+                if (record) {
+                    // Bu ay için kayıt varsa KESİNLİKLE bu kayıttaki değerleri kullan:
+                    initialPrevIndex = parseFloat(record.previousIndex) || 0;
+                    initialCurrIndex = parseFloat(record.currentIndex) || 0;
+                    hasCurrentRecord = true;
+                } else {
+                    // Sadece bu ay HİÇ kayıt yoksa önceki ayın son endeksini devir al:
+                    const prevRecord = (data.meterReadings || []).find(m => 
+                        String(m.officeId) === String(o.id) && 
+                        String(m.year) === String(prevYear) && 
+                        String(m.month) === String(prevMonthStr)
+                    );
+                    initialPrevIndex = prevRecord ? (parseFloat(prevRecord.currentIndex) || 0) : 0;
+                    initialCurrIndex = 0;
+                }
+
                 const diffKwh = Math.max(0, initialCurrIndex - initialPrevIndex);
 
-                const prevDisplay = initialPrevIndex > 0 ? initialPrevIndex : '';
-                const currDisplay = initialCurrIndex > 0 ? initialCurrIndex : '';
+                // Değer 0 dahi girilse kutunun boş kalmaması için kontrol
+                const prevDisplay = hasCurrentRecord ? initialPrevIndex : (initialPrevIndex > 0 ? initialPrevIndex : '');
+                const currDisplay = hasCurrentRecord ? initialCurrIndex : '';
                 const formattedKwh = diffKwh.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                 const badgeClass = diffKwh > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600';
