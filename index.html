@@ -3390,36 +3390,40 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
         }
 
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
-        function populateCampusFilters() {
-            const dashSelect = document.getElementById('dash-campus-filter');
-            const rentalsSelect = document.getElementById('rentals-campus-filter');
-            const excelUploadSelect = document.getElementById('excel-upload-campus-select');
+function populateCampusFilters() {
+    // 1. Korumalı dizi kontrolü (undefined hatasını tamamen yok eder)
+    const campuses = (data && Array.isArray(data.campuses)) ? data.campuses : [];
 
-            const currentDashVal = dashSelect ? dashSelect.value : 'all';
-            const currentRentalsVal = rentalsSelect ? rentalsSelect.value : 'all';
-            const currentExcelVal = excelUploadSelect ? excelUploadSelect.value : '';
+    // İlgili tüm yerleşke filtre açılır kutularını topla
+    const filterSelects = [
+        document.getElementById('rentals-campus-filter'),
+        document.getElementById('meter-campus-filter'),
+        document.getElementById('campuses-select-filter')
+    ].filter(Boolean);
 
-            let filterOptions = '<option value="all">Tüm Yerleşkeler</option>';
-            let directOptions = '';
+    filterSelects.forEach(select => {
+        const currentVal = select.value;
+        const isMeterFilter = select.id === 'meter-campus-filter';
 
-            data.campuses.forEach(c => {
-                filterOptions += `<option value="${c.id}">${c.name}</option>`;
-                directOptions += `<option value="${c.id}">${c.name}</option>`;
-            });
+        // Sayaç filtresinde 'Tümü' olmaz, ilk yerleşke seçilir. Kiralamada 'Tümü' bulunur.
+        let html = isMeterFilter ? '' : '<option value="all">Tüm Yerleşkeler</option>';
 
-            if (dashSelect) {
-                dashSelect.innerHTML = filterOptions;
-                dashSelect.value = currentDashVal || 'all';
+        campuses.forEach(c => {
+            if (c && c.id && c.name) {
+                html += `<option value="${c.id}">${c.name}</option>`;
             }
-            if (rentalsSelect) {
-                rentalsSelect.innerHTML = filterOptions;
-                rentalsSelect.value = currentRentalsVal || 'all';
-            }
-            if (excelUploadSelect) {
-                excelUploadSelect.innerHTML = directOptions || '<option value="">Önce Yerleşke Ekleyiniz</option>';
-                if (currentExcelVal) excelUploadSelect.value = currentExcelVal;
-            }
+        });
+
+        select.innerHTML = html;
+
+        // Önceki seçim hala geçerliyse koru, değilse ilk seçeneğe odaklan
+        if (currentVal && Array.from(select.options).some(opt => opt.value === currentVal)) {
+            select.value = currentVal;
+        } else if (select.options.length > 0) {
+            select.selectedIndex = 0;
         }
+    });
+}
 
         function clearCampusFilters() {
             document.getElementById('filter-min-m2').value = '';
