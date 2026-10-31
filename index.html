@@ -3641,43 +3641,55 @@ function getStats(selectedCampusId = 'all') {
 
         // ==================== DASHBOARD & GRAFİK BAŞLIK SENKRONİZASYONU ====================
 function renderDashboard() {
-    const campusFilter = document.getElementById('dashboard-campus-filter') || 
+    // 1. Yerleşke filtresi seçimi (Dropdown varsa değerini al, yoksa 'all')
+    const campusSelect = document.getElementById('dashboard-campus-filter') || 
                          document.getElementById('dash-campus-filter') || 
-                         document.getElementById('rentals-campus-filter');
-    const selectedCampusId = campusFilter ? campusFilter.value : 'all';
+                         document.getElementById('rentals-campus-filter') ||
+                         document.querySelector('select[onchange*="renderDashboard"]');
+    const selectedCampusId = campusSelect ? campusSelect.value : 'all';
 
-    // getStats fonksiyonuyla hesaplama yap
+    // 2. İstatistikleri hesapla
     const stats = getStats(selectedCampusId);
     if (!stats) return;
 
-    // 1. Metrekare ve Doluluk
-    const elOccupancy = document.getElementById('stat-occupancy') || document.getElementById('dash-occupancy');
-    const elRentedArea = document.getElementById('stat-rented-area') || document.getElementById('dash-rented-area');
-    const elTotalArea = document.getElementById('stat-total-area') || document.getElementById('dash-total-area');
-    const elAvailableArea = document.getElementById('stat-available-area') || document.getElementById('dash-available-area');
+    // 3. Güvenli Element Bulucu ve Değer Basıcı
+    const writeToElement = (selectorList, textValue) => {
+        for (const selector of selectorList) {
+            // ID olarak dene
+            let el = document.getElementById(selector);
+            // Bulunamazsa class/özellik olarak dene
+            if (!el) el = document.querySelector(selector);
+            
+            if (el) {
+                el.innerText = textValue;
+            }
+        }
+    };
 
-    if (elOccupancy) elOccupancy.innerText = `%${stats.occupancyRate}`;
-    if (elRentedArea) elRentedArea.innerText = `${stats.rentedArea.toLocaleString('tr-TR')} m²`;
-    if (elTotalArea) elTotalArea.innerText = `${stats.totalArea.toLocaleString('tr-TR')} m²`;
-    if (elAvailableArea) elAvailableArea.innerText = `${stats.availableArea.toLocaleString('tr-TR')} m²`;
+    // 4. Alan ve Doluluk Göstergeleri
+    writeToElement(['stat-occupancy', 'dash-occupancy', 'dash-occupancy-rate', '#dash-occupancy'], `%${stats.occupancyRate}`);
+    writeToElement(['stat-rented-area', 'dash-rented-area', '#dash-rented-area'], `${Number(stats.rentedArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
+    writeToElement(['stat-total-area', 'dash-total-area', '#dash-total-area'], `${Number(stats.totalArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
+    writeToElement(['stat-available-area', 'dash-available-area', '#dash-available-area'], `${Number(stats.availableArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
 
-    // 2. Mali Göstergeler (KDV Hariç / Dahil)
-    const elRentRev = document.getElementById('stat-rent-revenue') || document.getElementById('dash-rent-revenue');
-    const elCommonRev = document.getElementById('stat-common-revenue') || document.getElementById('dash-common-revenue');
-    const elTotalRev = document.getElementById('stat-total-revenue') || document.getElementById('dash-total-revenue');
+    // 5. Finansal / Ciro Göstergeleri
+    const fmt = (val) => Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
 
-    if (elRentRev) elRentRev.innerText = `${stats.rentRevenueExcl.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
-    if (elCommonRev) elCommonRev.innerText = `${stats.commonRevenueExcl.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
-    if (elTotalRev) elTotalRev.innerText = `${stats.totalRevenueExcl.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
+    writeToElement(['stat-rent-revenue', 'dash-rent-revenue', '#dash-rent-revenue'], fmt(stats.rentRevenueExcl));
+    writeToElement(['stat-common-revenue', 'dash-common-revenue', '#dash-common-revenue'], fmt(stats.commonRevenueExcl));
+    writeToElement(['stat-other-revenue', 'dash-other-revenue', '#dash-other-revenue'], fmt(stats.otherRevenueExcl));
+    writeToElement(['stat-total-revenue', 'dash-total-revenue', 'dash-total-revenue-excl', '#dash-total-revenue'], fmt(stats.totalRevenueExcl));
+    writeToElement(['stat-total-revenue-incl', 'dash-total-revenue-incl', '#dash-total-revenue-incl'], fmt(stats.totalRevenueIncl));
 
-    // 3. Aktif Kiracı Sayısı
-    const elTenantCount = document.getElementById('stat-tenant-count') || document.getElementById('dash-tenant-count');
-    if (elTenantCount) {
-        const activeCount = (data.rentals || []).filter(r => r.status === 'active').length;
-        elTenantCount.innerText = activeCount;
-    }
+    // 6. Sözleşme ve Kiracı Sayıları
+    const activeRentals = (data.rentals || []).filter(r => r.status === 'active');
+    writeToElement(['stat-tenant-count', 'dash-tenant-count', 'dash-active-rentals', '#dash-tenant-count'], activeRentals.length);
 
-    console.log("✓ Dashboard başarıyla çizildi. İstatistikler:", stats);
+    // 7. Varsa grafik veya mini tabloları tetikle
+    if (typeof renderOccupancyChart === 'function') renderOccupancyChart(stats);
+    if (typeof renderRevenueChart === 'function') renderRevenueChart(stats);
+
+    console.log("✓ Dashboard göstergeleri ekrana basıldı.");
 }
 function renderDuePaymentsAlert() {
             const alertBox = document.getElementById('due-payments-alert-box');
