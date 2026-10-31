@@ -436,8 +436,9 @@
                 <div id="campus-list" class="space-y-4"></div>
             </section>
 
-            <!-- 3. KİRALAMA TAKİBİ SEKMESİ -->
+<!-- 3. KİRALAMA TAKİBİ SEKMESİ -->
             <section id="tab-rentals" class="hidden">
+                <!-- SÖZLEŞME BİTİŞ UYARI ALANI -->
                 <div id="expiring-rentals-alert" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-xl p-5 shadow-sm">
                     <div class="flex items-center space-x-2 text-amber-800 font-bold mb-3">
                         <i class="fa-solid fa-triangle-exclamation text-amber-600 text-lg"></i>
@@ -446,8 +447,6 @@
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
-                            <!-- KİRALAMA MOBİL DİKEY KART LİSTESİ (Yalnızca mobilde görünür) -->
-                            <div id="rental-cards-mobile" class="md:hidden space-y-3 mt-4"></div>
                             <thead class="bg-amber-100/60 text-amber-900 font-semibold uppercase">
                                 <tr>
                                     <th class="p-2">Firma Adı</th>
@@ -462,14 +461,15 @@
                     </div>
                 </div>
 
+                <!-- BAŞLIK, BUTONLAR VE FİLTRELER -->
                 <div class="mb-6 space-y-3">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-file-contract text-blue-600"></i>
-    <span>Ofis Kira Sözleşmeleri</span>
-</h1>
-<p class="text-xs text-gray-500">Aktif ve sonlanmış sözleşmeleri filtreleyin ve dışa aktarın.</p>
+                            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                                <i class="fa-solid fa-file-contract text-blue-600"></i>
+                                <span>Ofis Kira Sözleşmeleri</span>
+                            </h1>
+                            <p class="text-xs text-gray-500">Aktif ve sonlanmış sözleşmeleri filtreleyin ve dışa aktarın.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <button onclick="openRentalExcelUploadModal()" class="bg-teal-600 text-white px-3.5 py-2 rounded-lg hover:bg-teal-700 font-semibold text-xs transition perm-edit shadow-sm">
@@ -502,81 +502,84 @@
                         </div>
                     </div>
                 </div>
-<!-- KİRA TAKİBİ DİNAMİK 6'LI ÖZET KARTLAR -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-    <!-- 1. Sözleşme Sayısı -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Sözleşme Sayısı</div>
-            <div class="text-lg font-bold text-gray-800" id="rental-stat-count">0</div>
-            <div class="text-[10px] text-gray-400 mt-1">Aktif Filtreleme</div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-file-signature text-sm"></i>
-        </div>
-    </div>
 
-    <!-- 2. Kiralanan Alan -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Kiralanan Alan</div>
-            <div class="text-lg font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
-            <div class="text-[10px] text-gray-400 mt-1">Toplam Kullanım</div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-ruler-combined text-sm"></i>
-        </div>
-    </div>
+                <!-- KİRA TAKİBİ DİNAMİK 6'LI ÖZET KARTLAR -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                    <!-- 1. Sözleşme Sayısı -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Sözleşme Sayısı</div>
+                            <div class="text-lg font-bold text-gray-800" id="rental-stat-count">0</div>
+                            <div class="text-[10px] text-gray-400 mt-1">Aktif Filtreleme</div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-file-signature text-sm"></i>
+                        </div>
+                    </div>
 
-    <!-- 3. Toplam Kira Tutarı -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Kira Tutarı</div>
-            <div class="text-base font-bold text-indigo-600"><span id="rental-stat-rent">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
-            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-rent-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-coins text-sm"></i>
-        </div>
-    </div>
+                    <!-- 2. Kiralanan Alan -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Kiralanan Alan</div>
+                            <div class="text-lg font-bold text-emerald-600"><span id="rental-stat-area">0,00</span> m²</div>
+                            <div class="text-[10px] text-gray-400 mt-1">Toplam Kullanım</div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-ruler-combined text-sm"></i>
+                        </div>
+                    </div>
 
-    <!-- 4. Toplam Ortak Gider -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Ortak Gider</div>
-            <div class="text-base font-bold text-sky-600"><span id="rental-stat-common">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
-            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-common-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
-        </div>
-    </div>
+                    <!-- 3. Toplam Kira Tutarı -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Kira Tutarı</div>
+                            <div class="text-base font-bold text-indigo-600"><span id="rental-stat-rent">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+                            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-rent-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-coins text-sm"></i>
+                        </div>
+                    </div>
 
-    <!-- 5. Toplam Katılım Payı -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Katılım Payı</div>
-            <div class="text-base font-bold text-teal-600"><span id="rental-stat-other">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
-            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-other-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-receipt text-sm"></i>
-        </div>
-    </div>
+                    <!-- 4. Toplam Ortak Gider -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Ortak Gider</div>
+                            <div class="text-base font-bold text-sky-600"><span id="rental-stat-common">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+                            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-common-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-hand-holding-dollar text-sm"></i>
+                        </div>
+                    </div>
 
-    <!-- 6. Toplam Ciro -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
-        <div>
-            <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Ciro</div>
-            <div class="text-base font-bold text-blue-600"><span id="rental-stat-total-excl">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
-            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-total-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
-        </div>
-        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <i class="fa-solid fa-vault text-sm"></i>
-        </div>
-    </div>
-</div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                    <!-- 5. Toplam Katılım Payı -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Katılım Payı</div>
+                            <div class="text-base font-bold text-teal-600"><span id="rental-stat-other">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+                            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-other-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-receipt text-sm"></i>
+                        </div>
+                    </div>
+
+                    <!-- 6. Toplam Ciro -->
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-blue-600 flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Ciro</div>
+                            <div class="text-base font-bold text-blue-600"><span id="rental-stat-total-excl">0,00</span> ₺ <span class="text-[10px] text-gray-400 font-normal">(Hariç)</span></div>
+                            <div class="text-[11px] font-semibold text-emerald-600 mt-0.5"><span id="rental-stat-total-incl">0,00</span> ₺ <span class="text-[9px] text-gray-400 font-normal">(Dahil)</span></div>
+                        </div>
+                        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-vault text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1. MASAÜSTÜ TABLOSU (Mobilde gizlenir: hidden md:block) -->
+                <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[1200px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
@@ -613,6 +616,9 @@
                         <tbody id="rental-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
                     </table>
                 </div>
+
+                <!-- 2. MOBİL DİKEY KART LİSTESİ (Sadece mobilde görünür, asla taşmaz: block md:hidden) -->
+                <div id="rental-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
             </section>
 <!-- 7. ELEKTRİK SAYAÇ & TÜKETİM TAKİBİ SEKMESİ -->
 <section id="tab-meters" class="hidden pb-12">
@@ -4187,7 +4193,7 @@ function renderRentals() {
         statTotalOther += otherCost;
         statTotalOverallIncl += totalInclVat;
 
-        // BUTONLARI ÖNCEDEN HAZIRLA (Ters tırnak çakışmasını tamamen yok eder)
+        // BUTONLARI ÖNCEDEN HAZIRLA (Masaüstü)
         let deskButtons = '';
         if (isActive) {
             if (canEdit) deskButtons += '<button type="button" onclick="openRentalModal(\'' + r.id + '\')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"><i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle</button>';
@@ -4223,48 +4229,63 @@ function renderRentals() {
             `;
         }
 
-        // 2. MOBİL DİKEY KART
+        // 2. MOBİL DİKEY KART (SAYAÇ FORMATINDA VE TAŞMAYAN MİMARİ)
         if (mobileContainer) {
             let mobButtons = '';
-            if (canEdit) mobButtons += '<button type="button" onclick="openRentalModal(\'' + r.id + '\')" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-center"><i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle</button>';
-            if (isActive && canEnd) mobButtons += '<button type="button" onclick="openEndRentalModal(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">Bitir</button>';
-            if (canDelete) mobButtons += '<button type="button" onclick="deleteContractDirectly(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200"><i class="fa-solid fa-trash"></i></button>';
+            if (canEdit) mobButtons += '<button type="button" onclick="openRentalModal(\'' + r.id + '\')" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-center transition active:scale-95"><i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle</button>';
+            if (isActive && canEnd) mobButtons += '<button type="button" onclick="openEndRentalModal(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition active:scale-95"><i class="fa-solid fa-calendar-xmark mr-1"></i> Bitir</button>';
+            if (canDelete) mobButtons += '<button type="button" onclick="deleteContractDirectly(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition active:scale-95"><i class="fa-solid fa-trash"></i></button>';
 
             const statusClass = isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700';
             const statusText = isActive ? '● Devam Ediyor' : '○ Sonlandı';
             const cardBg = isActive ? 'bg-white' : 'bg-gray-50 opacity-80';
 
             mobileContainer.innerHTML += `
-                <div class="${cardBg} p-4 rounded-xl border border-gray-200 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b pb-2">
-                        <span class="px-2 py-0.5 text-[11px] rounded-full font-bold ${statusClass}">${statusText}</span>
-                        <span class="text-xs font-bold text-gray-500">${details.campusName}</span>
+                <div class="${cardBg} p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 w-full max-w-full overflow-hidden" data-rental-mobile-id="${r.id}">
+                    <!-- Kart Başlığı: Durum Rozeti ve Yerleşke Adı -->
+                    <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5 min-w-0">
+                        <span class="px-2.5 py-0.5 text-[10px] rounded-full font-bold shrink-0 ${statusClass}">
+                            ${statusText}
+                        </span>
+                        <span class="text-xs font-bold text-gray-500 truncate max-w-[60%] text-right">
+                            <i class="fa-solid fa-location-dot mr-1 text-gray-400"></i>${details.campusName}
+                        </span>
                     </div>
 
-                    <div>
-                        <div class="text-sm font-bold text-gray-800 leading-snug">${r.company || '-'}</div>
-                        <div class="text-xs text-blue-600 font-semibold mt-0.5"><i class="fa-solid fa-door-open mr-1"></i>${details.officeName}</div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg text-xs">
-                        <div>
-                            <span class="text-gray-400 block text-[10px]">Tahsis Alanı</span>
-                            <span class="font-bold text-gray-700">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px]">Sözleşme Bitiş</span>
-                            <span class="font-medium text-gray-700">${toTRDate(r.endDate)}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px]">Net Tutar (KDV Hariç)</span>
-                            <span class="font-bold text-gray-800">${formatCurrency(totalExclVat)}</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[10px]">Tahakkuk (KDV Dahil)</span>
-                            <span class="font-bold text-emerald-700">${formatCurrency(totalInclVat)}</span>
+                    <!-- Firma ve Ofis Bilgisi (Taşmayı önleyen truncate) -->
+                    <div class="min-w-0">
+                        <div class="text-sm font-bold text-gray-800 leading-snug truncate" title="${r.company || '-'}">${r.company || '-'}</div>
+                        <div class="text-xs text-blue-600 font-semibold mt-0.5 truncate flex items-center">
+                            <i class="fa-solid fa-door-open mr-1 shrink-0"></i>
+                            <span class="truncate">${details.officeName}</span>
                         </div>
                     </div>
 
+                    <!-- Alan ve Bitiş Bilgisi Grid'i -->
+                    <div class="grid grid-cols-2 gap-2 bg-gray-50/80 p-2.5 rounded-lg border border-gray-100 text-xs">
+                        <div class="min-w-0">
+                            <span class="text-gray-400 block text-[10px] uppercase font-semibold truncate">Tahsis Alanı</span>
+                            <span class="font-bold text-gray-800 text-xs tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} m²</span>
+                        </div>
+                        <div class="min-w-0 text-right">
+                            <span class="text-gray-400 block text-[10px] uppercase font-semibold truncate">Sözleşme Bitiş</span>
+                            <span class="font-semibold text-gray-700 text-xs tabular-nums">${toTRDate(r.endDate)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Finansal Özet Tablosu -->
+                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 text-xs">
+                        <div class="min-w-0">
+                            <span class="text-gray-500 block text-[10px] uppercase font-semibold truncate">Net Tutar (KDV Hariç)</span>
+                            <span class="font-bold text-gray-900 text-xs tabular-nums">${formatCurrency(totalExclVat)}</span>
+                        </div>
+                        <div class="min-w-0 text-right">
+                            <span class="text-emerald-700 block text-[10px] uppercase font-bold truncate">Tahakkuk (KDV Dahil)</span>
+                            <span class="font-black text-emerald-700 text-sm tabular-nums">${formatCurrency(totalInclVat)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Alt Aksiyon Butonları -->
                     <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
                         ${mobButtons}
                     </div>
@@ -4300,10 +4321,9 @@ function renderRentals() {
 
     if (filteredRentals.length === 0) {
         if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
-        if (mobileContainer) mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
+        if (mobileContainer) mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border border-gray-200">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
     }
 }
-        
 async function deleteContractDirectly(rentalId) {
             const isUserAdmin = currentUser && currentUser.role === 'admin';
             if (!isUserAdmin) {
