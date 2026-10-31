@@ -2109,19 +2109,19 @@ async function fetchCentralData() {
     }
 }
 async function saveData() {
-    // 1. Önce anında yerel depoya yaz
+    // 1. Önce anında yerel depoya mühürle
     localStorage.setItem('teknoparkData', JSON.stringify(data));
+    localStorage.setItem('teknoparkCentralData', JSON.stringify(data));
     localStorage.setItem('teknoparkUsers', JSON.stringify(users));
     localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
-    // Ekranları hemen güncelle
+    // Ekranları hemen tazele
     if (typeof renderAll === 'function') renderAll();
 
-    // 2. Buluta gönder
+    // 2. Google Apps Script bulutuna doPost uyumlu (URLSearchParams) fırlat
     if (APPS_SCRIPT_URL) {
         isSyncing = true;
         try {
-            // isPaid alanlarını katı boolean olarak normalize et
             const cleanReferee = (data.refereePayments || []).map(r => ({
                 ...r,
                 isPaid: r.isPaid === true || String(r.isPaid).toLowerCase() === 'true',
@@ -2140,30 +2140,32 @@ async function saveData() {
                 paymentDate: m.paymentDate || ''
             }));
 
-            // SAYAÇLAR DAHİL EDİLMİŞ VE MÜKEMMEL PAKETLENMİŞ VERİ
-            const payload = JSON.stringify({
+            const payload = {
                 data: {
                     campuses: data.campuses || [],
                     rentals: data.rentals || [],
                     refereePayments: cleanReferee,
                     consultantPayments: cleanConsultant,
                     manualPayments: cleanManual,
-                    // KRİTİK EKLENEN KISIM: Sayaç okumaları ve tarifeleri
                     meterReadings: data.meterReadings || [],
                     meterTariffs: data.meterTariffs || []
                 },
                 users: users,
-                userNotes: userNotes
-            });
+                userNotes: userNotes,
+                timestamp: new Date().toISOString()
+            };
+
+            const formData = new URLSearchParams();
+            formData.append('data', JSON.stringify(payload));
 
             await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: payload
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
             });
 
-            console.log("✓ Sayaçlar dahil tüm veriler buluta başarıyla fırlatıldı.");
+            console.log("✓ Tüm veriler (sayaçlar, sözleşmeler ve ödemeler) Google E-Tablo'ya başarıyla mühürlendi.");
         } catch (err) {
             console.error("Bulut kaydetme hatası (Yerel kayıt güvende):", err);
         } finally {
