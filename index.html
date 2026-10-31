@@ -618,37 +618,44 @@
                 </div>
             </section>
 <!-- 7. ELEKTRİK SAYAÇ & TÜKETİM TAKİBİ SEKMESİ -->
-<section id="tab-meters" class="hidden">
-    <div class="mb-6 space-y-3">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <!-- SAYAÇ MOBİL DİKEY KART LİSTESİ (Yalnızca mobilde görünür) -->
-        <div id="meter-cards-mobile" class="md:hidden space-y-3 mt-4"></div>
+<section id="tab-meters" class="hidden pb-12">
+    <!-- ÜST BAŞLIK & MOBİL DOSTU BUTON BARI -->
+    <div class="mb-4 space-y-3">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <i class="fa-solid fa-bolt text-amber-500"></i>
-                    <span>Elektrik Sayaç & Tüketim Takibi</span>
+                    <span>Elektrik Sayaç Takibi</span>
                 </h1>
-                <p class="text-xs text-gray-500">Yerleşke bazlı aylık birim fiyat ve ofis endeks farklarına göre KDV dahil elektrik gider dağılımı.</p>
+                <p class="text-[11px] sm:text-xs text-gray-500">Yerleşke bazlı aylık birim fiyat ve ofis endeks farkları dağılımı.</p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <button onclick="exportMetersToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                    <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
+            
+            <!-- Aksiyon Butonları (Mobilde Tam Genişlik ve Öne Çıkan Kaydet Butonu) -->
+            <div class="w-full sm:w-auto grid grid-cols-3 sm:flex items-center gap-2">
+                <button onclick="exportMetersToExcel()" class="bg-emerald-600 text-white px-2.5 sm:px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center justify-center shadow-xs perm-export">
+                    <i class="fa-solid fa-file-excel mr-1"></i> <span class="hidden sm:inline">Excel</span> İndir
                 </button>
-                <button onclick="exportMetersToPDF()" class="bg-rose-600 text-white px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                    <i class="fa-solid fa-file-pdf mr-1.5"></i> PDF İndir
+                <button onclick="exportMetersToPDF()" class="bg-rose-600 text-white px-2.5 sm:px-3.5 py-2 rounded-lg hover:bg-rose-700 font-semibold text-xs transition flex items-center justify-center shadow-xs perm-export">
+                    <i class="fa-solid fa-file-pdf mr-1"></i> <span class="hidden sm:inline">PDF</span> İndir
                 </button>
-                <button onclick="saveAllMeterReadings()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
-                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Endeksleri Kaydet
+                <button onclick="saveAllMeterReadings()" class="col-span-1 bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 font-bold text-xs transition flex items-center justify-center shadow-sm perm-edit active:scale-95">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Kaydet
                 </button>
             </div>
         </div>
 
-        <!-- FİLTRE VE YERLEŞKE BİRİM FİYAT ÇUBUĞU -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
-                <!-- Dönem Seçimi -->
+        <!-- FİLTRELER VE BİRİM FİYAT KUTUSU -->
+        <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2 sm:gap-3">
+                <!-- Yerleşke Seçimi -->
                 <div class="flex items-center space-x-1.5">
-                    <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+                    <label class="text-xs font-semibold text-gray-600 shrink-0"><i class="fa-solid fa-city mr-1 text-blue-600"></i> Yerleşke:</label>
+                    <select id="meter-campus-filter" class="w-full sm:w-auto border rounded-md px-2.5 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderMeters()"></select>
+                </div>
+
+                <!-- Dönem Seçimi -->
+                <div class="flex items-center space-x-1.5 sm:border-l sm:pl-3">
+                    <label class="text-xs font-semibold text-gray-600 shrink-0"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
                     <select id="meter-year-filter" class="border rounded-md px-2 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderMeters()"></select>
                     <select id="meter-month-filter" class="border rounded-md px-2 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderMeters()">
                         <option value="01">Ocak</option><option value="02">Şubat</option><option value="03">Mart</option>
@@ -657,21 +664,17 @@
                         <option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
                     </select>
                 </div>
-
-                <!-- Yerleşke Seçimi -->
-                <div class="flex items-center space-x-1.5 border-l pl-3">
-                    <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-city mr-1 text-blue-600"></i> Yerleşke:</label>
-                    <select id="meter-campus-filter" class="border rounded-md px-2.5 py-1.5 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[170px]" onchange="renderMeters()"></select>
-                </div>
             </div>
 
             <!-- Yerleşke Bazlı Aylık Birim Fiyat Kutusu -->
-            <div class="flex items-center space-x-2 bg-amber-50/80 border border-amber-200 px-3 py-1.5 rounded-lg">
-                <i class="fa-solid fa-tag text-amber-600 text-sm"></i>
-                <label class="text-xs font-bold text-amber-900">Yerleşke Birim Fiyatı (TL/kWh):</label>
+            <div class="flex items-center justify-between sm:justify-start space-x-2 bg-amber-50/80 border border-amber-200 px-3 py-1.5 rounded-lg">
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-solid fa-tag text-amber-600 text-sm"></i>
+                    <label class="text-xs font-bold text-amber-900">Birim Fiyat (TL/kWh):</label>
+                </div>
                 <div class="relative">
-                    <input type="number" step="0.0001" id="meter-campus-unit-price" placeholder="Örn: 4.85" 
-                           class="w-28 px-2 py-1 text-xs font-bold text-gray-800 border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                    <input type="number" step="0.0001" inputmode="decimal" id="meter-campus-unit-price" placeholder="0.0000" 
+                           class="w-24 sm:w-28 px-2 py-1 text-xs font-bold text-gray-800 border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-right pr-5"
                            oninput="onMeterUnitPriceInput()">
                     <span class="absolute right-2 top-1 text-[10px] text-gray-400 font-bold pointer-events-none">₺</span>
                 </div>
@@ -679,55 +682,54 @@
         </div>
     </div>
 
-    <!-- 4'LÜ DİNAMİK KPI ÖZET KARTLARI -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+    <!-- 4'LÜ DİNAMİK KPI ÖZET KARTLARI (Mobilde 2x2 Grid) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-4">
+        <div class="bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-gray-100 flex items-center justify-between">
             <div>
-                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Enerji Tüketimi</div>
-                <div class="text-lg font-bold text-gray-800"><span id="meter-stat-total-kwh">0,00</span> <span class="text-xs text-gray-500 font-normal">kWh</span></div>
-                <div class="text-[10px] text-gray-400 mt-1">Yerleşke İçi Net Tüketim</div>
+                <div class="text-gray-500 text-[10px] sm:text-[11px] font-medium">Toplam Enerji</div>
+                <div class="text-sm sm:text-lg font-bold text-gray-800"><span id="meter-stat-total-kwh">0,00</span> <span class="text-[10px] text-gray-500 font-normal">kWh</span></div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-plug-circle-bolt text-sm"></i>
+            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-plug-circle-bolt text-xs sm:text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-gray-100 flex items-center justify-between">
             <div>
-                <div class="text-gray-500 text-[11px] font-medium mb-1">Aktif Birim Fiyat</div>
-                <div class="text-lg font-bold text-blue-600"><span id="meter-stat-unit-price">0,0000</span> ₺ <span class="text-xs text-gray-400 font-normal">/ kWh</span></div>
-                <div class="text-[10px] text-gray-400 mt-1">KDV Hariç Tarife</div>
+                <div class="text-gray-500 text-[10px] sm:text-[11px] font-medium">Aktif Tarife</div>
+                <div class="text-sm sm:text-lg font-bold text-blue-600"><span id="meter-stat-unit-price">0,0000</span> ₺</div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-coins text-sm"></i>
+            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-coins text-xs sm:text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-gray-100 flex items-center justify-between">
             <div>
-                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Tutar (KDV Hariç)</div>
-                <div class="text-lg font-bold text-indigo-600"><span id="meter-stat-total-excl">0,00</span> ₺</div>
-                <div class="text-[10px] text-gray-400 mt-1">Net Enerji Bedeli</div>
+                <div class="text-gray-500 text-[10px] sm:text-[11px] font-medium">Tutar (KDV Hariç)</div>
+                <div class="text-sm sm:text-lg font-bold text-indigo-600"><span id="meter-stat-total-excl">0,00</span> ₺</div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-receipt text-sm"></i>
+            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-receipt text-xs sm:text-sm"></i>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-emerald-600 flex items-center justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-xl shadow-xs border border-gray-100 border-l-4 border-l-emerald-600 flex items-center justify-between">
             <div>
-                <div class="text-gray-500 text-[11px] font-medium mb-1">Toplam Tahakkuk (KDV Dahil)</div>
-                <div class="text-lg font-bold text-emerald-600"><span id="meter-stat-total-incl">0,00</span> ₺</div>
-                <div class="text-[10px] text-gray-400 mt-1">%20 KDV Uygulanmış</div>
+                <div class="text-gray-500 text-[10px] sm:text-[11px] font-medium">Toplam Tahakkuk</div>
+                <div class="text-sm sm:text-lg font-bold text-emerald-600"><span id="meter-stat-total-incl">0,00</span> ₺</div>
             </div>
-            <div class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <i class="fa-solid fa-vault text-sm"></i>
+            <div class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-vault text-xs sm:text-sm"></i>
             </div>
         </div>
     </div>
 
-    <!-- HIZLI ENDEKS VE TÜKETİM TABLOSU -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+    <!-- 1. MOBİL DİKEY KART LİSTESİ (SADECE MOBİLDE GÖRÜNÜR: md:hidden) -->
+    <div id="meter-cards-mobile" class="md:hidden space-y-3 mb-6"></div>
+
+    <!-- 2. MASAÜSTÜ TABLOSU (MOBİLDE TAMAMEN GİZLENİR: hidden md:block) -->
+    <div class="hidden md:block bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden overflow-x-auto">
         <table class="w-full text-left border-collapse min-w-[1100px]">
             <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                 <tr>
