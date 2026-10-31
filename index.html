@@ -2095,6 +2095,7 @@ async function fetchCentralData() {
 
             // Yerel depoyu güncelle
             localStorage.setItem('teknoparkData', JSON.stringify(data));
+            localStorage.setItem('teknoparkCentralData', JSON.stringify(data));
             localStorage.setItem('teknoparkUsers', JSON.stringify(users));
             localStorage.setItem('teknoparkUserNotes', JSON.stringify(userNotes));
 
@@ -2102,10 +2103,27 @@ async function fetchCentralData() {
                 statusEl.innerHTML = `<i class="fa-solid fa-cloud-check text-emerald-600 mr-1.5"></i><span>Bulut Veritabanı Eşitlendi (Canlı Sync)</span>`;
                 statusEl.className = "mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-xs font-semibold text-emerald-900 shadow-sm";
             }
-            if (currentUser && typeof renderAll === 'function') renderAll();
+
+            // Ekranları ve sayaç tablosunu anında yeniden çiz
+            if (currentUser && typeof renderAll === 'function') {
+                renderAll();
+                
+                // Kullanıcı o an sayaç sekmesindeyse tabloyu F5 yapmadan doğrudan yenile
+                const metersTab = document.getElementById('tab-meters');
+                if (metersTab && !metersTab.classList.contains('hidden') && typeof renderMeters === 'function') {
+                    renderMeters();
+                }
+            }
+
+            // Sessiz otomatik döngü değilse ekranda yeşil bildirim göster
+            if (typeof showToast === 'function') {
+                showToast("✓ Buluttan güncel veriler çekildi ve ekran yenilendi!");
+            }
         }
     } catch (e) {
         console.warn("Bulut eşitleme yerel modda devam ediyor:", e);
+    } finally {
+        isSyncing = false;
     }
 }
 async function saveData() {
@@ -3589,23 +3607,24 @@ function getStats(selectedCampusId = 'all') {
             };
         }
 
-        function renderAll() {
-            populateCampusFilters();
-            renderDashboard();
-            renderCampuses();
-            renderRentals();
-            renderReferees();
-            renderConsultants();
-            renderPayments();
-            renderExpiringAlerts();
-            renderAdminNotes();
-            try {
-                renderDuePaymentsAlert();
-            } catch (err) {
-                console.warn("Vade kutusu render hatası:", err);
-            }
-            applyUserPermissionsUI();
-        }
+function renderAll() {
+    populateCampusFilters();
+    renderDashboard();
+    renderCampuses();
+    renderRentals();
+    renderMeters(); // <-- EKLENEN KRİTİK SATIR
+    renderReferees();
+    renderConsultants();
+    renderPayments();
+    renderExpiringAlerts();
+    renderAdminNotes();
+    try {
+        renderDuePaymentsAlert();
+    } catch (err) {
+        console.warn("Vade kutusu render hatası:", err);
+    }
+    applyUserPermissionsUI();
+}
 
         function renderAdminNotes() {
             const notifBox = document.getElementById('admin-notes-notification-box');
