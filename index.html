@@ -1948,15 +1948,25 @@ function normalizeOfficeName(str) {
             }
         };
 
-async function fetchCentralData() {
+async function fetchCentralData(isSilent = false) {
+    // 1. KULLANICI BİR KUTUYA YAZI YAZIYORSA VEYA MODAL AÇIKSA DÖNGÜYÜ ANINDA DURDUR
+    // (Böylece siz endeks veya sözleşme girerken ekran aniden yenilenip imleci kaybetmezsiniz)
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+    const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
+
+    if (isTyping || isAnyModalOpen) {
+        return; // Veri girişini bölmemek için çekmeyi iptal et
+    }
+
+    if (isSyncing) return;
+    if (!APPS_SCRIPT_URL) return;
+
     const statusEl = document.getElementById('cloud-sync-status');
     if (statusEl && !currentUser) {
         statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5 text-blue-600"></i><span>Merkezi Bulut Veritabanına Bağlanıyor...</span>`;
         statusEl.className = "mb-6 p-3 bg-blue-50 border border-blue-200 rounded-xl text-center text-xs font-semibold text-blue-900 shadow-sm";
     }
-
-    if (!APPS_SCRIPT_URL) return;
-    if (isSyncing) return;
 
     try {
         const controller = new AbortController();
@@ -2074,7 +2084,7 @@ async function fetchCentralData() {
                 return { ...cm, isPaid, paymentDate };
             });
 
-            // 6. SAYAÇ OKUMALARI VE TARİFELERİ (EKLENDİ)
+            // 6. SAYAÇ OKUMALARI VE TARİFELERİ
             if (Array.isArray(targetData.meterReadings) && targetData.meterReadings.length > 0) {
                 const readingMap = new Map();
                 (data.meterReadings || []).forEach(m => readingMap.set(`${m.officeId}_${m.year}_${m.month}`, m));
@@ -2115,8 +2125,8 @@ async function fetchCentralData() {
                 }
             }
 
-            // Sessiz otomatik döngü değilse ekranda yeşil bildirim göster
-            if (typeof showToast === 'function') {
+            // SADECE MANUEL BUTONA BASILDIYSA BİLDİRİM GÖSTER (Arka plan çekiminde sessiz kalır)
+            if (!isSilent && typeof showToast === 'function') {
                 showToast("✓ Buluttan güncel veriler çekildi ve ekran yenilendi!");
             }
         }
