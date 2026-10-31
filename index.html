@@ -3452,11 +3452,11 @@ async function togglePaymentPaidStatus(source, id, isChecked, customDateISO = nu
 
         // ==================== YERLEŞKE VE KİRALAMA MANTIĞI ====================
 function populateCampusFilters() {
-    // 1. Korumalı dizi kontrolü (undefined hatasını tamamen yok eder)
     const campuses = (data && Array.isArray(data.campuses)) ? data.campuses : [];
 
-    // İlgili tüm yerleşke filtre açılır kutularını topla
+    // dash-campus-filter EKLENDİ
     const filterSelects = [
+        document.getElementById('dash-campus-filter'),
         document.getElementById('rentals-campus-filter'),
         document.getElementById('meter-campus-filter'),
         document.getElementById('campuses-select-filter')
@@ -3466,7 +3466,6 @@ function populateCampusFilters() {
         const currentVal = select.value;
         const isMeterFilter = select.id === 'meter-campus-filter';
 
-        // Sayaç filtresinde 'Tümü' olmaz, ilk yerleşke seçilir. Kiralamada 'Tümü' bulunur.
         let html = isMeterFilter ? '' : '<option value="all">Tüm Yerleşkeler</option>';
 
         campuses.forEach(c => {
@@ -3477,7 +3476,6 @@ function populateCampusFilters() {
 
         select.innerHTML = html;
 
-        // Önceki seçim hala geçerliyse koru, değilse ilk seçeneğe odaklan
         if (currentVal && Array.from(select.options).some(opt => opt.value === currentVal)) {
             select.value = currentVal;
         } else if (select.options.length > 0) {
@@ -3485,7 +3483,6 @@ function populateCampusFilters() {
         }
     });
 }
-
         function clearCampusFilters() {
             document.getElementById('filter-min-m2').value = '';
             document.getElementById('filter-max-m2').value = '';
@@ -3641,55 +3638,52 @@ function getStats(selectedCampusId = 'all') {
 
         // ==================== DASHBOARD & GRAFİK BAŞLIK SENKRONİZASYONU ====================
 function renderDashboard() {
-    // 1. Yerleşke filtresi seçimi (Dropdown varsa değerini al, yoksa 'all')
-    const campusSelect = document.getElementById('dashboard-campus-filter') || 
-                         document.getElementById('dash-campus-filter') || 
-                         document.getElementById('rentals-campus-filter') ||
-                         document.querySelector('select[onchange*="renderDashboard"]');
-    const selectedCampusId = campusSelect ? campusSelect.value : 'all';
+    // 1. Yerleşke filtresini yakala
+    const campusSelect = document.getElementById('dash-campus-filter');
+    const selectedCampusId = (campusSelect && campusSelect.value) ? campusSelect.value : 'all';
 
     // 2. İstatistikleri hesapla
     const stats = getStats(selectedCampusId);
     if (!stats) return;
 
-    // 3. Güvenli Element Bulucu ve Değer Basıcı
-    const writeToElement = (selectorList, textValue) => {
-        for (const selector of selectorList) {
-            // ID olarak dene
-            let el = document.getElementById(selector);
-            // Bulunamazsa class/özellik olarak dene
-            if (!el) el = document.querySelector(selector);
-            
-            if (el) {
-                el.innerText = textValue;
-            }
-        }
-    };
+    // 3. Sayı Formatlayıcılar
+    const fmtM2 = (val) => Number(val || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtTL = (val) => Number(val || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    // 4. Alan ve Doluluk Göstergeleri
-    writeToElement(['stat-occupancy', 'dash-occupancy', 'dash-occupancy-rate', '#dash-occupancy'], `%${stats.occupancyRate}`);
-    writeToElement(['stat-rented-area', 'dash-rented-area', '#dash-rented-area'], `${Number(stats.rentedArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
-    writeToElement(['stat-total-area', 'dash-total-area', '#dash-total-area'], `${Number(stats.totalArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
-    writeToElement(['stat-available-area', 'dash-available-area', '#dash-available-area'], `${Number(stats.availableArea).toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m²`);
+    // 4. Alan ve Kapasite Kartları
+    const elTotalArea = document.getElementById('dash-total-area');
+    const elRentedArea = document.getElementById('dash-rented-area');
+    const elAvailableArea = document.getElementById('dash-available-area');
 
-    // 5. Finansal / Ciro Göstergeleri
-    const fmt = (val) => Number(val).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+    if (elTotalArea) elTotalArea.innerText = fmtM2(stats.totalArea);
+    if (elRentedArea) elRentedArea.innerText = fmtM2(stats.rentedArea);
+    if (elAvailableArea) elAvailableArea.innerText = fmtM2(stats.availableArea);
 
-    writeToElement(['stat-rent-revenue', 'dash-rent-revenue', '#dash-rent-revenue'], fmt(stats.rentRevenueExcl));
-    writeToElement(['stat-common-revenue', 'dash-common-revenue', '#dash-common-revenue'], fmt(stats.commonRevenueExcl));
-    writeToElement(['stat-other-revenue', 'dash-other-revenue', '#dash-other-revenue'], fmt(stats.otherRevenueExcl));
-    writeToElement(['stat-total-revenue', 'dash-total-revenue', 'dash-total-revenue-excl', '#dash-total-revenue'], fmt(stats.totalRevenueExcl));
-    writeToElement(['stat-total-revenue-incl', 'dash-total-revenue-incl', '#dash-total-revenue-incl'], fmt(stats.totalRevenueIncl));
+    // 5. Finansal Gelir Kartları (Hariç ve Dahil Değerler)
+    const elRentExcl = document.getElementById('dash-rent-revenue');
+    const elRentIncl = document.getElementById('dash-rent-revenue-incl');
+    const elCommonExcl = document.getElementById('dash-common-revenue');
+    const elCommonIncl = document.getElementById('dash-common-revenue-incl');
+    const elOtherExcl = document.getElementById('dash-other-revenue');
+    const elOtherIncl = document.getElementById('dash-other-revenue-incl');
+    const elTotalExcl = document.getElementById('dash-total-revenue-excl');
+    const elTotalIncl = document.getElementById('dash-total-revenue-incl');
 
-    // 6. Sözleşme ve Kiracı Sayıları
-    const activeRentals = (data.rentals || []).filter(r => r.status === 'active');
-    writeToElement(['stat-tenant-count', 'dash-tenant-count', 'dash-active-rentals', '#dash-tenant-count'], activeRentals.length);
+    if (elRentExcl) elRentExcl.innerText = fmtTL(stats.rentRevenueExcl);
+    if (elRentIncl) elRentIncl.innerText = fmtTL(stats.rentRevenueIncl);
+    if (elCommonExcl) elCommonExcl.innerText = fmtTL(stats.commonRevenueExcl);
+    if (elCommonIncl) elCommonIncl.innerText = fmtTL(stats.commonRevenueIncl);
+    if (elOtherExcl) elOtherExcl.innerText = fmtTL(stats.otherRevenueExcl);
+    if (elOtherIncl) elOtherIncl.innerText = fmtTL(stats.otherRevenueIncl);
+    if (elTotalExcl) elTotalExcl.innerText = fmtTL(stats.totalRevenueExcl);
+    if (elTotalIncl) elTotalIncl.innerText = fmtTL(stats.totalRevenueIncl);
 
-    // 7. Varsa grafik veya mini tabloları tetikle
-    if (typeof renderOccupancyChart === 'function') renderOccupancyChart(stats);
-    if (typeof renderRevenueChart === 'function') renderRevenueChart(stats);
+    // 6. Grafikleri ve Halka Ortasındaki % Değeri Güncelle
+    if (typeof updateCharts === 'function') {
+        updateCharts();
+    }
 
-    console.log("✓ Dashboard göstergeleri ekrana basıldı.");
+    console.log("✓ Dashboard kartları ve göstergeleri başarıyla dolduruldu.");
 }
 function renderDuePaymentsAlert() {
             const alertBox = document.getElementById('due-payments-alert-box');
