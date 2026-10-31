@@ -1104,36 +1104,40 @@
                 <div id="payments-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
             </section>
 
-            <!-- 6. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
-            <section id="tab-users" class="hidden">
-                <div class="flex justify-between items-center mb-6">
+<!-- 6. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
+            <section id="tab-users" class="hidden w-full max-w-full overflow-hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6 w-full max-w-full">
                     <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-users-gear text-amber-500"></i>
-    <span>Kullanıcı & İzin Yönetimi</span>
-</h1>
-<p class="text-xs text-gray-500">Sisteme yeni alt kullanıcılar ekleyin ve kiralama takibindeki her detayı ince yetkilerle tanımlayın.</p>
+                        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                            <i class="fa-solid fa-users-gear text-amber-500"></i>
+                            <span>Kullanıcı & İzin Yönetimi</span>
+                        </h1>
+                        <p class="text-xs text-gray-500">Sisteme yeni alt kullanıcılar ekleyin ve kiralama takibindeki her detayı ince yetkilerle tanımlayın.</p>
                     </div>
-                    <button onclick="openUserModal()" class="bg-amber-600 text-white px-3.5 py-2 rounded-lg hover:bg-amber-700 font-semibold text-xs transition flex items-center shadow-sm">
+                    <button onclick="openUserModal()" class="w-full sm:w-auto justify-center bg-amber-600 text-white px-3.5 py-2 rounded-lg hover:bg-amber-700 font-semibold text-xs transition inline-flex items-center shadow-sm active:scale-95 shrink-0">
                         <i class="fa-solid fa-user-plus mr-1.5"></i> Yeni Kullanıcı Tanımla
                     </button>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="w-full text-left border-collapse">
+                <!-- 1. MASAÜSTÜ TABLOSU (Mobilde gizlenir: hidden md:block) -->
+                <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto w-full max-w-full">
+                    <table class="w-full text-left border-collapse min-w-[950px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
                             <tr>
                                 <th class="p-4">Kullanıcı Adı</th>
                                 <th class="p-4">Rol</th>
                                 <th class="p-4">Erişebildiği Ekranlar</th>
                                 <th class="p-4">Kiralama Takibi Yetkileri (İnce Tanımlı)</th>
-                                <th class="p-4">Excel/PDF</th>
+                                <th class="p-4 text-center">Excel/PDF</th>
                                 <th class="p-4 text-center">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="user-table-body" class="divide-y divide-gray-100 text-sm text-gray-700"></tbody>
                     </table>
                 </div>
+
+                <!-- 2. MOBİL DİKEY KART LİSTESİ (Sadece mobilde görünür, asla taşmaz: block md:hidden) -->
+                <div id="user-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
             </section>
 
         </main>
@@ -4840,77 +4844,128 @@ async function deleteContractDirectly(rentalId) {
         }
 
 function renderUsers() {
-            const tbody = document.getElementById('user-table-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+    const tbody = document.getElementById('user-table-body');
+    const mobileContainer = document.getElementById('user-cards-mobile');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (mobileContainer) mobileContainer.innerHTML = '';
 
-            users.forEach(u => {
-                const isAdmin = u.role === 'admin';
-                const p = u.permissions || {};
+    users.forEach(u => {
+        const isAdmin = u.role === 'admin';
+        const p = u.permissions || {};
 
-                // 1. Ekran rozetleri
-                const screens = [];
-                if (isAdmin || p.dashboard) screens.push('<span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Dashboard</span>');
-                if (isAdmin || p.campuses) screens.push('<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Yerleşkeler</span>');
-                if (isAdmin || p.rentals) screens.push('<span class="bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Kiralama</span>');
-                if (isAdmin || p.referees) screens.push('<span class="bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Hakemler</span>');
-                if (isAdmin || p.consultants) screens.push('<span class="bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Danışmanlık</span>');
-                if (isAdmin || p.payments) screens.push('<span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Ödemeler</span>');
-                if (isAdmin || p.meters) screens.push('<span class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Sayaç</span>');
+        // 1. Ekran rozetleri
+        const screens = [];
+        if (isAdmin || p.dashboard) screens.push('<span class="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Dashboard</span>');
+        if (isAdmin || p.campuses) screens.push('<span class="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Yerleşkeler</span>');
+        if (isAdmin || p.rentals) screens.push('<span class="bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Kiralama</span>');
+        if (isAdmin || p.referees) screens.push('<span class="bg-violet-50 text-violet-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Hakemler</span>');
+        if (isAdmin || p.consultants) screens.push('<span class="bg-teal-50 text-teal-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Danışmanlık</span>');
+        if (isAdmin || p.payments) screens.push('<span class="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Ödemeler</span>');
+        if (isAdmin || p.meters) screens.push('<span class="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] font-semibold">Sayaç</span>');
 
-                // 2. Müdahale yetkileri özeti
-                const permsSummary = [];
-                if (isAdmin) {
-                    permsSummary.push('<span class="text-emerald-700 font-bold">Tam Yetkili Yönetici</span>');
-                } else {
-                    if (p.rentalDelete || p.refDelete || p.conDelete || p.payDelete || p.campusDelete || p.officeDelete) {
-                        permsSummary.push('<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]">Silme Açık</span>');
-                    } else {
-                        permsSummary.push('<span class="text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">Silme Kapalı</span>');
-                    }
-                    if (p.rentalPriceEdit) permsSummary.push('<span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">Fiyat Değiştirme</span>');
-                    if (p.refPay || p.conPay || p.payMark) permsSummary.push('<span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded text-[10px]">Ödeme Onaylama</span>');
-                    if (p.meterTariff) permsSummary.push('<span class="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px]">Birim Fiyat</span>');
-                }
-
-                // 3. Excel/PDF İndirme Yetkisi Durumu
-                const canExport = isAdmin || p.rentalExport !== false || p.canExport !== false;
-                const exportBadge = canExport 
-                    ? '<span class="px-2 py-0.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full inline-flex items-center"><i class="fa-solid fa-check mr-1 text-[10px]"></i>Açık</span>'
-                    : '<span class="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-100 border border-gray-200 rounded-full inline-flex items-center"><i class="fa-solid fa-lock mr-1 text-[10px]"></i>Kısıtlı</span>';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <!-- 1. Kullanıcı Adı -->
-                        <td class="p-4 font-bold text-gray-800">${u.username}</td>
-
-                        <!-- 2. Rol -->
-                        <td class="p-4">
-                            <span class="px-2.5 py-1 text-xs rounded-full font-bold ${isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
-                                ${isAdmin ? 'Yönetici (Admin)' : 'Alt Kullanıcı'}
-                            </span>
-                        </td>
-
-                        <!-- 3. Erişebildiği Ekranlar -->
-                        <td class="p-4"><div class="flex flex-wrap gap-1 max-w-xs">${screens.join(' ')}</div></td>
-
-                        <!-- 4. İnce Tanımlı Müdahale Yetkileri -->
-                        <td class="p-4"><div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div></td>
-
-                        <!-- 5. Excel / PDF İndirme Durumu (Eksik Olan Sütun) -->
-                        <td class="p-4 text-center">${exportBadge}</td>
-
-                        <!-- 6. İşlem Butonları -->
-                        <td class="p-4 text-center">
-                            ${u.username === 'admin' ? '<span class="text-xs text-gray-400 italic">Ana Admin (Kilitli)</span>' : `
-                                <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2.5 py-1 rounded-md mr-1 transition">Yetkileri Düzenle</button>
-                                <button onclick="deleteUser('${u.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold bg-rose-50 px-2.5 py-1 rounded-md transition">Sil</button>
-                            `}
-                        </td>
-                    </tr>
-                `;
-            });
+        // 2. Müdahale yetkileri özeti
+        const permsSummary = [];
+        if (isAdmin) {
+            permsSummary.push('<span class="text-emerald-700 font-bold text-[11px]">Tam Yetkili Yönetici</span>');
+        } else {
+            if (p.rentalDelete || p.refDelete || p.conDelete || p.payDelete || p.campusDelete || p.officeDelete) {
+                permsSummary.push('<span class="text-rose-600 font-bold bg-rose-50 px-1.5 py-0.5 rounded text-[10px]">Silme Açık</span>');
+            } else {
+                permsSummary.push('<span class="text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded text-[10px]">Silme Kapalı</span>');
+            }
+            if (p.rentalPriceEdit) permsSummary.push('<span class="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">Fiyat Değiştirme</span>');
+            if (p.refPay || p.conPay || p.payMark) permsSummary.push('<span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded text-[10px]">Ödeme Onaylama</span>');
+            if (p.meterTariff) permsSummary.push('<span class="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded text-[10px]">Birim Fiyat</span>');
         }
+
+        // 3. Excel/PDF İndirme Yetkisi Durumu
+        const canExport = isAdmin || p.rentalExport !== false || p.canExport !== false;
+        const exportBadge = canExport 
+            ? '<span class="px-2 py-0.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full inline-flex items-center"><i class="fa-solid fa-check mr-1 text-[10px]"></i>Açık</span>'
+            : '<span class="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-100 border border-gray-200 rounded-full inline-flex items-center"><i class="fa-solid fa-lock mr-1 text-[10px]"></i>Kısıtlı</span>';
+
+        const roleBadge = `
+            <span class="px-2.5 py-1 text-xs rounded-full font-bold shrink-0 ${isAdmin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">
+                ${isAdmin ? 'Yönetici (Admin)' : 'Alt Kullanıcı'}
+            </span>
+        `;
+
+        // 1. MASAÜSTÜ TABLO SATIRI
+        tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 transition">
+                <td class="p-4 font-bold text-gray-800">${u.username}</td>
+                <td class="p-4">${roleBadge}</td>
+                <td class="p-4"><div class="flex flex-wrap gap-1 max-w-xs">${screens.join(' ')}</div></td>
+                <td class="p-4"><div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div></td>
+                <td class="p-4 text-center">${exportBadge}</td>
+                <td class="p-4 text-center">
+                    ${u.username === 'admin' ? '<span class="text-xs text-gray-400 italic">Ana Admin (Kilitli)</span>' : `
+                        <button onclick="openUserModal('${u.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold bg-blue-50 px-2.5 py-1 rounded-md mr-1 transition">Yetkileri Düzenle</button>
+                        <button onclick="deleteUser('${u.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold bg-rose-50 px-2.5 py-1 rounded-md transition">Sil</button>
+                    `}
+                </td>
+            </tr>
+        `;
+
+        // 2. MOBİL DİKEY KART (ASLA TAŞMAZ, ERGONOMİK)
+        if (mobileContainer) {
+            mobileContainer.innerHTML += `
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 w-full max-w-full overflow-hidden">
+                    <!-- Üst: Kullanıcı Adı ve Rolü -->
+                    <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5 min-w-0">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-full ${isAdmin ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'} flex items-center justify-center font-bold text-xs shrink-0">
+                                ${(u.username || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <span class="font-bold text-gray-800 text-sm truncate">${u.username}</span>
+                        </div>
+                        ${roleBadge}
+                    </div>
+
+                    <!-- Erişebildiği Ekranlar -->
+                    <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
+                        <span class="text-gray-400 block text-[10px] uppercase font-semibold">Erişebildiği Ekranlar</span>
+                        <div class="flex flex-wrap gap-1 mt-0.5">
+                            ${screens.length > 0 ? screens.join(' ') : '<span class="text-gray-400 text-xs italic">Tanımlı ekran yok</span>'}
+                        </div>
+                    </div>
+
+                    <!-- İnce Müdahale İzinleri ve Rapor İndirme -->
+                    <div class="bg-gray-50/80 p-2.5 rounded-lg border border-gray-100 space-y-2 text-xs">
+                        <div>
+                            <span class="text-gray-400 block text-[10px] uppercase font-semibold mb-1">Müdahale Yetkileri</span>
+                            <div class="flex flex-wrap gap-1">${permsSummary.join(' ')}</div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-200/60">
+                            <span class="text-gray-500 font-medium text-[11px]">Excel / PDF Rapor İndirme:</span>
+                            ${exportBadge}
+                        </div>
+                    </div>
+
+                    <!-- İşlem Butonları -->
+                    <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                        ${u.username === 'admin' ? '<span class="text-xs text-gray-400 italic py-1">Ana Admin (Kilitli Hesap)</span>' : `
+                            <button onclick="openUserModal('${u.id}')" class="flex-1 py-1.5 px-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                <i class="fa-regular fa-pen-to-square mr-1"></i>Yetkileri Düzenle
+                            </button>
+                            <button onclick="deleteUser('${u.id}')" class="py-1.5 px-3 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95 text-center">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+    });
+
+    if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400 italic">Kayıtlı sistem kullanıcısı bulunamadı.</td></tr>`;
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border border-gray-200">Kayıtlı sistem kullanıcısı bulunamadı.</div>`;
+        }
+    }
+}
 
         async function deleteUser(id) {
             const targetId = String(id).trim();
