@@ -1793,7 +1793,8 @@ function normalizeOfficeName(str) {
             }
         ];
         
-        let data = JSON.parse(localStorage.getItem('teknoparkData')) || {
+// Varsayılan temiz veri şablonu
+        const defaultData = {
             campuses: [
                 {
                     id: 1,
@@ -1813,8 +1814,32 @@ function normalizeOfficeName(str) {
                 }
             ],
             refereePayments: [],
-            manualPayments: []
+            consultantPayments: [],
+            manualPayments: [],
+            meterReadings: [],
+            meterTariffs: []
         };
+
+        // Yerel depodan güvenle oku ve eksik alanları tamamla
+        let data = defaultData;
+        try {
+            const rawStored = localStorage.getItem('teknoparkData');
+            if (rawStored) {
+                const parsed = JSON.parse(rawStored);
+                data = {
+                    campuses: Array.isArray(parsed.campuses) ? parsed.campuses : defaultData.campuses,
+                    rentals: Array.isArray(parsed.rentals) ? parsed.rentals : defaultData.rentals,
+                    refereePayments: Array.isArray(parsed.refereePayments) ? parsed.refereePayments : [],
+                    consultantPayments: Array.isArray(parsed.consultantPayments) ? parsed.consultantPayments : [],
+                    manualPayments: Array.isArray(parsed.manualPayments) ? parsed.manualPayments : [],
+                    meterReadings: Array.isArray(parsed.meterReadings) ? parsed.meterReadings : [],
+                    meterTariffs: Array.isArray(parsed.meterTariffs) ? parsed.meterTariffs : []
+                };
+            }
+        } catch (e) {
+            console.warn("Yerel veri okuma hatası, varsayılan şablona dönüldü:", e);
+            data = defaultData;
+        }
 
         if (!data.refereePayments) data.refereePayments = [];
         if (!data.manualPayments) data.manualPayments = [];
@@ -3511,37 +3536,56 @@ function populateCampusFilters() {
             return Math.max(0, totalArea - getOfficeRentedArea(targetId, excludeRentalId));
         }
 
-        function getStats(selectedCampusId = 'all') {
+function getStats(selectedCampusId = 'all') {
             let totalArea = 0, rentedArea = 0, rentRevenueExcl = 0, commonRevenueExcl = 0, otherRevenueExcl = 0;
 
+            // 1. ADIM: Güvenli dizi kontrolleri (undefined patlamasını kesin önler)
+            const allCampuses = (data && Array.isArray(data.campuses)) ? data.campuses : [];
+            const allRentals = (data && Array.isArray(data.rentals)) ? data.rentals : [];
+            const vatRate = typeof VAT_RATE !== 'undefined' ? VAT_RATE : 0.20;
+
+            // 2. ADIM: Yerleşke filtreleme
             const targetCampuses = selectedCampusId === 'all' 
-                ? data.campuses 
-                : data.campuses.filter(c => String(c.id) === String(selectedCampusId));
+                ? allCampuses 
+                : allCampuses.filter(c => c && String(c.id) === String(selectedCampusId));
 
             const validOfficeIds = [];
             targetCampuses.forEach(c => {
-                (c.offices || []).forEach(o => {
-                    totalArea += parseFloat(o.area || 0);
-                    validOfficeIds.push(String(o.id));
-                });
+                if (c && Array.isArray(c.offices)) {
+                    c.offices.forEach(o => {
+                        if (o) {
+                            totalArea += parseFloat(o.area || 0);
+                            validOfficeIds.push(String(o.id));
+                        }
+                    });
+                }
             });
 
-            data.rentals.filter(r => r.status === 'active' && validOfficeIds.includes(String(r.officeId))).forEach(r => {
-                const area = parseFloat(r.allocatedArea || 0);
-                rentedArea += area;
-                rentRevenueExcl += (area * (parseFloat(r.unitPrice) || 0));
-                commonRevenueExcl += (area * (parseFloat(r.commonCostPerM2) || 0));
-                otherRevenueExcl += parseFloat(r.otherCost || 0);
-            });
+            // 3. ADIM: Sözleşme filtreleme ve gelir hesabı
+            allRentals
+                .filter(r => r && r.status === 'active' && validOfficeIds.includes(String(r.officeId)))
+                .forEach(r => {
+                    const area = parseFloat(r.allocatedArea || 0);
+                    rentedArea += area;
+                    rentRevenueExcl += (area * (parseFloat(r.unitPrice) || 0));
+                    commonRevenueExcl += (area * (parseFloat(r.commonCostPerM2) || 0));
+                    otherRevenueExcl += parseFloat(r.otherCost || 0);
+                });
 
             const totalRevenueExcl = rentRevenueExcl + commonRevenueExcl + otherRevenueExcl;
 
             return {
-                totalArea, rentedArea, availableArea: Math.max(0, totalArea - rentedArea),
-                rentRevenueExcl, rentRevenueIncl: rentRevenueExcl * (1 + VAT_RATE),
-                commonRevenueExcl, commonRevenueIncl: commonRevenueExcl * (1 + VAT_RATE),
-                otherRevenueExcl, otherRevenueIncl: otherRevenueExcl * (1 + VAT_RATE),
-                totalRevenueExcl, totalRevenueIncl: totalRevenueExcl * (1 + VAT_RATE),
+                totalArea,
+                rentedArea,
+                availableArea: Math.max(0, totalArea - rentedArea),
+                rentRevenueExcl,
+                rentRevenueIncl: rentRevenueExcl * (1 + vatRate),
+                commonRevenueExcl,
+                commonRevenueIncl: commonRevenueExcl * (1 + vatRate),
+                otherRevenueExcl,
+                otherRevenueIncl: otherRevenueExcl * (1 + vatRate),
+                totalRevenueExcl,
+                totalRevenueIncl: totalRevenueExcl * (1 + vatRate),
                 occupancyRate: totalArea > 0 ? ((rentedArea / totalArea) * 100).toFixed(2) : (0).toFixed(2)
             };
         }
