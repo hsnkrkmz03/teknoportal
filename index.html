@@ -3994,8 +3994,10 @@ function renderDuePaymentsAlert() {
 
 function renderRentals() {
     const tbody = document.getElementById('rental-table-body');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    const mobileContainer = document.getElementById('rental-cards-mobile');
+    
+    if (tbody) tbody.innerHTML = '';
+    if (mobileContainer) mobileContainer.innerHTML = '';
 
     const selectedCampus = document.getElementById('rentals-campus-filter') ? document.getElementById('rentals-campus-filter').value : 'all';
     const selectedStatus = document.getElementById('rentals-status-filter') ? document.getElementById('rentals-status-filter').value : 'all';
@@ -4005,13 +4007,10 @@ function renderRentals() {
     const isUserAdmin = currentUser && currentUser.role === 'admin';
     const p = currentUser ? (currentUser.permissions || {}) : {};
 
-    // GÜVENLİ YETKİ KONTROLÜ:
-    // Admin ise veya kiralama düzenleme yetkisi açıksa (veya henüz ayarlanmamışsa) her koşulda gösterir
     const canEdit = isUserAdmin || p.rentalEdit === true || p.canEdit === true || (p.rentalEdit !== false && p.canEdit !== false);
     const canEnd = isUserAdmin || p.rentalEndContract !== false;
     const canDelete = isUserAdmin || p.rentalDelete === true;
 
-    // Güvenli ofis ve yerleşke bulucu
     function getOfficeDetails(officeRef) {
         const ref = String(officeRef || '').trim().toLowerCase();
         let officeName = "Bilinmiyor";
@@ -4046,7 +4045,6 @@ function renderRentals() {
 
     filteredRentals.sort((a, b) => String(a.company || '').localeCompare(String(b.company || ''), 'tr'));
 
-    // 6'lı kart toplamları
     let statTotalCount = filteredRentals.length;
     let statTotalArea = 0;
     let statTotalRent = 0;
@@ -4074,33 +4072,65 @@ function renderRentals() {
         statTotalOther += otherCost;
         statTotalOverallIncl += totalInclVat;
 
-        tbody.innerHTML += `
-            // Mobil Kart Kapsayıcısı
-    const mobileContainer = document.getElementById('rental-cards-mobile');
-    if (mobileContainer) mobileContainer.innerHTML = '';
+        // BUTONLARI ÖNCEDEN HAZIRLA (Ters tırnak çakışmasını tamamen yok eder)
+        let deskButtons = '';
+        if (isActive) {
+            if (canEdit) deskButtons += '<button type="button" onclick="openRentalModal(\'' + r.id + '\')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition"><i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle</button>';
+            if (canEnd) deskButtons += '<button type="button" onclick="openEndRentalModal(\'' + r.id + '\')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition"><i class="fa-solid fa-calendar-xmark mr-1"></i> Bitir</button>';
+        } else {
+            deskButtons += '<span class="text-xs text-gray-400 font-medium mr-1">Sonlandı</span>';
+        }
+        if (canDelete) {
+            deskButtons += '<button type="button" onclick="deleteContractDirectly(\'' + r.id + '\')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"><i class="fa-solid fa-trash mr-1"></i> Sil</button>';
+        }
 
-    filteredRentals.forEach(r => {
-        // ... (mevcut hesaplamalar aynı kalıyor) ...
+        // 1. MASAÜSTÜ TABLO SATIRI
+        if (tbody) {
+            tbody.innerHTML += `
+                <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
+                    <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
+                    <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
+                    <td class="p-4">${details.campusName} - <strong>${details.officeName}</strong></td>
+                    <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
+                    <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
+                    <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
+                    <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
+                    <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
+                    <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
+                    <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
+                    <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
+                    <td class="p-4 text-center whitespace-nowrap">
+                        <div class="inline-flex items-center justify-center gap-1.5">
+                            ${deskButtons}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
 
-// MOBİL KART RENDER (md:hidden)
+        // 2. MOBİL DİKEY KART
         if (mobileContainer) {
+            let mobButtons = '';
+            if (canEdit) mobButtons += '<button type="button" onclick="openRentalModal(\'' + r.id + '\')" class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-center"><i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle</button>';
+            if (isActive && canEnd) mobButtons += '<button type="button" onclick="openEndRentalModal(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200">Bitir</button>';
+            if (canDelete) mobButtons += '<button type="button" onclick="deleteContractDirectly(\'' + r.id + '\')" class="py-2 px-3 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200"><i class="fa-solid fa-trash"></i></button>';
+
+            const statusClass = isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700';
+            const statusText = isActive ? '● Devam Ediyor' : '○ Sonlandı';
+            const cardBg = isActive ? 'bg-white' : 'bg-gray-50 opacity-80';
+
             mobileContainer.innerHTML += `
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3 ${!isActive ? 'opacity-80 bg-gray-50' : ''}">
-                    <!-- Üst Bilgi: Durum ve Ofis -->
+                <div class="${cardBg} p-4 rounded-xl border border-gray-200 shadow-xs space-y-3">
                     <div class="flex items-center justify-between border-b pb-2">
-                        <span class="px-2 py-0.5 text-[11px] rounded-full font-bold ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}">
-                            ${isActive ? '● Devam Ediyor' : '○ Sonlandı'}
-                        </span>
+                        <span class="px-2 py-0.5 text-[11px] rounded-full font-bold ${statusClass}">${statusText}</span>
                         <span class="text-xs font-bold text-gray-500">${details.campusName}</span>
                     </div>
 
-                    <!-- Firma ve Ofis Adı -->
                     <div>
                         <div class="text-sm font-bold text-gray-800 leading-snug">${r.company || '-'}</div>
                         <div class="text-xs text-blue-600 font-semibold mt-0.5"><i class="fa-solid fa-door-open mr-1"></i>${details.officeName}</div>
                     </div>
 
-                    <!-- Detay Grid (Alan, Tarih ve Kiralar) -->
                     <div class="grid grid-cols-2 gap-2 bg-gray-50 p-2.5 rounded-lg text-xs">
                         <div>
                             <span class="text-gray-400 block text-[10px]">Tahsis Alanı</span>
@@ -4120,92 +4150,23 @@ function renderRentals() {
                         </div>
                     </div>
 
-                    <!-- Aksiyon Butonları (Parmak Dostu) -->
                     <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
-                        ${canEdit ? `
-                            <button type="button" onclick="openRentalModal('${r.id}')" 
-                                    class="flex-1 py-2 px-3 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-center active:scale-95 transition">
-                                <i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle
-                            </button>
-                        ` : ''}
-                        ${(isActive && canEnd) ? `
-                            <button type="button" onclick="openEndRentalModal('${r.id}')" 
-                                    class="py-2 px-3 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 border border-amber-200 active:scale-95 transition">
-                                Bitir
-                            </button>
-                        ` : ''}
-                        ${canDelete ? `
-                            <button type="button" onclick="deleteContractDirectly('${r.id}')" 
-                                    class="py-2 px-3 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 border border-rose-200 active:scale-95 transition">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        ` : ''}
+                        ${mobButtons}
                     </div>
                 </div>
             `;
         }
-
-    if (mobileContainer && filteredRentals.length === 0) {
-        mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
-    }
-            <tr class="${isActive ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-75'}">
-                <td class="p-4"><span class="px-2.5 py-1 text-xs rounded-full font-semibold ${isActive ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-700'}">${isActive ? 'Devam Ediyor' : 'Sonlandı'}</span></td>
-                <td class="p-4 font-semibold text-gray-800">${r.company || '-'}</td>
-                <td class="p-4">${details.campusName} - <strong>${details.officeName}</strong></td>
-                <td class="p-4 text-right font-semibold tabular-nums">${area.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²</td>
-                <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.startDate)}</td>
-                <td class="p-4 text-xs font-medium text-gray-600">${toTRDate(r.endDate)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalRent)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(totalCommonCost)}</td>
-                <td class="p-4 text-right font-semibold text-gray-700 tabular-nums">${formatCurrency(otherCost)}</td>
-                <td class="p-4 text-right font-bold text-gray-900 tabular-nums">${formatCurrency(totalExclVat)}</td>
-                <td class="p-4 text-right font-bold text-emerald-700 bg-emerald-50/50 tabular-nums">${formatCurrency(totalInclVat)}</td>
-                <td class="p-4 text-center whitespace-nowrap">
-                    <div class="inline-flex items-center justify-center gap-1.5">
-                        ${canEdit ? `
-                            <button type="button" onclick="openRentalModal('${r.id}')" 
-                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition" 
-                                    title="Sözleşmeyi Düzenle">
-                                <i class="fa-solid fa-pen-to-square mr-1"></i> Düzenle
-                            </button>
-                        ` : ''}
-
-                        ${(isActive && canEnd) ? `
-                            <button type="button" onclick="openEndRentalModal('${r.id}')" 
-                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition" 
-                                    title="Sözleşmeyi Bitir / Feshet">
-                                <i class="fa-solid fa-calendar-xmark mr-1"></i> Bitir
-                            </button>
-                        ` : ''}
-
-                        ${canDelete ? `
-                            <button type="button" onclick="deleteContractDirectly('${r.id}')" 
-                                    class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition" 
-                                    title="Sözleşmeyi Sil">
-                                <i class="fa-solid fa-trash mr-1"></i> Sil
-                            </button>
-                        ` : ''}
-
-                        ${(!canEdit && !canEnd && !canDelete) ? '<span class="text-xs text-gray-400 italic">Yetki Yok</span>' : ''}
-                    </div>
-                </td>
-            </tr>
-        `;
     });
 
-    // 6'lı kart değerlerini tek seferde yazdır
+    // 6'lı kart değerlerini yazdır
     const countEl = document.getElementById('rental-stat-count');
     const areaEl = document.getElementById('rental-stat-area');
-    
     const rentEl = document.getElementById('rental-stat-rent');
     const rentInclEl = document.getElementById('rental-stat-rent-incl');
-    
     const commonEl = document.getElementById('rental-stat-common');
     const commonInclEl = document.getElementById('rental-stat-common-incl');
-    
     const otherEl = document.getElementById('rental-stat-other');
     const otherInclEl = document.getElementById('rental-stat-other-incl');
-    
     const totalExclEl = document.getElementById('rental-stat-total-excl');
     const totalInclEl = document.getElementById('rental-stat-total-incl');
 
@@ -4213,21 +4174,18 @@ function renderRentals() {
 
     if (countEl) countEl.innerText = statTotalCount;
     if (areaEl) areaEl.innerText = statTotalArea.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
     if (rentEl) rentEl.innerText = statTotalRent.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (rentInclEl) rentInclEl.innerText = (statTotalRent * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
     if (commonEl) commonEl.innerText = statTotalCommon.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (commonInclEl) commonInclEl.innerText = (statTotalCommon * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
     if (otherEl) otherEl.innerText = statTotalOther.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (otherInclEl) otherInclEl.innerText = (statTotalOther * (1 + VAT_RATE)).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
     if (totalExclEl) totalExclEl.innerText = statTotalOverallExcl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (totalInclEl) totalInclEl.innerText = statTotalOverallIncl.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     if (filteredRentals.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="12" class="p-4 text-center text-gray-400 italic">Arama kriterlerinize uygun kira sözleşmesi bulunamadı.</td></tr>`;
+        if (mobileContainer) mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border">Arama kriterlerine uygun sözleşme bulunamadı.</div>`;
     }
 }
         
