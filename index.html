@@ -940,143 +940,151 @@
         </table>
     </div>
 </section>     
-            <!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
-            <section id="tab-payments" class="hidden">
-                <div class="mb-6 space-y-3">
+<!-- 5. ÖDEMELER TAKİBİ SEKMESİ -->
+            <section id="tab-payments" class="hidden w-full max-w-full overflow-hidden">
+                <div class="mb-6 space-y-3 w-full max-w-full">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-<h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
-    <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i>
-    <span>Ödemeler Takibi</span>
-</h1>
-<p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
+                            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2.5">
+                                <i class="fa-solid fa-money-bill-transfer text-emerald-600"></i>
+                                <span>Ödemeler Takibi</span>
+                            </h1>
+                            <p class="text-xs text-gray-500">Hakem ödemeleri ve firma fatura giderlerini aylık bazda takip edin ve raporlayın.</p>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold">
-                                <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition">
-                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler Listesi
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <!-- Durum Filtre Butonları -->
+                            <div class="bg-gray-200 p-1 rounded-lg flex space-x-1 text-xs font-semibold w-full sm:w-auto justify-center">
+                                <button id="btn-pay-filter-pending" onclick="setPaymentStatusFilter('pending')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md bg-white text-blue-600 shadow-sm transition text-center">
+                                    <i class="fa-solid fa-clock mr-1"></i> Ödenecekler
                                 </button>
-                                <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler Listesi
+                                <button id="btn-pay-filter-paid" onclick="setPaymentStatusFilter('paid')" class="flex-1 sm:flex-none px-3 py-1.5 rounded-md text-gray-600 hover:text-gray-900 transition text-center">
+                                    <i class="fa-solid fa-circle-check mr-1"></i> Ödenenler
                                 </button>
                             </div>
 
-                            <button onclick="exportPaymentsToExcel()" class="bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition flex items-center shadow-sm perm-export">
-                                <i class="fa-solid fa-file-excel mr-1.5"></i> Dönemi Excel İndir
+                            <button onclick="exportPaymentsToExcel()" class="flex-1 sm:flex-none justify-center bg-emerald-600 text-white px-3.5 py-2 rounded-lg hover:bg-emerald-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-export active:scale-95">
+                                <i class="fa-solid fa-file-excel mr-1.5"></i> Excel İndir
                             </button>
-                            <button onclick="openManualPaymentModal()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition flex items-center shadow-sm perm-edit">
-                                <i class="fa-solid fa-plus mr-1.5"></i> Manuel Fatura/Gider Ekle
+                            <button onclick="openManualPaymentModal()" class="flex-1 sm:flex-none justify-center bg-blue-600 text-white px-3.5 py-2 rounded-lg hover:bg-blue-700 font-semibold text-xs transition inline-flex items-center shadow-sm perm-edit active:scale-95">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Gider Ekle
                             </button>
-                            <button id="btn-bulk-pay" onclick="markSelectedPaymentsAsPaid()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg font-semibold text-xs transition flex items-center shadow-sm">
+                            <button id="btn-bulk-pay" onclick="markSelectedPaymentsAsPaid()" class="hidden w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg font-semibold text-xs transition inline-flex items-center shadow-sm active:scale-95">
                                 <i class="fa-solid fa-check-double mr-1.5"></i> 
                                 <span>Seçilenleri Ödendi İşaretle (<span id="bulk-pay-count">0</span>)</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex justify-end">
-                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs">
-                            <label class="text-xs font-semibold text-gray-600"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
-                            <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
-                            <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
-                                <option value="01">Ocak</option>
-                                <option value="02">Şubat</option>
-                                <option value="03">Mart</option>
-                                <option value="04">Nisan</option>
-                                <option value="05">Mayıs</option>
-                                <option value="06">Haziran</option>
-                                <option value="07">Temmuz</option>
-                                <option value="08">Ağustos</option>
-                                <option value="09">Eylül</option>
-                                <option value="10">Ekim</option>
-                                <option value="11">Kasım</option>
-                                <option value="12">Aralık</option>
-                            </select>
+                    <!-- Dönem Seçici -->
+                    <div class="flex justify-end w-full">
+                        <div class="flex items-center space-x-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-lg shadow-2xs w-full sm:w-auto justify-between sm:justify-start">
+                            <label class="text-xs font-semibold text-gray-600 shrink-0"><i class="fa-solid fa-calendar mr-1 text-blue-600"></i> Dönem:</label>
+                            <div class="flex items-center space-x-1.5">
+                                <select id="payments-year-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()"></select>
+                                <select id="payments-month-filter" class="border rounded-md px-2 py-1 text-xs bg-white font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500" onchange="renderPayments()">
+                                    <option value="01">Ocak</option>
+                                    <option value="02">Şubat</option>
+                                    <option value="03">Mart</option>
+                                    <option value="04">Nisan</option>
+                                    <option value="05">Mayıs</option>
+                                    <option value="06">Haziran</option>
+                                    <option value="07">Temmuz</option>
+                                    <option value="08">Ağustos</option>
+                                    <option value="09">Eylül</option>
+                                    <option value="10">Ekim</option>
+                                    <option value="11">Kasım</option>
+                                    <option value="12">Aralık</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <div class="text-gray-500 text-xs font-medium mb-1">Seçili Dönem Kalem Sayısı</div>
-                            <div class="text-xl font-bold text-gray-800" id="pay-total-count">0</div>
+                <!-- ÖZET 2'Lİ KPI KARTLARI (Mobilde Tek Kolon, Geniş Ekranlarda 2 Kolon) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-6 w-full max-w-full">
+                    <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 flex items-center justify-between min-w-0 overflow-hidden">
+                        <div class="min-w-0 flex-1 mr-2">
+                            <div class="text-gray-500 text-xs font-medium mb-1 truncate">Seçili Dönem Kalem Sayısı</div>
+                            <div class="text-xl font-bold text-gray-800 tabular-nums truncate" id="pay-total-count">0</div>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-receipt text-lg"></i>
                         </div>
                     </div>
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
-                        <div>
-                            <div class="text-gray-500 text-xs font-medium mb-1" id="pay-total-amount-label">Ödenecek Toplam Tutar</div>
-                            <div class="text-xl font-bold text-emerald-600"><span id="pay-total-amount">0,00</span> ₺</div>
+                    <div class="bg-white p-4 rounded-xl shadow-xs border border-gray-100 flex items-center justify-between min-w-0 overflow-hidden">
+                        <div class="min-w-0 flex-1 mr-2">
+                            <div class="text-gray-500 text-xs font-medium mb-1 truncate" id="pay-total-amount-label">Ödenecek Toplam Tutar</div>
+                            <div class="text-xl font-bold text-emerald-600 tabular-nums truncate"><span id="pay-total-amount">0,00</span> ₺</div>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-wallet text-lg"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                <!-- 1. MASAÜSTÜ TABLOSU (Mobilde gizlenir: hidden md:block) -->
+                <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto w-full max-w-full">
                     <table class="w-full text-left border-collapse min-w-[1150px]">
                         <thead class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase">
-    <tr>
-        <!-- 1. SÜTUN: TÜMÜNÜ SEÇ CHECKBOX -->
-        <th class="p-3 text-center w-10">
-            <input type="checkbox" id="pay-select-all" onchange="toggleSelectAllPayments(this.checked)" class="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" title="Tümünü Seç / Kaldır">
-        </th>
+                            <tr>
+                                <!-- 1. SÜTUN: TÜMÜNÜ SEÇ CHECKBOX -->
+                                <th class="p-3 text-center w-10">
+                                    <input type="checkbox" id="pay-select-all" onchange="toggleSelectAllPayments(this.checked)" class="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500" title="Tümünü Seç / Kaldır">
+                                </th>
 
-        <!-- 2. SÜTUN: TÜR (AÇILIR MİNİ FİLTRE POP-UP) -->
-        <th class="p-3 relative">
-            <div class="flex items-center space-x-1.5">
-                <span>Tür</span>
-                <button type="button" onclick="togglePaymentTypeFilter(event)" class="text-gray-400 hover:text-blue-600 transition p-1" title="Türe Göre Filtrele">
-                    <i class="fa-solid fa-filter text-xs"></i>
-                </button>
-                <!-- Aktif filtre göstergesi -->
-                <span id="pay-type-filter-indicator" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
-            </div>
-            <div id="payment-type-filter-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 min-w-[200px]" onclick="event.stopPropagation()">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
-                    <span class="text-[11px] font-bold text-gray-700">Ödeme Türü Seçin</span>
-                    <button type="button" onclick="resetPaymentTypeFilter()" class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold underline">
-                        Sıfırla
-                    </button>
-                </div>
-                <select id="pay-type-filter" onchange="onPaymentTypeChange()" class="w-full border border-gray-200 rounded-md p-1.5 text-xs bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium">
-                    <option value="all">Tüm Ödemeler</option>
-                    <option value="referee">Hakem Ödemesi</option>
-                    <option value="consultant">Danışmanlık Ödemesi</option>
-                    <option value="manual">Fatura / Gider</option>
-                </select>
-            </div>
-        </th>
+                                <!-- 2. SÜTUN: TÜR (AÇILIR MİNİ FİLTRE POP-UP) -->
+                                <th class="p-3 relative">
+                                    <div class="flex items-center space-x-1.5">
+                                        <span>Tür</span>
+                                        <button type="button" onclick="togglePaymentTypeFilter(event)" class="text-gray-400 hover:text-blue-600 transition p-1" title="Türe Göre Filtrele">
+                                            <i class="fa-solid fa-filter text-xs"></i>
+                                        </button>
+                                        <span id="pay-type-filter-indicator" class="hidden w-2 h-2 rounded-full bg-blue-600"></span>
+                                    </div>
+                                    <div id="payment-type-filter-box" class="hidden absolute left-2 top-11 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-30 min-w-[200px]" onclick="event.stopPropagation()">
+                                        <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                                            <span class="text-[11px] font-bold text-gray-700">Ödeme Türü Seçin</span>
+                                            <button type="button" onclick="resetPaymentTypeFilter()" class="text-[10px] text-blue-600 hover:text-blue-800 font-semibold underline">
+                                                Sıfırla
+                                            </button>
+                                        </div>
+                                        <select id="pay-type-filter" onchange="onPaymentTypeChange()" class="w-full border border-gray-200 rounded-md p-1.5 text-xs bg-white text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium">
+                                            <option value="all">Tüm Ödemeler</option>
+                                            <option value="referee">Hakem Ödemesi</option>
+                                            <option value="consultant">Danışmanlık Ödemesi</option>
+                                            <option value="manual">Fatura / Gider</option>
+                                        </select>
+                                    </div>
+                                </th>
 
-        <!-- 3. SÜTUN: ALICI BİLGİSİ -->
-        <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
+                                <!-- 3. SÜTUN: ALICI BİLGİSİ -->
+                                <th class="p-3">Firma Adı / Hakem Ad Soyad</th>
 
-        <!-- 4. SÜTUN: IBAN -->
-        <th class="p-3">IBAN Bilgisi</th>
+                                <!-- 4. SÜTUN: IBAN -->
+                                <th class="p-3">IBAN Bilgisi</th>
 
-        <!-- 5. SÜTUN: AÇIKLAMA -->
-        <th class="p-3">Açıklama</th>
+                                <!-- 5. SÜTUN: AÇIKLAMA -->
+                                <th class="p-3">Açıklama</th>
 
-        <!-- 6. SÜTUN: VADE -->
-        <th class="p-3">Son Ödeme (Vade)</th>
+                                <!-- 6. SÜTUN: VADE -->
+                                <th class="p-3">Son Ödeme (Vade)</th>
 
-        <!-- 7. SÜTUN: TUTAR -->
-        <th class="p-3 text-right">Ödenecek Tutar</th>
+                                <!-- 7. SÜTUN: TUTAR -->
+                                <th class="p-3 text-right">Ödenecek Tutar</th>
 
-        <!-- 8. SÜTUN: DURUM & ÖDEME TARİHİ -->
-        <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
+                                <!-- 8. SÜTUN: DURUM & ÖDEME TARİHİ -->
+                                <th class="p-3 text-center">Durum & Ödeme Tarihi</th>
 
-        <!-- 9. SÜTUN: İŞLEMLER -->
-        <th class="p-3 text-center">İşlem</th>
-    </tr>
-</thead>
+                                <!-- 9. SÜTUN: İŞLEMLER -->
+                                <th class="p-3 text-center">İşlem</th>
+                            </tr>
+                        </thead>
                         <tbody id="payments-table-body" class="divide-y divide-gray-100 text-xs text-gray-700"></tbody>
                     </table>
                 </div>
+
+                <!-- 2. MOBİL DİKEY KART LİSTESİ (Sadece mobilde görünür, asla taşmaz: block md:hidden) -->
+                <div id="payments-cards-mobile" class="block md:hidden space-y-3 w-full max-w-full"></div>
             </section>
 
             <!-- 6. KULLANICI YÖNETİMİ SEKMESİ (SADECE YÖNETİCİ GÖRÜR) -->
@@ -2759,10 +2767,12 @@ async function saveData() {
 
             renderPayments();
         }
-        function renderPayments() {
+function renderPayments() {
             const tbody = document.getElementById('payments-table-body');
+            const mobileContainer = document.getElementById('payments-cards-mobile');
             if (!tbody) return;
             tbody.innerHTML = '';
+            if (mobileContainer) mobileContainer.innerHTML = '';
 
             const selYearEl = document.getElementById('payments-year-filter');
             const selMonthEl = document.getElementById('payments-month-filter');
@@ -2800,13 +2810,12 @@ async function saveData() {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-filtered.forEach(item => {
+            filtered.forEach(item => {
                 const isReferee = item.source === 'referee';
                 const isConsultant = item.source === 'consultant';
                 const uniqueKey = `${item.source}_${item.id}`;
                 const isSelected = selectedPaymentKeys.has(uniqueKey);
 
-                // YENİ KOD:
                 let badgeClass = 'bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap inline-block font-semibold';
                 if (isReferee) badgeClass = 'bg-indigo-100 text-indigo-700 border border-indigo-200 whitespace-nowrap inline-block font-semibold';
                 if (isConsultant) badgeClass = 'bg-teal-100 text-teal-800 border border-teal-200 whitespace-nowrap inline-block font-bold';
@@ -2838,7 +2847,7 @@ filtered.forEach(item => {
                 const safeIban = (item.iban || '').replace(/'/g, "\\'");
                 const safeDesc = (item.desc || '').replace(/'/g, "\\'");
 
-                // İŞLEM BUTONLARI AYRIMI (HAKEM vs DANIŞMAN vs FATURA)
+                // İŞLEM BUTONLARI AYRIMI (Masaüstü)
                 let actionButtonsHtml = '';
                 if (isReferee) {
                     actionButtonsHtml = `
@@ -2857,6 +2866,7 @@ filtered.forEach(item => {
                     `;
                 }
 
+                // 1. MASAÜSTÜ TABLO SATIRI
                 tbody.innerHTML += `
                     <tr class="${isSelected ? 'bg-blue-50/70 border-l-4 border-l-blue-600' : 'hover:bg-gray-50'} transition">
                         <td class="p-3 text-center">
@@ -2869,7 +2879,7 @@ filtered.forEach(item => {
                         <td class="p-3 whitespace-nowrap min-w-[150px]">
                             <span class="px-2.5 py-1 rounded-full text-[10px] ${badgeClass}">
                                 ${item.sourceLabel}
-                             </span>
+                            </span>
                         </td>
                         <td class="p-3 font-bold text-gray-800 cursor-pointer group" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')" title="Kopyalamak için tıklayın">
                             <div class="flex items-center space-x-1.5 group-hover:text-blue-600 transition">
@@ -2914,15 +2924,111 @@ filtered.forEach(item => {
                         </td>
                     </tr>
                 `;
+
+                // 2. MOBİL DİKEY KART (ASLA SAĞA-SOLA TAŞMAZ, ERGONOMİK)
+                if (mobileContainer) {
+                    let mobActionBtns = '';
+                    if (isReferee) {
+                        mobActionBtns = `
+                            <button onclick="openRefereeModal('${item.id}')" class="flex-1 py-1.5 px-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-regular fa-pen-to-square mr-1"></i>Düzenle</button>
+                            <button onclick="deleteRefereePayment('${item.id}')" class="py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-solid fa-trash"></i></button>
+                        `;
+                    } else if (isConsultant) {
+                        mobActionBtns = `
+                            <button onclick="openConsultantModal('${item.id}')" class="flex-1 py-1.5 px-2 bg-teal-50 text-teal-700 hover:bg-teal-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-regular fa-pen-to-square mr-1"></i>Düzenle</button>
+                            <button onclick="deleteConsultantPayment('${item.id}')" class="py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-solid fa-trash"></i></button>
+                        `;
+                    } else {
+                        mobActionBtns = `
+                            <button onclick="openManualPaymentModal('${item.id}')" class="flex-1 py-1.5 px-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-regular fa-pen-to-square mr-1"></i>Düzenle</button>
+                            <button onclick="deleteManualPayment('${item.id}')" class="py-1.5 px-2.5 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-semibold transition active:scale-95"><i class="fa-solid fa-trash"></i></button>
+                        `;
+                    }
+
+                    mobileContainer.innerHTML += `
+                        <div class="bg-white p-4 rounded-xl border ${isSelected ? 'border-blue-400 bg-blue-50/30 ring-1 ring-blue-400' : 'border-gray-200'} shadow-xs space-y-3 w-full max-w-full overflow-hidden">
+                            <!-- Üst Satır: Seçim Checkbox, Tür Rozeti ve Tutar -->
+                            <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5 min-w-0">
+                                <div class="flex items-center space-x-2 min-w-0">
+                                    <input type="checkbox" ${isSelected ? 'checked' : ''} 
+                                        data-key="${uniqueKey}"
+                                        onchange="togglePaymentSelection('${uniqueKey}', this.checked)"
+                                        class="pay-select-row w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-blue-500 shrink-0" 
+                                        title="Seç">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] truncate ${badgeClass}">
+                                        ${item.sourceLabel}
+                                    </span>
+                                </div>
+                                <span class="font-black text-blue-600 text-sm tabular-nums shrink-0">${formatCurrency(item.amount)}</span>
+                            </div>
+
+                            <!-- Alıcı Bilgisi (Dokun ve Kopyala) -->
+                            <div class="min-w-0 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeName}', 'Alıcı Adı')">
+                                <span class="text-[10px] text-gray-400 uppercase font-semibold block">Alıcı / Firma</span>
+                                <div class="flex items-center space-x-1.5 text-gray-800 font-bold text-xs truncate">
+                                    <span class="truncate">${item.name}</span>
+                                    <i class="fa-regular fa-copy text-gray-400 text-[11px] shrink-0"></i>
+                                </div>
+                            </div>
+
+                            <!-- IBAN Bilgisi (Dokun ve Kopyala) -->
+                            ${item.iban && item.iban !== '-' ? `
+                                <div class="bg-slate-50 p-2 rounded-lg border border-slate-100 min-w-0 cursor-pointer active:opacity-70 transition" onclick="copyToClipboard('${safeIban}', 'IBAN')">
+                                    <span class="text-[10px] text-gray-400 uppercase font-semibold block">IBAN (Kopyalamak için dokunun)</span>
+                                    <div class="flex items-center justify-between text-[11px] font-semibold text-gray-700 truncate mt-0.5">
+                                        <span class="truncate tracking-wide font-mono">${item.iban}</span>
+                                        <i class="fa-regular fa-copy text-gray-400 text-xs shrink-0 ml-1"></i>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Açıklama (Varsa) -->
+                            ${item.desc && item.desc !== '-' ? `
+                                <div class="text-xs text-gray-600 truncate min-w-0 cursor-pointer" onclick="copyToClipboard('${safeDesc}', 'Açıklama')">
+                                    <i class="fa-regular fa-file-lines mr-1 text-gray-400"></i><span class="truncate">${item.desc}</span>
+                                </div>
+                            ` : ''}
+
+                            <!-- Vade / Ödeme Durumu ve Tarihi -->
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-50/80 p-2.5 rounded-lg border border-gray-100 text-xs">
+                                <div class="min-w-0">
+                                    <span class="text-gray-400 block text-[10px] uppercase font-semibold">Vade Durumu</span>
+                                    <div>${dueHtml}</div>
+                                </div>
+                                <div class="text-right flex items-center space-x-1.5 shrink-0">
+                                    <label class="text-[11px] font-semibold text-gray-600 flex items-center space-x-1 cursor-pointer">
+                                        <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
+                                            onchange="togglePaymentPaidStatus('${item.source}', '${item.id}', this.checked)"
+                                            class="w-4 h-4 text-emerald-600 rounded cursor-pointer focus:ring-emerald-500">
+                                        <span>${item.isPaid ? 'Ödendi' : 'Bekliyor'}</span>
+                                    </label>
+                                    ${item.isPaid ? `
+                                        <input type="date" value="${paymentDateISO}" 
+                                            onchange="updateCustomPaymentDate('${item.source}', '${item.id}', this.value)"
+                                            class="border border-emerald-300 rounded px-1.5 py-0.5 text-[10px] font-bold text-emerald-800 bg-white focus:outline-none"
+                                            title="Ödeme Tarihi">
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Düzenle / Sil Butonları -->
+                            <div class="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                                ${mobActionBtns}
+                            </div>
+                        </div>
+                    `;
+                }
             });
 
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-400 italic">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</td></tr>`;
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = `<div class="p-6 bg-white rounded-xl text-center text-gray-400 text-xs italic border border-gray-200">Seçilen kriterlere ait ${isPending ? 'ödenecek bekleyen' : 'ödenmiş'} kayıt bulunamadı.</div>`;
+                }
             }
 
             updatePaymentSelectionSummary();
         }
-
         async function updateCustomPaymentDate(source, id, newISODate) {
             if (!newISODate) return;
             const trDate = toTRDate(newISODate);
