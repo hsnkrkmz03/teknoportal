@@ -1950,23 +1950,13 @@ function normalizeOfficeName(str) {
         };
 
 async function fetchCentralData(isSilent = false) {
-    // 1. Sayaçta kaydedilmemiş değişiklik varsa buluttan çekip verileri ASLA EZME
-    if (hasUnsavedMeterChanges) {
-        console.warn("Sayaç tablosunda kaydedilmemiş değişiklikler var, bulut eşitlemesi engellendi.");
+    // 1. Sayaçta kaydedilmemiş veri varsa bulutun eski veriyi çekip ezmesini engelle
+    if (typeof hasUnsavedMeterChanges !== 'undefined' && hasUnsavedMeterChanges) {
+        console.warn("Sayaç tablosunda kaydedilmemiş veri var; eşitleme bekletildi.");
         return;
     }
 
-    const activeEl = document.activeElement;
-    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
-    const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
-
-    if (isTyping || isAnyModalOpen) return;
-    if (isSyncing) return;
-    if (!APPS_SCRIPT_URL) return;
-
-    // ... kodun devamı ...
-    // 1. KULLANICI BİR KUTUYA YAZI YAZIYORSA VEYA MODAL AÇIKSA DÖNGÜYÜ ANINDA DURDUR
-    // (Böylece siz endeks veya sözleşme girerken ekran aniden yenilenip imleci kaybetmezsiniz)
+    // 2. Kullanıcı veri girişi yapıyorsa veya modal açıksa durdur (TEK VE GÜVENLİ TANIM)
     const activeEl = document.activeElement;
     const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
     const isAnyModalOpen = document.querySelector('div[id$="-modal"]:not(.hidden)');
@@ -1987,7 +1977,7 @@ async function fetchCentralData(isSilent = false) {
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);
-
+        
         const targetUrl = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.includes('?') ? '&' : '?') + "action=get&t=" + Date.now();
         const res = await fetch(targetUrl, { method: 'GET', redirect: 'follow', signal: controller.signal });
         clearTimeout(timeoutId);
