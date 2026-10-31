@@ -6373,89 +6373,121 @@ async function markSelectedPaymentsAsPaid() {
 
             recalculateMeterTableLive(currentUnitPrice);
         }
-
-// Tüm Sayaç Endekslerini Kaydeden Fonksiyon (Mobil & Masaüstü Çift Yönlü Destekli)
+        function getCampusMeterTariff(campusId, year, month) {
+            if (!data.meterTariffs) data.meterTariffs = [];
+            const t = data.meterTariffs.find(item => 
+                String(item.campusId) === String(campusId) && 
+                String(item.year) === String(year) && 
+                String(item.month) === String(month)
+            );
+            return t ? (parseFloat(t.unitPrice) || 0) : 0;
+        }
+// Tüm Sayaç Endekslerini Kaydeden Fonksiyon (Tarife Kaydı Dahil & Hata Korumalı)
         async function saveAllMeterReadings() {
-            const campusId = document.getElementById('meter-campus-filter')?.value;
-            const year = document.getElementById('meter-year-filter')?.value || String(new Date().getFullYear());
-            const month = document.getElementById('meter-month-filter')?.value || String(new Date().getMonth() + 1).padStart(2, '0');
+            try {
+                const campusId = document.getElementById('meter-campus-filter')?.value;
+                const year = document.getElementById('meter-year-filter')?.value || String(new Date().getFullYear());
+                const month = document.getElementById('meter-month-filter')?.value || String(new Date().getMonth() + 1).padStart(2, '0');
 
-            if (!campusId) {
-                alert("Lütfen önce bir yerleşke seçin.");
-                return;
-            }
+                if (!campusId) {
+                    alert("Lütfen önce bir yerleşke seçin.");
+                    return;
+                }
 
-            const campus = (data.campuses || []).find(c => String(c.id) === String(campusId));
-            if (!campus || !campus.offices || campus.offices.length === 0) {
-                alert("Kaydedilecek ofis bulunamadı.");
-                return;
-            }
+                const campus = (data.campuses || []).find(c => String(c.id) === String(campusId));
+                if (!campus || !campus.offices || campus.offices.length === 0) {
+                    alert("Kaydedilecek ofis bulunamadı.");
+                    return;
+                }
 
-            if (!data.meterReadings) data.meterReadings = [];
+                if (!data.meterReadings) data.meterReadings = [];
+                if (!data.meterTariffs) data.meterTariffs = [];
 
-            let savedCount = 0;
+                let savedCount = 0;
 
-            campus.offices.forEach(office => {
-                const offId = String(office.id);
+                // 1. Ofis Endekslerini Oku ve Güncelle
+                campus.offices.forEach(office => {
+                    const offId = String(office.id);
 
-                // DEĞERİ AKILLI OKUMA:
-                // Mobildeyse mobildeki kutudan, değilse masaüstü tablosundaki kutudan oku
-                const mobPrevEl = document.getElementById(`meter-prev-mob-${offId}`);
-                const deskPrevEl = document.getElementById(`meter-prev-${offId}`);
-                const prevVal = parseFloat(mobPrevEl?.value !== undefined && mobPrevEl.value !== '' ? mobPrevEl.value : deskPrevEl?.value) || 0;
+                    // Mobildeyse mobilden, yoksa masaüstünden oku
+                    const mobPrevEl = document.getElementById(`meter-prev-mob-${offId}`);
+                    const deskPrevEl = document.getElementById(`meter-prev-${offId}`);
+                    const prevVal = parseFloat(mobPrevEl && mobPrevEl.value !== '' ? mobPrevEl.value : (deskPrevEl ? deskPrevEl.value : 0)) || 0;
 
-                const mobCurrEl = document.getElementById(`meter-curr-mob-${offId}`);
-                const deskCurrEl = document.getElementById(`meter-curr-${offId}`);
-                const currVal = parseFloat(mobCurrEl?.value !== undefined && mobCurrEl.value !== '' ? mobCurrEl.value : deskCurrEl?.value) || 0;
+                    const mobCurrEl = document.getElementById(`meter-curr-mob-${offId}`);
+                    const deskCurrEl = document.getElementById(`meter-curr-${offId}`);
+                    const currVal = parseFloat(mobCurrEl && mobCurrEl.value !== '' ? mobCurrEl.value : (deskCurrEl ? deskCurrEl.value : 0)) || 0;
 
-                // Her iki inputu da görsel olarak birbiriyle eşitle
-                if (mobPrevEl) mobPrevEl.value = prevVal > 0 ? prevVal : '';
-                if (deskPrevEl) deskPrevEl.value = prevVal > 0 ? prevVal : '';
-                if (mobCurrEl) mobCurrEl.value = currVal > 0 ? currVal : '';
-                if (deskCurrEl) deskCurrEl.value = currVal > 0 ? currVal : '';
+                    // Giriş alanlarını görsel olarak eşitle
+                    if (mobPrevEl) mobPrevEl.value = prevVal > 0 ? prevVal : '';
+                    if (deskPrevEl) deskPrevEl.value = prevVal > 0 ? prevVal : '';
+                    if (mobCurrEl) mobCurrEl.value = currVal > 0 ? currVal : '';
+                    if (deskCurrEl) deskCurrEl.value = currVal > 0 ? currVal : '';
 
-                // Mevcut kaydı bul veya yenisini oluştur
-                let recordIndex = data.meterReadings.findIndex(m => 
-                    String(m.officeId) === offId && 
-                    String(m.year) === String(year) && 
-                    String(m.month) === String(month)
+                    // Mevcut kaydı bul veya ekle
+                    let recordIndex = data.meterReadings.findIndex(m => 
+                        String(m.officeId) === offId && 
+                        String(m.year) === String(year) && 
+                        String(m.month) === String(month)
+                    );
+
+                    if (recordIndex !== -1) {
+                        data.meterReadings[recordIndex].previousIndex = prevVal;
+                        data.meterReadings[recordIndex].currentIndex = currVal;
+                        data.meterReadings[recordIndex].updatedAt = new Date().toISOString();
+                    } else {
+                        data.meterReadings.push({
+                            id: 'meter_' + offId + '_' + year + '_' + month,
+                            campusId: String(campusId),
+                            officeId: offId,
+                            year: String(year),
+                            month: String(month),
+                            previousIndex: prevVal,
+                            currentIndex: currVal,
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
+                    savedCount++;
+                });
+
+                // 2. Birim Fiyatı Güvenli Şekilde Kaydet (Tanımsız fonksiyon çağrısı kaldırıldı)
+                const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
+                let tariffIndex = data.meterTariffs.findIndex(t => 
+                    String(t.campusId) === String(campusId) && 
+                    String(t.year) === String(year) && 
+                    String(t.month) === String(month)
                 );
 
-                if (recordIndex !== -1) {
-                    data.meterReadings[recordIndex].previousIndex = prevVal;
-                    data.meterReadings[recordIndex].currentIndex = currVal;
-                    data.meterReadings[recordIndex].updatedAt = new Date().toISOString();
+                if (tariffIndex !== -1) {
+                    data.meterTariffs[tariffIndex].unitPrice = unitPrice;
                 } else {
-                    data.meterReadings.push({
-                        id: 'meter_' + offId + '_' + year + '_' + month,
+                    data.meterTariffs.push({
                         campusId: String(campusId),
-                        officeId: offId,
                         year: String(year),
                         month: String(month),
-                        previousIndex: prevVal,
-                        currentIndex: currVal,
-                        updatedAt: new Date().toISOString()
+                        unitPrice: unitPrice
                     });
                 }
-                savedCount++;
-            });
 
-            // Birim fiyatı da yerleşke bazlı kaydet
-            const unitPrice = parseFloat(document.getElementById('meter-campus-unit-price')?.value) || 0;
-            saveCampusMeterTariff(campusId, year, month, unitPrice);
+                // 3. Ekrandaki Hesaplamaları Canlı Tazele
+                if (typeof recalculateMeterTableLive === 'function') {
+                    recalculateMeterTableLive(unitPrice);
+                }
 
-            // Tabloyu ve mobil kartları anlık hesaplamayla tazele
-            recalculateMeterTableLive(unitPrice);
+                // 4. Veriyi Yerel Depoya ve Google Apps Script Bulutuna Gönder
+                if (typeof saveData === 'function') {
+                    await saveData();
+                }
 
-            // Yerel depoya ve Google Apps Script Bulutuna kalıcı yaz
-            if (typeof saveData === 'function') {
-                await saveData();
-            }
+                if (typeof showToast === 'function') {
+                    showToast(`✓ ${savedCount} ofisin sayaç endeksleri buluta kaydedildi ve eşitlendi!`);
+                } else {
+                    alert(`✓ ${savedCount} ofisin sayaç endeksleri başarıyla kaydedildi!`);
+                }
 
-            if (typeof showToast === 'function') {
-                showToast(`✓ ${savedCount} ofisin sayaç endeksleri buluta kaydedildi ve eşitlendi!`);
-            } else {
-                alert(`✓ ${savedCount} ofisin sayaç endeksleri başarıyla kaydedildi!`);
+            } catch (err) {
+                console.error("Sayaç kaydetme hatası:", err);
+                alert("Kayıt sırasında bir hata oluştu: " + err.message);
             }
         }
         // ==================== ELEKTRİK SAYAÇ EXCEL VE PDF RAPORLAMA ====================
