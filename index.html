@@ -3743,10 +3743,12 @@ function renderDashboard() {
 function renderDuePaymentsAlert() {
             const alertBox = document.getElementById('due-payments-alert-box');
             const tbody = document.getElementById('due-payments-table-body');
+            const mobileContainer = document.getElementById('due-payments-cards-mobile');
             const countBadge = document.getElementById('due-payments-count-badge');
             if (!alertBox || !tbody) return;
 
             tbody.innerHTML = '';
+            if (mobileContainer) mobileContainer.innerHTML = '';
 
             // Bugünün YYYY-MM-DD formatında string karşılığı
             const now = new Date();
@@ -3782,11 +3784,12 @@ function renderDuePaymentsAlert() {
 
                 let badgeHtml = '';
                 if (diffDays === 0) {
-                    badgeHtml = `<span class="bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full inline-flex items-center"><i class="fa-solid fa-bell mr-1"></i>Bugün Son Gün!</span>`;
+                    badgeHtml = `<span class="bg-red-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full inline-flex items-center shrink-0"><i class="fa-solid fa-bell mr-1"></i>Bugün Son Gün!</span>`;
                 } else {
-                    badgeHtml = `<span class="bg-rose-100 border border-rose-300 text-rose-800 font-bold text-[10px] px-2 py-0.5 rounded-full inline-flex items-center"><i class="fa-solid fa-circle-exclamation mr-1"></i>${Math.abs(diffDays)} Gün Gecikti</span>`;
+                    badgeHtml = `<span class="bg-rose-100 border border-rose-300 text-rose-800 font-bold text-[10px] px-2 py-0.5 rounded-full inline-flex items-center shrink-0"><i class="fa-solid fa-circle-exclamation mr-1"></i>${Math.abs(diffDays)} Gün Gecikti</span>`;
                 }
 
+                // 1. MASAÜSTÜ TABLO SATIRI
                 tbody.innerHTML += `
                     <tr class="hover:bg-rose-100/40 transition">
                         <td class="p-2.5 font-bold text-gray-900">${item.name}</td>
@@ -3801,6 +3804,33 @@ function renderDuePaymentsAlert() {
                         </td>
                     </tr>
                 `;
+
+                // 2. MOBİL DİKEY KART (ASLA TAŞMAZ, DOKUNMATİK UYUMLU)
+                if (mobileContainer) {
+                    mobileContainer.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border border-rose-200 shadow-2xs space-y-2 w-full max-w-full overflow-hidden">
+                            <!-- Üst: Firma/Kişi Adı ve Tutar -->
+                            <div class="flex items-center justify-between gap-2 min-w-0">
+                                <span class="font-bold text-gray-900 text-xs truncate flex-1">${item.name}</span>
+                                <span class="text-rose-700 font-black text-sm tabular-nums shrink-0">${formatCurrency(item.amount)}</span>
+                            </div>
+
+                            <!-- Açıklama (Varsa) -->
+                            ${item.desc ? `<div class="text-[11px] text-gray-500 truncate"><i class="fa-regular fa-file-lines mr-1 text-gray-400"></i>${item.desc}</div>` : ''}
+
+                            <!-- Alt: Vade, Durum Rozeti ve Hızlı Ödendi Butonu -->
+                            <div class="flex items-center justify-between gap-2 border-t border-rose-100 pt-2 text-[11px]">
+                                <div class="flex items-center gap-1.5 flex-wrap min-w-0">
+                                    <span class="text-gray-500 font-medium">Vade: <strong class="text-rose-950">${toTRDate(item.dueDate)}</strong></span>
+                                    ${badgeHtml}
+                                </div>
+                                <button onclick="togglePaymentPaidStatus('${item.source}', '${item.id}', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg shadow-xs transition shrink-0 active:scale-95 inline-flex items-center">
+                                    <i class="fa-solid fa-check mr-1"></i>Ödendi
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
             });
 
             alertBox.classList.remove('hidden');
